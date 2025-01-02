@@ -57,7 +57,7 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
               Track Report
             </Link>
             <Link
-              href="/how-it-works"
+              href="/howitworks"
               className="text-sm text-zinc-400 hover:text-white transition-colors"
               onClick={onClose}
             >

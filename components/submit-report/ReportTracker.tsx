@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Search, Loader, MapPin } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Marker } from "react-map-gl";
@@ -83,8 +84,8 @@ export function ReportTracker() {
       }
 
       setReportDetails(data);
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error("Error fetching report", error);
       setError("Unable to find report. Please check the ID and try again.");
     } finally {
       setLoading(false);
@@ -213,7 +214,8 @@ export function ReportTracker() {
                       {reportDetails.status.toUpperCase()}
                     </span>
                   </div>
-                  <div className="p-3 rounded-lg bg-white/5 space-y-1.5">
+
+                  {/* <div className="p-3 rounded-lg bg-white/5 space-y-1.5">
                     <span className="text-zinc-400 text-sm">Image</span>
                     {reportDetails.image ? (
                       <img
@@ -226,7 +228,26 @@ export function ReportTracker() {
                         No image available for this report.
                       </p>
                     )}
+                  </div> */}
+
+                  <div className="p-3 rounded-lg bg-white/5 space-y-1.5">
+                    <span className="text-zinc-400 text-sm">Image</span>
+                    {reportDetails.image ? (
+                      <Image
+                        src={reportDetails.image}
+                        alt="Report"
+                        className="rounded-lg shadow-lg border border-white/5"
+                        width={500}
+                        height={300}
+                        layout="responsive"
+                      />
+                    ) : (
+                      <p className="text-white text-sm">
+                        No image available for this report.
+                      </p>
+                    )}
                   </div>
+
                   <div className="flex justify-between items-center p-3 rounded-lg bg-emerald-900/20">
                     <span className="text-zinc-400">Report ID</span>
                     <span className="text-white font-mono">

@@ -1,25 +1,22 @@
 import React from "react";
 import Link from "next/link";
-import { ShieldCheck, Bolt, Globe, Heart, Users, Activity } from "lucide-react";
+import { ShieldCheck, Bolt, Globe, Heart, Users, Activity, ArrowRight, Phone, AlertTriangle, Check } from "lucide-react";
 
 export default function Home() {
   const features = [
     {
       title: "Real-Time Data Sharing",
-      description:
-        "Instant processing and sharing of critical disaster information with emergency responders.",
+      description: "Instant processing and sharing of critical disaster information with emergency responders.",
       icon: <Bolt className="h-6 w-6" />,
     },
     {
       title: "Guaranteed Anonymity",
-      description:
-        "Advanced privacy protocols ensure complete protection of reporter identities.",
+      description: "Advanced privacy protocols ensure complete protection of reporter identities.",
       icon: <ShieldCheck className="h-6 w-6" />,
     },
     {
       title: "Nationwide Network",
-      description:
-        "Collaborative platform connecting communities, volunteers, and emergency services.",
+      description: "Collaborative platform connecting communities, volunteers, and emergency services.",
       icon: <Globe className="h-6 w-6" />,
     },
   ];
@@ -42,32 +39,44 @@ export default function Home() {
     },
   ];
 
+  const emergencyTypes = [
+    "Natural Disasters",
+    "Infrastructure Damage",
+    "Public Safety Threats",
+    "Medical Emergencies",
+    "Environmental Hazards",
+    "Resource Shortages"
+  ];
+
+  const testimonials = [
+    {
+      quote: "This platform helped our community coordinate emergency responses during the recent floods.",
+      author: "Emergency Response Coordinator",
+      location: "Portland, OR"
+    },
+    {
+      quote: "The anonymous reporting feature gave us crucial early warnings about developing situations.",
+      author: "Local Police Chief",
+      location: "Austin, TX"
+    }
+  ];
+
   return (
-    <main className="relative min-h-screen bg-black text-white overflow-x-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-green-900/20 to-green-700/10 opacity-50 pointer-events-none" />
+    <main className="relative min-h-screen bg-black text-white overflow-hidden">
+      {/* Enhanced gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-green-900/30 via-black to-green-700/20 opacity-70" />
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
       <div className="mx-auto max-w-6xl px-4 relative z-10">
-        {/* Hero Section */}
+        {/* Enhanced Hero Section */}
         <section className="pt-32 text-center">
-          <div className="inline-flex items-center gap-2 mb-6 rounded-full border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm text-white">
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
-            </svg>
-            Secure & Anonymous Disaster Reporting
+          <div className="inline-flex items-center gap-2 mb-6 rounded-full border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm text-white animate-pulse">
+            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+            24/7 Emergency Response Network
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6">
-            <span className="block bg-white  bg-clip-text text-transparent">
+            <span className="block bg-white bg-clip-text text-transparent">
               Empower Communities
             </span>
             <span className="block bg-gradient-to-r from-green-400 to-teal-500 bg-clip-text text-transparent">
@@ -76,47 +85,40 @@ export default function Home() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-lg text-green-100 mb-10">
-            Our platform bridges the gap between those experiencing disasters
-            and those who can help. By providing anonymous, real-time reporting,
-            we enable swift and effective emergency responses.
+            Our platform bridges the gap between those experiencing disasters and those who can help. 
+            By providing anonymous, real-time reporting, we enable swift and effective emergency responses.
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href={"/submit-report"}>
-              <button className="group relative flex h-12 items-center justify-center gap-2 rounded-xl bg-sky-500 px-8 text-sm font-medium text-white transition-all hover:bg-sky-400">
+            <Link href="/submit-report">
+              <button className="group relative flex h-12 items-center justify-center gap-2 rounded-xl bg-green-600 px-8 text-sm font-medium text-white transition-all hover:bg-green-500">
                 Make Anonymous Report
-                <svg
-                  className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 12h14M12 5l7 7-7 7"
-                  />
-                </svg>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
             </Link>
-            <Link href={"/how-it-works"}>
+            <Link href="/how-it-works">
               <button className="flex h-12 items-center justify-center gap-2 rounded-xl bg-white/5 px-8 text-sm font-medium text-white ring-1 ring-inset ring-white/10 transition-all hover:bg-white/10">
                 How it Works
               </button>
             </Link>
           </div>
+
+          {/* Emergency Contact */}
+          <div className="mt-12 inline-flex items-center gap-2 rounded-full bg-red-500/10 px-4 py-2 text-red-400 border border-red-500/30">
+            <Phone className="h-4 w-4" />
+            <span>Emergency? Call 911 for immediate assistance</span>
+          </div>
         </section>
 
-        {/* Features Section */}
+        {/* Enhanced Features Section */}
         <section className="mt-24">
           <div className="grid md:grid-cols-3 gap-6">
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="bg-green-500/10 border border-green-500/20 rounded-2xl p-6 hover:bg-green-500/20 transition-all group"
+                className="group bg-green-500/10 border border-green-500/20 rounded-2xl p-6 hover:bg-green-500/20 transition-all cursor-pointer"
               >
-                <div className="bg-green-500/20 rounded-xl p-3 mb-4 inline-block">
+                <div className="bg-green-500/20 rounded-xl p-3 mb-4 inline-block group-hover:bg-green-500/30 transition-all">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-semibold mb-3 text-green-100">
@@ -128,22 +130,34 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Community Impact */}
+        {/* Emergency Types Section */}
+        <section className="mt-24 text-center">
+          <h2 className="text-3xl font-bold mb-8">Types of Emergencies We Monitor</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {emergencyTypes.map((type, index) => (
+              <div key={index} className="flex items-center gap-2 bg-white/5 rounded-lg p-4">
+                <Check className="h-5 w-5 text-green-500" />
+                <span className="text-green-100">{type}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Enhanced Impact Stats */}
         <section className="mt-24 text-center">
           <h2 className="text-4xl font-bold mb-6">Our Collective Impact</h2>
           <p className="max-w-2xl mx-auto text-green-200 mb-12">
-            Together, we&#39;re building a more resilient and responsive
-            emergency support ecosystem.
+            Together, we&apos;re building a more resilient and responsive emergency support ecosystem.
           </p>
 
           <div className="grid md:grid-cols-3 gap-6">
             {impactStats.map((stat, index) => (
               <div
                 key={index}
-                className="bg-green-500/10 border border-green-500/20 rounded-2xl p-8 flex flex-col items-center"
+                className="bg-green-500/10 border border-green-500/20 rounded-2xl p-8 flex flex-col items-center hover:transform hover:scale-105 transition-all"
               >
                 {stat.icon}
-                <h3 className="text-4xl font-bold mt-4 text-green-300">
+                <h3 className="text-4xl font-bold mt-4 bg-gradient-to-r from-green-400 to-teal-500 bg-clip-text text-transparent">
                   {stat.value}
                 </h3>
                 <p className="text-green-200 mt-2">{stat.label}</p>
@@ -152,21 +166,36 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Volunteer Section */}
-        <section className="mt-24 text-center bg-green-500/10 rounded-2xl p-12 border border-green-500/20">
+        {/* Testimonials Section */}
+        <section className="mt-24">
+          <div className="grid md:grid-cols-2 gap-6">
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="bg-white/5 rounded-2xl p-8 border border-white/10">
+                <p className="text-lg text-green-100 mb-4">&quot;{testimonial.quote}&quot;</p>
+                <div className="text-sm text-green-300">
+                  <p className="font-semibold">{testimonial.author}</p>
+                  <p>{testimonial.location}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-24 text-center bg-gradient-to-br from-green-500/10 to-teal-500/10 rounded-2xl p-12 border border-green-500/20">
           <h2 className="text-4xl font-bold mb-6">Join Our Mission</h2>
           <p className="max-w-2xl mx-auto text-green-200 mb-10">
-            Become a critical part of our disaster response network. Your
-            commitment can save lives and help communities rebuild.
+            Become a critical part of our disaster response network. Your commitment can save lives and help communities rebuild.
           </p>
 
           <Link href="/volunteer">
-            <button className="btn-primary px-10 py-4 text-lg">
+            <button className="group relative inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-8 text-sm font-medium text-green-900 transition-all hover:bg-green-100">
               Become a Volunteer
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </button>
           </Link>
         </section>
 
+        {/* Trust Badge */}
         <div className="mt-40 mb-20 flex justify-center">
           <div className="inline-flex items-center gap-3 rounded-full bg-zinc-900 px-5 py-2 text-sm text-zinc-400">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />

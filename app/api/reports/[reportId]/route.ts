@@ -20,10 +20,58 @@ export async function PATCH(
 
     return NextResponse.json(report);
   } catch (error) {
-    console.error("Error updating report:", error); // Logging the error
+    console.error(error);
     return NextResponse.json(
       { error: "Error updating report" },
       { status: 500 }
     );
   }
 }
+
+
+export async function GET() {
+  try {
+    const session = await getServerSession()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const reports = await prisma.report.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        assignedTeams: true,
+        moderatorResponses: {
+          include: {
+            moderator: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
+
+    return NextResponse.json(reports)
+  } catch (error) {
+    console.error('Failed to fetch reports:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+

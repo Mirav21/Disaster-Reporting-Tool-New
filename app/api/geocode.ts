@@ -27,7 +27,7 @@ export default async function handler(
       res.status(404).json({ error: "Location not found" });
     }
   } catch (error) {
-    console.error("Error updating report:", error);
+    console.error("Geocoding error:", error);
     res.status(500).json({ error: "Geocoding failed" });
   }
 }

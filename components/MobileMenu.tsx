@@ -1,5 +1,6 @@
+import { signOut } from "next-auth/react";
 import Link from "next/link";
-
+//
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
@@ -62,20 +63,31 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             >
               How It Works
             </Link>
-            <Link
-              href="/resources"
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
-              onClick={onClose}
-            >
-              Resources
-            </Link>
-            <Link
+            {/* <Link
               href="/contact"
               className="text-sm text-zinc-400 hover:text-white transition-colors"
               onClick={onClose}
             >
               Contact
+            </Link> */}
+            <Link
+              href="/profile"
+              className="text-sm text-zinc-400 hover:text-white transition-colors"
+            >
+              Profile
             </Link>
+            {/* <Link
+              href="/settings"
+              className="text-sm text-zinc-400 hover:text-white transition-colors"
+            >
+              Settings
+            </Link> */}
+            <button
+              onClick={() => signOut()}
+              className="text-sm text-left text-zinc-400 hover:text-white transition-colors"
+            >
+              Sign Out
+            </button>
           </nav>
         </div>
       </div>

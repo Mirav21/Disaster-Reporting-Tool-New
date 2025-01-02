@@ -1,66 +1,210 @@
-'use client'
+"use client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { Report, ReportStatus, ReportType } from "@prisma/client";
 import { signOut } from "next-auth/react";
-import { 
-  Award, 
-  Clock, 
-  MapPin, 
-  User, 
-  FileText, 
-  Check, 
-  XCircle, 
+import {
+  Award,
+  Clock,
+  MapPin,
+  User,
+  FileText,
+  Check,
+  XCircle,
   RefreshCw,
-  Filter,
   Search,
-  MoreHorizontal
+  MoreHorizontal,
+  Bell,
+  Settings,
+  LogOut,
+  ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
+import axios from "axios";
+import toast from "react-hot-toast";
+
+// Define the new interface based on the API response
+interface DisasterReport {
+  id: string;
+  reportId: string;
+  description: string;
+  disasterType: string;
+  severity: string;
+  status: string;
+  location: string;
+  contactInfo: string;
+  imageUrl: string | null;
+  createdAt: string;
+  teamAssign: {
+    teamName: string;
+    team_id: string;
+    status: string;
+  } | null;
+  title: string | null;
+}
+
+interface Team {
+  team_id: string;
+  teamName: string;
+  status: string;
+}
+
+enum ReportStatus {
+  PENDING = "PENDING",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+}
+
+// type SelectedReport = {
+//   status: string;
+//   teamAssign: { teamName: string } | null;
+// };
 
 export default function Dashboard() {
   const { data: session } = useSession();
-  const [reports, setReports] = useState<Report[]>([]);
-  const [filter, setFilter] = useState<ReportStatus | "ALL">("ALL");
-  const [typeFilter, setTypeFilter] = useState<ReportType | "ALL">("ALL");
+  const [reports, setReports] = useState<DisasterReport[]>([]);
+  const [filter, setFilter] = useState<string>("ALL");
+  const [typeFilter, setTypeFilter] = useState<string>("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [selectedReport, setSelectedReport] = useState<DisasterReport | null>(
+    null
+  );
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showSOSModal, setShowSOSModal] = useState(false);
+  const [sosRadius, setSOSRadius] = useState(5);
+  const [sosMessage, setSOSMessage] = useState("");
+  const [isSendingAlert, setIsSendingAlert] = useState(false);
 
   useEffect(() => {
     fetchReports();
   }, []);
 
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid Date";
+    }
+  };
+
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [selectedTeam, setSelectedTeam] = useState("");
+  //const [, setteamChange] = useState("");
+
+  useEffect(() => {
+    fetchTeams();
+  }, []);
+
+  const fetchTeams = () => {
+    const token = localStorage.getItem("token");
+    axios
+      .get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/team_assign/getAllTeams`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
+        const availableTeams = response.data.filter(
+          (team: Team) => team.status !== "BUSY"
+        );
+        setTeams(availableTeams);
+      })
+      .catch((error) => console.error("Error fetching teams:", error));
+  };
+
+  interface AssignTeamResponse {
+    reportId: string;
+    teamId: string;
+  }
+
+  const handleAssignTeam = async (reportId: string): Promise<void> => {
+    const token = localStorage.getItem("token");
+
+    if (!selectedTeam) {
+      toast.error("Please select a team to assign.");
+      return;
+    }
+
+    console.log("Assigning team:", selectedTeam, "to report:", reportId);
+
+    try {
+      await axios.put<AssignTeamResponse>(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/disaster-report/assign-team`,
+        {
+          reportId,
+          teamId: selectedTeam,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      //setteamChange(selectedTeam);
+      toast.success("Team assigned successfully");
+      fetchReports();
+    } catch (error) {
+      console.error("Error assigning team:", error);
+      toast.error("Failed to assign team");
+    }
+  };
+
   const fetchReports = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/reports");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/disaster-report/admin-reports`
+      );
       const data = await response.json();
-      setReports(data);
+      // Transform the data to ensure status is of type ReportStatus
+      const transformedData = data.map((report: DisasterReport) => ({
+        ...report,
+        status: report.status,
+      }));
+      setReports(transformedData);
+      console.log("Reports:", transformedData);
     } catch (error) {
       console.error("Error fetching reports:", error);
+      setReports([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const updateReportStatus = async (
-    reportId: string,
-    newStatus: ReportStatus
-  ) => {
+  const updateReportStatus = async (reportId: string, newStatus: string) => {
+    const token = localStorage.getItem("token");
+    console.log(token);
+    console.log("Updating report status:", reportId, newStatus);
     try {
-      const response = await fetch(`/api/reports/${reportId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
+      const endpoint =
+        newStatus === "COMPLETED"
+          ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/disaster-report/completed/${reportId}`
+          : `${process.env.NEXT_PUBLIC_BACKEND_URL}/disaster-report/review/${reportId}`;
 
-      if (response.ok) {
-        fetchReports();
-        setSelectedReport(null);
-      }
+      await axios.put(
+        endpoint,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+        {}
+      );
+      // setReports([]);
     } catch (error) {
       console.error("Error updating report:", error);
     }
@@ -68,220 +212,413 @@ export default function Dashboard() {
 
   const filteredReports = reports.filter((report) => {
     const statusMatch = filter === "ALL" || report.status === filter;
-    const typeMatch = typeFilter === "ALL" || report.type === typeFilter;
-    const searchMatch = 
-      report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const typeMatch =
+      typeFilter === "ALL" || report.disasterType === typeFilter;
+    const searchMatch =
+      report.reportId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.user.name.toLowerCase().includes(searchTerm.toLowerCase());
+      report.location.toLowerCase().includes(searchTerm.toLowerCase());
     return statusMatch && typeMatch && searchMatch;
   });
 
-  const getStatusIcon = (status: ReportStatus) => {
+  const getStatusIcon = (status: string) => {
     const icons = {
-      PENDING: <Clock className="text-amber-300" />,
-      IN_PROGRESS: <RefreshCw className="text-sky-300" />,
-      RESOLVED: <Check className="text-emerald-300" />,
-      DISMISSED: <XCircle className="text-neutral-300" />
+      PENDING: <Clock className="text-amber-400" />,
+      IN_PROGRESS: <RefreshCw className="text-blue-400 animate-spin" />,
+      RESOLVED: <Check className="text-emerald-400" />,
+      DISMISSED: <XCircle className="text-neutral-400" />,
     };
-    return icons[status];
+    return icons[status as keyof typeof icons] || icons.PENDING;
   };
 
-  const getStatusColor = (status: ReportStatus) => {
+  const getStatusColor = (status: string) => {
     const colors = {
       PENDING: "bg-amber-500/20 text-amber-200 border border-amber-500/30",
-      IN_PROGRESS: "bg-sky-500/20 text-sky-200 border border-sky-500/30",
-      RESOLVED: "bg-emerald-500/20 text-emerald-200 border border-emerald-500/30",
-      DISMISSED: "bg-neutral-500/20 text-neutral-200 border border-neutral-500/30",
+      IN_PROGRESS: "bg-blue-500/20 text-blue-200 border border-blue-500/30",
+      COMPLETED:
+        "bg-emerald-500/20 text-emerald-200 border border-emerald-500/30",
+      DISMISSED:
+        "bg-neutral-500/20 text-neutral-200 border border-neutral-500/30",
     };
-    return colors[status];
+    return colors[status as keyof typeof colors] || colors.PENDING;
   };
 
-  const openReportDetails = (report: Report) => {
-    setSelectedReport(report);
+  const sendSOSAlert = async () => {
+    if (!selectedReport) return;
+
+    setIsSendingAlert(true);
+    try {
+      const response = await fetch("/api/reports/sos-alert", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reportId: selectedReport.id,
+          radius: sosRadius,
+          message: sosMessage,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setShowSOSModal(false);
+      }
+    } catch (error) {
+      console.error("Error sending SOS alert:", error);
+    } finally {
+      setIsSendingAlert(false);
+    }
   };
+
+  const SOSAlertSection = () => (
+    <div className="bg-red-500/10 backdrop-blur-sm rounded-xl p-4 border border-red-500/20">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-red-400" />
+          <h4 className="text-red-400 text-sm">Emergency Alert</h4>
+        </div>
+        <button
+          onClick={() => setShowSOSModal(true)}
+          className="px-3 py-1 bg-red-500 hover:bg-red-600 rounded-lg text-white text-sm transition-colors flex items-center gap-2"
+        >
+          <Bell className="w-4 h-4" />
+          Send SOS Alert
+        </button>
+      </div>
+      <p className="text-neutral-400 text-sm">
+        Send emergency alerts to all users in the affected area.
+      </p>
+    </div>
+  );
+
+  const SOSAlertModal = () =>
+    showSOSModal && (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="bg-neutral-900 rounded-xl border border-neutral-800 w-full max-w-md p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-400" />
+              Send Emergency Alert
+            </h3>
+            <button
+              onClick={() => setShowSOSModal(false)}
+              className="p-2 hover:bg-neutral-800 rounded-lg text-neutral-400 hover:text-white transition-colors"
+            >
+              <XCircle className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-neutral-400 mb-1">
+                Alert Radius (km)
+              </label>
+              <input
+                type="number"
+                value={sosRadius}
+                onChange={(e) => setSOSRadius(Number(e.target.value))}
+                min="1"
+                max="50"
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-400 mb-1">
+                Alert Message
+              </label>
+              <textarea
+                value={sosMessage}
+                onChange={(e) => setSOSMessage(e.target.value)}
+                placeholder="Enter emergency alert message..."
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-white h-32 resize-none"
+              />
+            </div>
+
+            <div className="bg-red-500/10 rounded-lg p-4 border border-red-500/20">
+              <p className="text-sm text-red-400">
+                ⚠️ This will send an emergency alert to all users within{" "}
+                {sosRadius}km of the incident location.
+              </p>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowSOSModal(false)}
+                className="flex-1 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={sendSOSAlert}
+                disabled={isSendingAlert || !sosMessage.trim()}
+                className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-red-500/50 disabled:cursor-not-allowed rounded-lg text-white transition-colors flex items-center justify-center gap-2"
+              >
+                {isSendingAlert ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Bell className="w-4 h-4" />
+                    Send Alert
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-neutral-800 border-t-blue-500"></div>
+          <p className="text-neutral-400">Loading reports...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex">
+    <div className="min-h-screen bg-gradient-to-br from-black via-neutral-950 to-neutral-900 text-white flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col">
+      <aside className="w-64 bg-neutral-900/50 backdrop-blur-md border-r border-neutral-800 flex flex-col">
         <div className="p-6 border-b border-neutral-800">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
             Admin Panel
           </h1>
         </div>
+
         <nav className="flex-grow">
-          <ul className="py-4">
-            <Link className="px-6 py-3 hover:bg-neutral-800 cursor-pointer flex items-center gap-3 text-neutral-300 hover:text-white transition-colors" href={"/dashboard"}>
-              <FileText className="w-5 h-5" />
-              Reports
-            </Link>
-            <Link className="px-6 py-3 hover:bg-neutral-800 cursor-pointer flex items-center gap-3 text-neutral-300 hover:text-white transition-colors" href={"/users"}>
-              <User className="w-5 h-5" />
-              Users
-            </Link>
+          <div className="px-4 py-2 text-xs font-medium text-neutral-400 uppercase tracking-wider">
+            Main Menu
+          </div>
+          <ul className="space-y-1">
+            <li>
+              <Link
+                href="/dashboard"
+                className="px-4 py-3 mx-2 rounded-lg hover:bg-blue-500/10 cursor-pointer flex items-center gap-3 text-blue-400 transition-colors group"
+              >
+                <FileText className="w-5 h-5" />
+                Reports
+                <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/users"
+                className="px-4 py-3 mx-2 rounded-lg hover:bg-neutral-800 cursor-pointer flex items-center gap-3 text-neutral-400 hover:text-white transition-colors group"
+              >
+                <User className="w-5 h-5" />
+                Users
+                <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Link>
+            </li>
+          </ul>
+
+          <div className="px-4 py-2 mt-6 text-xs font-medium text-neutral-400 uppercase tracking-wider">
+            Settings
+          </div>
+          <ul className="space-y-1">
+            <li>
+              <Link
+                href="/notifications"
+                className="px-4 py-3 mx-2 rounded-lg hover:bg-neutral-800 cursor-pointer flex items-center gap-3 text-neutral-400 hover:text-white transition-colors group"
+              >
+                <Bell className="w-5 h-5" />
+                Notifications
+                <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/settings"
+                className="px-4 py-3 mx-2 rounded-lg hover:bg-neutral-800 cursor-pointer flex items-center gap-3 text-neutral-400 hover:text-white transition-colors group"
+              >
+                <Settings className="w-5 h-5" />
+                Settings
+                <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Link>
+            </li>
           </ul>
         </nav>
+
         <div className="p-4 border-t border-neutral-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-neutral-700 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6 text-neutral-300" />
-            </div>
-            <div className="flex-grow">
-              <p className="text-sm font-medium">{session?.user?.name || "Admin"}</p>
-              <p className="text-xs text-neutral-400">Administrator</p>
-            </div>
+          <div className="relative">
             <button
-              onClick={() => signOut()}
-              className="text-neutral-400 hover:text-white transition-colors"
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-800 transition-colors group"
             >
-              <MoreHorizontal className="w-5 h-5" />
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-grow text-left">
+                <p className="text-sm font-medium truncate">
+                  {session?.user?.name || "Admin"}
+                </p>
+                <p className="text-xs text-neutral-400">Administrator</p>
+              </div>
+              <MoreHorizontal className="w-5 h-5 text-neutral-400 group-hover:text-white transition-colors" />
             </button>
+
+            {showUserMenu && (
+              <div className="absolute bottom-full left-0 w-full mb-2 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl">
+                <button
+                  onClick={() => signOut()}
+                  className="w-full flex items-center gap-2 px-4 py-3 text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors rounded-lg"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-grow bg-black p-8">
-        <div className="max-w-7xl mx-auto">
+      <main className="flex-grow p-8 overflow-y-auto">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-white">
+                Reports Dashboard
+              </h1>
+              <p className="text-neutral-400">
+                Manage and track all reported incidents
+              </p>
+            </div>
+
+            {/* <div className="flex gap-4">
+              <button className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded-lg text-neutral-400 hover:text-white transition-colors flex items-center gap-2">
+                <Bell className="w-4 h-4" />
+                <span className="text-sm">Notifications</span>
+              </button>
+              <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white transition-colors flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                <span className="text-sm">New Report</span>
+              </button>
+            </div> */}
+          </div>
+
           {/* Search and Filters */}
-          <div className="mb-8 flex justify-between items-center">
-            <div className="relative flex-grow mr-4">
-              <input 
+          <div className="flex gap-4 flex-wrap">
+            <div className="flex-grow relative">
+              <input
                 type="text"
                 placeholder="Search reports..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-neutral-900 border border-neutral-800 rounded-lg pl-10 pr-4 py-2 text-white focus:ring-2 focus:ring-blue-500/20"
+                className="w-full bg-neutral-900/50 backdrop-blur-sm border border-neutral-800 rounded-lg pl-10 pr-4 py-2 text-white placeholder-neutral-400 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/20 transition-all"
               />
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 w-5 h-5" />
             </div>
 
-            <div className="flex gap-4">
-              <div className="relative">
-                <select
-                  value={filter}
-                  onChange={(e) =>
-                    setFilter(e.target.value as ReportStatus | "ALL")
-                  }
-                  className="appearance-none bg-neutral-900 border border-neutral-800 text-neutral-100 rounded-lg pl-4 pr-10 py-2 focus:ring-2 focus:ring-blue-500/20"
-                >
-                  <option value="ALL">All Statuses</option>
-                  {Object.values(ReportStatus).map((status) => (
-                    <option key={status} value={status}>
-                      {status.replace("_", " ")}
-                    </option>
-                  ))}
-                </select>
-                <Filter className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 w-5 h-5" />
-              </div>
+            {/* <select
+              value={filter}
+              onChange={(e) =>
+                setFilter(e.target.value as ReportStatus | "ALL")
+              }
+              className="appearance-none bg-neutral-900/50 backdrop-blur-sm border border-neutral-800 text-neutral-100 rounded-lg pl-4 pr-10 py-2 focus:ring-2 focus:ring-blue-500/20 transition-all"
+            >
+              <option value="ALL">All Statuses</option>
+              {Object.values(ReportStatus).map((status) => (
+                <option key={status} value={status}>
+                  {status.replace("_", " ")}
+                </option>
+              ))}
+            </select> */}
 
-              <div className="relative">
-                <select
-                  value={typeFilter}
-                  onChange={(e) =>
-                    setTypeFilter(e.target.value as ReportType | "ALL")
-                  }
-                  className="appearance-none bg-neutral-900 border border-neutral-800 text-neutral-100 rounded-lg pl-4 pr-10 py-2 focus:ring-2 focus:ring-blue-500/20"
-                >
-                  <option value="ALL">All Types</option>
-                  {Object.values(ReportType).map((type) => (
-                    <option key={type} value={type}>
-                      {type.replace("_", " ")}
-                    </option>
-                  ))}
-                </select>
-                <Filter className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 w-5 h-5" />
-              </div>
-            </div>
+            {/* <select
+              value={typeFilter}
+              onChange={(e) =>
+                setTypeFilter(e.target.value as ReportType | "ALL")
+              }
+              className="appearance-none bg-neutral-900/50 backdrop-blur-sm border border-neutral-800 text-neutral-100 rounded-lg pl-4 pr-10 py-2 focus:ring-2 focus:ring-blue-500/20 transition-all"
+            >
+              <option value="ALL">All Types</option>
+              {Object.values(ReportType).map((type) => (
+                <option key={type} value={type}>
+                  {type.replace("_", " ")}
+                </option>
+              ))}
+            </select> */}
           </div>
 
-          {/* Reports List */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-6">
-              {filteredReports.slice(0, Math.ceil(filteredReports.length / 2)).map((report) => (
-                <div
-                  key={report.id}
-                  onClick={() => openReportDetails(report)}
-                  className={`bg-neutral-900/60 backdrop-blur-sm rounded-2xl p-6 border ${
-                    selectedReport?.id === report.id 
-                      ? 'border-blue-500/50' 
-                      : 'border-neutral-800 hover:border-neutral-700'
-                  } transition-all shadow-lg cursor-pointer`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-3 flex-1">
-                      <div className="flex items-center gap-3">
-                        {getStatusIcon(report.status)}
-                        <h2 className="text-lg font-semibold text-neutral-100 flex-grow truncate">
-                          {report.title}
-                        </h2>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${getStatusColor(
-                            report.status
-                          )}`}
-                        >
-                          {report.status.replace("_", " ")}
-                        </span>
-                      </div>
-                      <p className="text-neutral-300 text-sm line-clamp-2">
-                        {report.description}
-                      </p>
-                    </div>
+            {filteredReports.map((report) => (
+              <div
+                key={report.id}
+                onClick={() => setSelectedReport(report)}
+                className={`group bg-neutral-900/50 backdrop-blur-sm rounded-xl p-6 border ${
+                  selectedReport?.id === report.id
+                    ? "border-blue-500/50 ring-1 ring-blue-500/20"
+                    : "border-neutral-800 hover:border-neutral-700"
+                } transition-all cursor-pointer hover:transform hover:scale-[1.02] hover:shadow-xl`}
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    {getStatusIcon(report.status)}
+                    <h2 className="text-lg font-semibold text-white flex-grow truncate">
+                      {report.disasterType} - {report.reportId}
+                    </h2>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${getStatusColor(
+                        report.status
+                      )}`}
+                    >
+                      {report.status}
+                    </span>
                   </div>
-                </div>
-              ))}
-            </div>
 
-            <div className="space-y-6">
-              {filteredReports.slice(Math.ceil(filteredReports.length / 2)).map((report) => (
-                <div
-                  key={report.id}
-                  onClick={() => openReportDetails(report)}
-                  className={`bg-neutral-900/60 backdrop-blur-sm rounded-2xl p-6 border ${
-                    selectedReport?.id === report.id 
-                      ? 'border-blue-500/50' 
-                      : 'border-neutral-800 hover:border-neutral-700'
-                  } transition-all shadow-lg cursor-pointer`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-3 flex-1">
-                      <div className="flex items-center gap-3">
-                        {getStatusIcon(report.status)}
-                        <h2 className="text-lg font-semibold text-neutral-100 flex-grow truncate">
-                          {report.title}
-                        </h2>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${getStatusColor(
-                            report.status
-                          )}`}
-                        >
-                          {report.status.replace("_", " ")}
-                        </span>
-                      </div>
-                      <p className="text-neutral-300 text-sm line-clamp-2">
-                        {report.description}
-                      </p>
+                  <p className="text-neutral-400 text-sm line-clamp-2 group-hover:text-neutral-300 transition-colors">
+                    {report.description}
+                  </p>
+
+                  <div className="flex items-center gap-4 text-sm text-neutral-400">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      <span>{report.contactInfo || "Anonymous"}</span>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      <span>{formatDate(report.createdAt)}</span>
+                    </div>
+                    {report.location && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        <span>{report.location}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
 
           {/* Empty State */}
           {filteredReports.length === 0 && (
-            <div className="text-center py-16 text-neutral-400 bg-neutral-900/50 rounded-xl border border-neutral-800">
+            <div className="text-center py-16 bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-800">
               <FileText className="mx-auto mb-4 w-12 h-12 text-neutral-500" />
-              <p className="text-lg">No reports found matching the selected filters.</p>
+              <p className="text-lg text-neutral-400">
+                No reports found matching the selected filters.
+              </p>
+              <button
+                onClick={() => {
+                  setFilter("ALL");
+                  setTypeFilter("ALL");
+                  setSearchTerm("");
+                }}
+                className="mt-4 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 hover:text-white transition-colors text-sm"
+              >
+                Clear Filters
+              </button>
             </div>
           )}
         </div>
@@ -289,121 +626,196 @@ export default function Dashboard() {
 
       {/* Report Details Sidebar */}
       {selectedReport && (
-  <div className="fixed inset-y-0 right-0 w-[400px] bg-neutral-900 border-l border-neutral-800 shadow-2xl z-50 overflow-y-auto">
-    <div className="p-6 border-b border-neutral-800 flex justify-between items-center">
-      <h2 className="text-xl font-semibold">Report Details</h2>
-      <button 
-        onClick={() => setSelectedReport(null)}
-        className="text-neutral-400 hover:text-white"
-      >
-        <XCircle className="w-6 h-6" />
-      </button>
-    </div>
-
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-start">
-        <div className="flex-grow">
-          <h3 className="text-lg font-semibold text-neutral-100">{selectedReport.title}</h3>
-          <div className="mt-2 flex items-center gap-2">
-            {getStatusIcon(selectedReport.status)}
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${getStatusColor(
-                selectedReport.status
-              )}`}
+        <div className="fixed inset-y-0 right-0 w-[480px] bg-neutral-900/95 backdrop-blur-xl border-l border-neutral-800 shadow-2xl z-50 overflow-y-auto transition-transform duration-300 transform">
+          <div className="sticky top-0 bg-neutral-900/95 backdrop-blur-xl border-b border-neutral-800 p-6 flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Report Details</h2>
+            <button
+              onClick={() => setSelectedReport(null)}
+              className="p-2 hover:bg-neutral-800 rounded-lg text-neutral-400 hover:text-white transition-colors"
             >
-              {selectedReport.status.replace("_", " ")}
-            </span>
+              <XCircle className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-start">
+                <h3 className="text-lg font-semibold text-white">
+                  {selectedReport.disasterType}
+                </h3>
+                <div
+                  className={`px-3 py-1 rounded-full text-xs font-medium uppercase flex items-center gap-2 ${getStatusColor(
+                    selectedReport.status
+                  )}`}
+                >
+                  {getStatusIcon(selectedReport.status)}
+                  {selectedReport.status.replace("_", " ")}
+                </div>
+              </div>
+
+              <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                <h4 className="text-neutral-400 text-sm mb-2">Description</h4>
+                <p className="text-white">{selectedReport.description}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Award className="w-4 h-4 text-neutral-400" />
+                    <h4 className="text-neutral-400 text-sm">Type</h4>
+                  </div>
+                  <p className="text-white">
+                    {selectedReport.disasterType.replace("_", " ")}
+                  </p>
+                </div>
+
+                <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MapPin className="w-4 h-4 text-neutral-400" />
+                    <h4 className="text-neutral-400 text-sm">Location</h4>
+                  </div>
+                  <p className="text-white">
+                    {selectedReport.location || "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="w-4 h-4 text-neutral-400" />
+                    <h4 className="text-neutral-400 text-sm">Created At</h4>
+                  </div>
+                  <p className="text-white">
+                    {new Date(selectedReport.createdAt).toLocaleDateString()}{" "}
+                    {new Date(selectedReport.createdAt).toLocaleTimeString()}
+                  </p>
+                </div>
+
+                {/* <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="w-4 h-4 text-neutral-400" />
+                    <h4 className="text-neutral-400 text-sm">Reported By</h4>
+                  </div>
+                  <p className="text-white">
+                    {selectedReport.userId
+                      ? `User ID: ${selectedReport.userId}`
+                      : "Unknown User"}
+                  </p>
+                </div> */}
+              </div>
+
+              {selectedReport.imageUrl && (
+                <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                  <h4 className="text-neutral-400 text-sm mb-2">
+                    Attached Image
+                  </h4>
+                  <div className="overflow-hidden rounded-xl border border-neutral-700">
+                    <img
+                      src={selectedReport.imageUrl}
+                      alt="Report Attachment"
+                      className="w-full h-auto object-cover transition-transform hover:scale-105"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <SOSAlertSection />
+
+              {selectedReport.status === "IN_PROGRESS" &&
+              !selectedReport.teamAssign ? (
+                <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="w-4 h-4 text-neutral-400" />
+                    <h4 className="text-neutral-400 text-sm">Assigned Team</h4>
+                  </div>
+                  <div className="space-y-2">
+                    <select
+                      value={selectedTeam}
+                      onChange={(e) => setSelectedTeam(e.target.value)}
+                      className="w-full bg-neutral-700 text-white border border-neutral-600 rounded-lg px-4 py-2"
+                    >
+                      <option value="">Select a team</option>
+                      {teams.map((team) => (
+                        <option key={team.team_id} value={team.team_id}>
+                          {team.teamName}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => handleAssignTeam(selectedReport.id)}
+                      className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white transition-colors"
+                    >
+                      Assign Team
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="w-4 h-4 text-neutral-400" />
+                    <h4 className="text-neutral-400 text-sm">Assigned Team</h4>
+                  </div>
+                  <p className="text-white">
+                    {selectedReport.teamAssign?.teamName || "No Team Assigned"}
+                  </p>
+                </div>
+              )}
+
+              {/* <>
+                {selectedReport.assignedTeams.length > 0 ? (
+                  <p className="text-neutral-100">
+                    {selectedReport.assignedTeams[0].name} (
+                    {selectedReport.assignedTeams[0].specialization})
+                  </p>
+                ) : (
+                  <select
+                    onChange={(e) => onAssign(report.id, e.target.value)}
+                    className="bg-neutral-700 text-neutral-100 border border-neutral-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 transition duration-300 w-full"
+                  >
+                    <option value="">Assign a team</option>
+                    {rescueTeams.map((team) => (
+                      <option key={team.id} value={team.id}>
+                        {team.name} ({team.specialization})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </> */}
+
+              <div className="sticky bottom-0 bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-800 -mx-6 -mb-6 p-6">
+                <div className="flex gap-4">
+                  <select
+                    value={selectedReport.status}
+                    onChange={(e) => {
+                      const newStatus = e.target.value;
+                      updateReportStatus(selectedReport.id, newStatus);
+                    }}
+                    className="flex-grow appearance-none bg-neutral-800 border border-neutral-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  >
+                    {Object.values(ReportStatus).map((status) => (
+                      <option key={status} value={status}>
+                        {status.replace("_", " ")}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    onClick={() => setSelectedReport(null)}
+                    className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 hover:text-white transition-colors"
+                  >
+                    Close
+                  </button>
+                  <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white transition-colors">
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        
-        <div className="relative">
-          <select
-            value={selectedReport.status}
-            onChange={(e) =>
-              updateReportStatus(
-                selectedReport.id,
-                e.target.value as ReportStatus
-              )
-            }
-            className="appearance-none bg-neutral-800 border border-neutral-700 text-neutral-100 rounded-lg pl-4 pr-10 py-2 focus:ring-2 focus:ring-blue-500/20"
-          >
-            {Object.values(ReportStatus).map((status) => (
-              <option key={status} value={status}>
-                {status.replace("_", " ")}
-              </option>
-            ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-neutral-300">
-            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <div className="bg-neutral-800 rounded-lg p-4">
-          <h4 className="text-neutral-400 text-sm mb-2">Description</h4>
-          <p className="text-neutral-100">{selectedReport.description}</p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-neutral-800 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Award className="w-4 h-4 text-neutral-400" />
-              <h4 className="text-neutral-400 text-sm">Type</h4>
-            </div>
-            <p className="text-neutral-100">{selectedReport.type.replace("_", " ")}</p>
-          </div>
-
-          <div className="bg-neutral-800 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <MapPin className="w-4 h-4 text-neutral-400" />
-              <h4 className="text-neutral-400 text-sm">Location</h4>
-            </div>
-            <p className="text-neutral-100">{selectedReport.location || "N/A"}</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-neutral-800 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4 text-neutral-400" />
-              <h4 className="text-neutral-400 text-sm">Created At</h4>
-            </div>
-            <p className="text-neutral-100">
-              {new Date(selectedReport.createdAt).toLocaleDateString()}
-              {' '}
-              {new Date(selectedReport.createdAt).toLocaleTimeString()}
-            </p>
-          </div>
-
-          <div className="bg-neutral-800 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <User className="w-4 h-4 text-neutral-400" />
-              <h4 className="text-neutral-400 text-sm">Reported By</h4>
-            </div>
-            <p className="text-neutral-100">{selectedReport.user.name || "Unknown User"}</p>
-          </div>
-        </div>
-
-        {selectedReport.image && (
-          <div className="bg-neutral-800 rounded-lg p-4">
-            <h4 className="text-neutral-400 text-sm mb-2">Attached Image</h4>
-            <div className="overflow-hidden rounded-xl border border-neutral-700">
-              <img
-                src={selectedReport.image}
-                alt="Report Attachment"
-                className="w-full h-auto object-cover transition-transform hover:scale-105"
-              />
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  </div>
-)}
-
+      )}
+      <SOSAlertModal />
     </div>
   );
 }

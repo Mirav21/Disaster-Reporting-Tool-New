@@ -1,21 +1,77 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MobileMenu from "./MobileMenu";
-import { useSession } from "next-auth/react";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { data: session } = useSession();
-  console.log(session);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+  const [session, setSession] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (token) {
+      setSession(token);
+    } else {
+      setSession(null);
+    }
+  }, [token, session]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedToken = localStorage.getItem("token");
+      setToken(storedToken || null);
+    }
+  }, [token, session]);
+
+  useEffect(() => {
+    setSession(token);
+  }, [token]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target as Node)
+      ) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleMenuToggle = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const handleProfileToggle = () => {
+    setIsProfileOpen(!isProfileOpen);
+  };
+
+  const signOut = async () => {
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/logout`,
+      session
+    );
+    if (response.status == 200) {
+      localStorage.removeItem("token");
+      setSession(null);
+    }
+    setIsProfileOpen(!isProfileOpen);
+    router.push("/auth/signin");
+  };
+
   return (
     <>
-      <nav className="fixed top-0 left-0 w-full border-b border-white/5 bg-black/60 backdrop-blur-xl z-50">
+      <nav className="fixed top-0 left-0 w-full border-b border-white/5 bg-black/90 backdrop-blur-xl z-50">
         <div className="mx-auto max-w-7xl px-6">
           <div className="flex h-16 items-center justify-between">
             {/* Logo and Brand */}
@@ -37,7 +93,7 @@ export default function Navbar() {
                   </svg>
                 </div>
                 <span className="text-lg font-semibold text-white">
-                  SafeReport
+                  Crisis Connect
                 </span>
               </Link>
             </div>
@@ -58,6 +114,12 @@ export default function Navbar() {
                   >
                     Track Report
                   </Link>
+                  <Link
+                    href="/weather-report"
+                    className="text-sm text-zinc-400 hover:text-white transition-colors"
+                  >
+                    Live Weather
+                  </Link>
                 </>
               ) : (
                 <>
@@ -65,13 +127,7 @@ export default function Navbar() {
                     href="/auth/signin"
                     className="text-sm text-zinc-400 hover:text-white transition-colors"
                   >
-                    Login
-                  </Link>
-                  <Link
-                    href="/auth/signup"
-                    className="text-sm text-zinc-400 hover:text-white transition-colors"
-                  >
-                    Sign Up
+                    Login/SignUp
                   </Link>
                 </>
               )}
@@ -81,26 +137,87 @@ export default function Navbar() {
               >
                 How It Works
               </Link>
-              <Link
-                href="/resources"
-                className="text-sm text-zinc-400 hover:text-white transition-colors"
-              >
-                Resources
-              </Link>
             </div>
 
             {/* Emergency Button */}
             <div className="flex items-center space-x-4">
-              <Link
+              {/* <Link
                 href="/contact"
                 className="hidden md:block text-sm text-zinc-400 hover:text-white transition-colors"
               >
                 Contact
-              </Link>
-              <button className="group flex h-9 items-center gap-2 rounded-full bg-red-500/10 pl-4 pr-5 text-sm font-medium text-red-500 ring-1 ring-inset ring-red-500/20 transition-all hover:bg-red-500/20">
+              </Link> */}
+              <button className="group flex h-11 items-center gap-2 rounded-full bg-red-500/10 pl-4 pr-5 text-sm font-medium text-red-500 ring-1 ring-inset ring-red-500/20 transition-all hover:bg-red-500/20">
                 <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
                 Emergency: 911
               </button>
+
+              {/* Profile Button and Dropdown */}
+              <div
+                ref={profileRef}
+                className="md:relative lg:relative hidden md:block"
+              >
+                <button
+                  onClick={handleProfileToggle}
+                  className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center hover:bg-zinc-700 transition-colors"
+                >
+                  <svg
+                    className="h-5 w-5 text-zinc-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                </button>
+
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-md bg-zinc-900 py-1 shadow-lg ring-1 ring-black ring-opacity-5">
+                    {!session ? (
+                      <>
+                        <Link
+                          href="/auth/signin"
+                          className="block px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800"
+                        >
+                          Login
+                        </Link>
+                        <Link
+                          href="/auth/signup"
+                          className="block px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800"
+                        >
+                          Sign Up
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          href="/users/user-profile"
+                          className="block px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800"
+                        >
+                          Profile
+                        </Link>
+                        {/* <Link
+                          href="/settings"
+                          className="block px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800"
+                        >
+                          Settings
+                        </Link> */}
+                        <button
+                          onClick={() => signOut()}
+                          className="block w-full text-left px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800"
+                        >
+                          Sign Out
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* Mobile Menu Button */}
               <button

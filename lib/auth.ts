@@ -1,4 +1,3 @@
-//@ts-nocheck
 import { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "./prisma";
@@ -54,7 +53,7 @@ export const authOptions: AuthOptions = {
     },
     async session({ session, token }) {
       if (session?.user) {
-        session.user.role = token.role;
+        session.user.role = token.role as string;
       }
       return session;
     },

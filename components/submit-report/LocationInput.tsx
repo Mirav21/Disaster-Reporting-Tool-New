@@ -1,7 +1,230 @@
-// @ts-nocheck
-import { useState, useEffect, useRef } from "react";
+// import React from "react";
+// import { useState, useEffect, useRef } from "react";
+// import mapboxgl from "mapbox-gl";
+// import { AddressAutofill } from "@mapbox/search-js-react";
+
+// mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
+
+// interface LocationInputProps {
+//   value: string;
+//   onChange: (value: string) => void;
+//   onCoordinatesChange?: (lat: number | null, lng: number | null) => void;
+// }
+
+// export function LocationInput({
+//   value,
+//   onChange,
+//   onCoordinatesChange,
+// }: LocationInputProps) {
+//   const [isGettingLocation, setIsGettingLocation] = useState(false);
+//   const [locationError, setLocationError] = useState<string | null>(null);
+//   const [coordinates, setCoordinates] = useState<[number, number] | null>(null);
+//   const [address, setAddress] = useState<string | null>(null);
+//   const mapContainerRef = useRef<HTMLDivElement | null>(null);
+
+//   const getLocation = async () => {
+//     setIsGettingLocation(true);
+//     setLocationError(null);
+
+//     try {
+//       if (!navigator.geolocation) {
+//         throw new Error("Geolocation is not supported by your browser");
+//       }
+
+//       const position = await new Promise<GeolocationPosition>(
+//         (resolve, reject) => {
+//           navigator.geolocation.getCurrentPosition(
+//             resolve,
+//             (error) => {
+//               switch (error.code) {
+//                 case error.PERMISSION_DENIED:
+//                   reject(
+//                     new Error(
+//                       "Please allow location access in your browser settings"
+//                     )
+//                   );
+//                   break;
+//                 case error.POSITION_UNAVAILABLE:
+//                   reject(new Error("Location information is unavailable"));
+//                   break;
+//                 case error.TIMEOUT:
+//                   reject(new Error("Location request timed out"));
+//                   break;
+//                 default:
+//                   reject(new Error("An unknown error occurred"));
+//               }
+//             },
+//             {
+//               enableHighAccuracy: true,
+//               timeout: 10000,
+//               maximumAge: 0,
+//             }
+//           );
+//         }
+//       );
+
+//       const { latitude, longitude } = position.coords;
+//       setCoordinates([longitude, latitude]);
+//       onCoordinatesChange?.(latitude, longitude);
+//       onChange(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+//       fetchAddress(latitude, longitude);
+//     } catch (error) {
+//       console.error("Location error:", error);
+//       setLocationError(
+//         error instanceof Error ? error.message : "Unable to get your location"
+//       );
+//     } finally {
+//       setIsGettingLocation(false);
+//     }
+//   };
+
+//   const fetchAddress = async (latitude: number, longitude: number) => {
+//     try {
+//       const response = await fetch(
+//         `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxgl.accessToken}`
+//       );
+//       const data = await response.json();
+//       if (data.features && data.features.length > 0) {
+//         setAddress(data.features[0].place_name);
+//       } else {
+//         setAddress("Unable to fetch address");
+//       }
+//     } catch (error) {
+//       console.error("Error fetching address:", error);
+//       setAddress("Unable to fetch address");
+//     }
+//   };
+
+//   useEffect(() => {
+//     if (coordinates && mapContainerRef.current) {
+//       const [lng, lat] = coordinates;
+//       const map = new mapboxgl.Map({
+//         container: mapContainerRef.current,
+//         style: "mapbox://styles/mapbox/streets-v11",
+//         center: [lng, lat],
+//         zoom: 14,
+//       });
+
+//       new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map);
+
+//       return () => map.remove();
+//     }
+//   }, [coordinates]);
+
+//   return (
+//     <div className="space-y-4">
+//       <label className="block text-sm font-medium text-zinc-400">
+//         Location
+//       </label>
+//       <div className="relative">
+//         <form>
+//           <AddressAutofill
+//             accessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""}
+//           >
+//             <input
+//               type="text"
+//               autoComplete="street-address"
+//               value={value}
+//               onChange={(e) => {
+//                 onChange(e.target.value);
+//                 setCoordinates(null);
+//                 setAddress(null);
+//               }}
+//               placeholder="Enter location or use pin"
+//               className="w-full rounded-xl bg-zinc-900/50 border border-zinc-800 pl-4 pr-12 py-3.5
+//                          text-white transition-colors duration-200
+//                          focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+//             />
+//           </AddressAutofill>
+//         </form>
+//         <button
+//           type="button"
+//           onClick={getLocation}
+//           className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5
+//                    rounded-lg bg-sky-500/10 text-sky-400
+//                    hover:bg-sky-500/20 transition-colors duration-200
+//                    disabled:opacity-50 disabled:cursor-not-allowed"
+//           disabled={isGettingLocation}
+//           title="Get current location"
+//         >
+//           {isGettingLocation ? (
+//             <svg
+//               className="animate-spin h-5 w-5"
+//               xmlns="http://www.w3.org/2000/svg"
+//               fill="none"
+//               viewBox="0 0 24 24"
+//             >
+//               <circle
+//                 className="opacity-25"
+//                 cx="12"
+//                 cy="12"
+//                 r="10"
+//                 stroke="currentColor"
+//                 strokeWidth="4"
+//               ></circle>
+//               <path
+//                 className="opacity-75"
+//                 fill="currentColor"
+//                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+//               ></path>
+//             </svg>
+//           ) : (
+//             <svg
+//               className="h-5 w-5"
+//               fill="none"
+//               viewBox="0 0 24 24"
+//               stroke="currentColor"
+//             >
+//               <path
+//                 strokeLinecap="round"
+//                 strokeLinejoin="round"
+//                 strokeWidth={2}
+//                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+//               />
+//               <path
+//                 strokeLinecap="round"
+//                 strokeLinejoin="round"
+//                 strokeWidth={2}
+//                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+//               />
+//             </svg>
+//           )}
+//         </button>
+//       </div>
+//       {locationError && (
+//         <p className="text-sm text-red-400 flex items-center gap-2">
+//           <svg
+//             className="h-4 w-4"
+//             fill="none"
+//             viewBox="0 0 24 24"
+//             stroke="currentColor"
+//           >
+//             <path
+//               strokeLinecap="round"
+//               strokeLinejoin="round"
+//               strokeWidth={2}
+//               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+//             />
+//           </svg>
+//           {locationError}
+//         </p>
+//       )}
+//       {coordinates && (
+//         <>
+//           <div className="relative w-full h-64 rounded-xl overflow-hidden">
+//             <div ref={mapContainerRef} className="w-full h-full" />
+//           </div>
+//           <p className="text-sm text-white mt-2">
+//             Address: {address || "Loading..."}
+//           </p>
+//         </>
+//       )}
+//     </div>
+//   );
+// }
+
+import React, { useState, useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
-import { AddressAutofill } from "@mapbox/search-js-react";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
 
@@ -9,6 +232,11 @@ interface LocationInputProps {
   value: string;
   onChange: (value: string) => void;
   onCoordinatesChange?: (lat: number | null, lng: number | null) => void;
+}
+
+interface Suggestion {
+  place_name: string;
+  center: [number, number];
 }
 
 export function LocationInput({
@@ -19,8 +247,11 @@ export function LocationInput({
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [coordinates, setCoordinates] = useState<[number, number] | null>(null);
-  const [address, setAddress] = useState<string | null>(null); // New state for address
+  const [address, setAddress] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const getLocation = async () => {
     setIsGettingLocation(true);
@@ -67,7 +298,7 @@ export function LocationInput({
       setCoordinates([longitude, latitude]);
       onCoordinatesChange?.(latitude, longitude);
       onChange(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-      fetchAddress(latitude, longitude); // Fetch the address
+      fetchAddress(latitude, longitude);
     } catch (error) {
       console.error("Location error:", error);
       setLocationError(
@@ -81,17 +312,36 @@ export function LocationInput({
   const fetchAddress = async (latitude: number, longitude: number) => {
     try {
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxgl.accessToken}`
       );
       const data = await response.json();
       if (data.features && data.features.length > 0) {
-        setAddress(data.features[0].place_name); // Set the formatted address
+        setAddress(data.features[0].place_name);
       } else {
         setAddress("Unable to fetch address");
       }
     } catch (error) {
       console.error("Error fetching address:", error);
       setAddress("Unable to fetch address");
+    }
+  };
+
+  const fetchSuggestions = async (query: string) => {
+    if (query.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+          query
+        )}.json?access_token=${mapboxgl.accessToken}&types=address`
+      );
+      const data = await response.json();
+      setSuggestions(data.features || []);
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
     }
   };
 
@@ -107,32 +357,48 @@ export function LocationInput({
 
       new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map);
 
-      return () => map.remove(); // Clean up map on unmount
+      return () => map.remove();
     }
   }, [coordinates]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="space-y-4">
-      <label className="block text-sm font-medium text-zinc-400">Location</label>
-      <div className="relative">
-        <AddressAutofill
-          accessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""}
-        >
-          <input
-            type="text"
-            autoComplete="street-address"
-            value={value}
-            onChange={(e) => {
-              onChange(e.target.value);
-              setCoordinates(null); // Clear map when input changes
-              setAddress(null); // Clear address when input changes
-            }}
-            placeholder="Enter location or use pin"
-            className="w-full rounded-xl bg-zinc-900/50 border border-zinc-800 pl-4 pr-12 py-3.5
+      <label className="block text-sm font-medium text-zinc-400">
+        Location
+      </label>
+      <div className="relative" ref={inputRef}>
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            fetchSuggestions(e.target.value);
+            setShowSuggestions(true);
+            setCoordinates(null);
+            setAddress(null);
+          }}
+          onFocus={() => setShowSuggestions(true)}
+          placeholder="Enter location or use pin"
+          className="w-full rounded-xl bg-zinc-900/50 border border-zinc-800 pl-4 pr-12 py-3.5
                      text-white transition-colors duration-200
                      focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-          />
-        </AddressAutofill>
+        />
         <button
           type="button"
           onClick={getLocation}
@@ -186,6 +452,28 @@ export function LocationInput({
             </svg>
           )}
         </button>
+        {showSuggestions && suggestions.length > 0 && (
+          <ul className="absolute z-10 w-full bg-zinc-800 border border-zinc-700 rounded-b-xl mt-1 max-h-60 overflow-auto">
+            {suggestions.map((suggestion, index) => (
+              <li
+                key={index}
+                className="px-4 py-2 hover:bg-zinc-700 cursor-pointer text-white"
+                onClick={() => {
+                  onChange(suggestion.place_name);
+                  setShowSuggestions(false);
+                  setCoordinates(suggestion.center);
+                  onCoordinatesChange?.(
+                    suggestion.center[1],
+                    suggestion.center[0]
+                  );
+                  setAddress(suggestion.place_name);
+                }}
+              >
+                {suggestion.place_name}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       {locationError && (
         <p className="text-sm text-red-400 flex items-center gap-2">
@@ -210,7 +498,9 @@ export function LocationInput({
           <div className="relative w-full h-64 rounded-xl overflow-hidden">
             <div ref={mapContainerRef} className="w-full h-full" />
           </div>
-          <p className="text-sm text-white mt-2">Address: {address || "Loading..."}</p>
+          <p className="text-sm text-white mt-2">
+            Address: {address || "Loading..."}
+          </p>
         </>
       )}
     </div>

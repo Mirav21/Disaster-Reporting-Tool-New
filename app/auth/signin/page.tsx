@@ -1,15 +1,45 @@
-'use client';
+"use client";
 
-import { signIn, getSession } from "next-auth/react";
-import { useState } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { AlertTriangle, Shield, Users, Clock } from "lucide-react";
+import { jwtDecode } from "jwt-decode";
+
+interface CustomJwtPayload {
+  role: string;
+  // Add other properties from your JWT payload if needed
+}
 
 export default function SignIn() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [username, setusername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [accessToken, setAccessToken] = useState("");
+
+  if (typeof window !== "undefined") {
+    const accessToken = localStorage.getItem("token");
+    setAccessToken(accessToken || "");
+  }
+
+  useEffect(() => {
+    if (accessToken) {
+      const token = localStorage.getItem("token") as string;
+      const decodeToken = jwtDecode<CustomJwtPayload>(token);
+      const role = decodeToken.role;
+
+      if (role === "USER") {
+        router.push("/");
+      } else if (role === "ADMIN") {
+        router.push("/dashboard");
+      } else if (role === "MODERATOR") {
+        router.push("/moderator-dashboard");
+      }
+    }
+  }, [accessToken, router]);
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -17,27 +47,34 @@ export default function SignIn() {
     setError("");
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false, // Prevent automatic redirect
-      });
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/login`,
+        {
+          username,
+          password,
+        }
+      );
 
-      if (result?.error) {
-        setError("Invalid credentials");
-      } else {
-        // Wait for the session to update
-        const session = await getSession();
-        const role = session?.user?.role; // Access role from the updated session
+      if (response.status == 200) {
+        localStorage.setItem("token", response.data.token);
 
-        if (role === "USER") {
+        if (localStorage.getItem("token")) {
+          //const token = localStorage.getItem("token") as string;
+          //const decodeToken = jwtDecode<CustomJwtPayload>(token);
+          //const role = decodeToken.role;
+
+          // if (role === "USER") {
+          //   router.push("/");
+          // } else if (role === "ADMIN") {
+          //   router.push("/dashboard");
+          // } else if (role === "MODERATOR") {
+          //   router.push("/moderator-dashboard");
+          // }
           router.push("/");
-        } else {
-          router.push("/dashboard");
         }
       }
     } catch (error) {
-    console.error(error);
+      console.error(error);
       setError("An error occurred during sign in");
     } finally {
       setIsLoading(false);
@@ -45,81 +82,155 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h1 className="text-center text-3xl font-bold text-green-400 mb-2">
-          Welcome Back
-        </h1>
-        <h2 className="text-center text-sm text-green-300">
-          Sign in to access your account
-        </h2>
+    <div className="flex flex-col lg:flex-row min-h-screen -mt-16 overflow-hidden">
+      {/* Left side - Information Section */}
+      <div className="lg:w-1/2 bg-green-600 text-white p-8 flex-col justify-center hidden lg:flex">
+        <div className="space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold mb-4">Welcome to Our Platform</h1>
+            <p className="text-lg text-green-100 mb-8">
+              Join our community to access personalized resources and guidance
+              tailored to your needs.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <div className="flex items-start space-x-4">
+              <AlertTriangle className="w-6 h-6 mt-1 text-green-200" />
+              <div>
+                <h3 className="font-semibold mb-1">Personalized Insights</h3>
+                <p className="text-green-100 text-sm">
+                  Receive tailored recommendations based on your profile and
+                  interests.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-4">
+              <Shield className="w-6 h-6 mt-1 text-green-200" />
+              <div>
+                <h3 className="font-semibold mb-1">Secure Platform</h3>
+                <p className="text-green-100 text-sm">
+                  Enjoy a safe and secure environment for all your activities.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-4">
+              <Users className="w-6 h-6 mt-1 text-green-200" />
+              <div>
+                <h3 className="font-semibold mb-1">Community Engagement</h3>
+                <p className="text-green-100 text-sm">
+                  Connect with like-minded individuals and grow together.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-4">
+              <Clock className="w-6 h-6 mt-1 text-green-200" />
+              <div>
+                <h3 className="font-semibold mb-1">24/7 Accessibility</h3>
+                <p className="text-green-100 text-sm">
+                  Access the platform anytime, anywhere with reliable support.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer className="text-sm text-green-200 mt-8">
+          © 2024 Our Platform
+        </footer>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-neutral-900/50 py-8 px-4 shadow-xl border border-neutral-800 rounded-xl sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-green-300"
-              >
-                Email address
-              </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-green-400 rounded-lg bg-black placeholder-green-600 text-green-300 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  placeholder="Enter your email"
-                />
-              </div>
-            </div>
+      {/* Right side - Form Section */}
+      <div className="flex flex-col justify-center lg:w-1/2 bg-gray-100 h-screen sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <h1 className="text-center text-3xl font-bold text-green-800 mb-2">
+            Welcome Back
+          </h1>
+          <h2 className="text-center text-sm text-green-800">
+            Sign in to access your account
+          </h2>
+        </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-green-300"
-              >
-                Password
-              </label>
-              <div className="mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-green-400 rounded-lg bg-black placeholder-green-600 text-green-300 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  placeholder="Enter your password"
-                />
+        <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-gray-50 p-6 rounded-xl shadow-lg border border-gray-200">
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <div>
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Username
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="username"
+                    name="username"
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(e) => setusername(e.target.value)}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500"
+                    placeholder="Enter your username"
+                  />
+                </div>
               </div>
-            </div>
 
-            {error && (
-              <div className="text-red-500 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                {error}
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Password
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500"
+                    placeholder="Enter your password"
+                  />
+                </div>
               </div>
-            )}
 
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center py-2.5 px-4 border border-green-400 rounded-lg shadow-sm text-sm font-medium text-green-300 bg-green-700 hover:bg-green-600 disabled:opacity-50 transition"
+              {error && (
+                <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3">
+                  {error}
+                </div>
+              )}
+
+              <div>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-green-300 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    "Sign in"
+                  )}
+                </button>
+              </div>
+            </form>
+            <div className="mt-6 text-center text-sm">
+              <span className="text-neutral-400">
+                Don&apos;t have an account?
+              </span>{" "}
+              <Link
+                href="/auth/signup"
+                className="text-green-600 hover:text-green-500 font-medium"
               >
-                {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-green-300 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  "Sign in"
-                )}
-              </button>
+                Sign up
+              </Link>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>

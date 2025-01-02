@@ -7,6 +7,84 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+model Report {
+    id                String              @id @default(cuid())
+    reportId          String              @unique
+    type              ReportType
+    reportType        String
+    title             String
+    description       String
+    location          String?
+    latitude          Float?
+    longitude         Float?
+    image             String?
+    status            ReportStatus        @default(PENDING)
+    createdAt         DateTime            @default(now())
+    updatedAt         DateTime            @updatedAt
+    userId            Int
+    user              User                @relation(fields: [userId], references: [id])
+    assignedTeams    RescueTeam[]       @relation("ReportRescueTeam")
+    moderatorResponses ModeratorResponse[]
+
+    @@index([reportId])
+    SOSAlert SOSAlert[]
+}
+
+model User {
+  id          Int                 @id @default(autoincrement())
+  email       String              @unique
+  name        String
+  password    String
+  role        Role                @default(USER)
+  location    String
+  latitude    Float
+  longitude   Float
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  reports     Report[]
+  responses   ModeratorResponse[]
+}
+
+model RescueTeam {
+    id             String   @id @default(cuid())
+    name           String
+    specialization String
+    isAvailable    Boolean  @default(true)
+    reports        Report[] @relation("ReportRescueTeam")
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+
+    @@map("rescue_teams")
+}
+
+model ModeratorResponse {
+    id           String   @id @default(cuid())
+    message      String
+    createdAt    DateTime @default(now())
+    reportId     String
+    report       Report    @relation(fields: [reportId], references: [id])
+    moderatorId  Int
+    moderator    User      @relation(fields: [moderatorId], references: [id])
+
+    @@map("moderator_responses")
+}
+
+model SOSAlert {
+  id            String   @id @default(cuid())
+  report        Report   @relation(fields: [reportId], references: [id])
+  reportId      String
+  radius        Float
+  message       String
+  recipientCount Int
+  createdAt     DateTime @default(now())
+}
+
+enum Role {
+    ADMIN
+    MODERATOR
+    USER
+}
+
 enum ReportStatus {
     PENDING
     IN_PROGRESS
@@ -19,38 +97,4 @@ enum ReportType {
     LOW_PRIORITY
     EMERGENCY
     NON_EMERGENCY
-}
-
-model Report {
-    id          String       @id @default(cuid())
-    reportId    String       @unique
-    type        ReportType
-    title       String
-    description String
-    reportType  String
-    location    String?
-    latitude    Float?
-    longitude   Float?
-    image       String?
-    status      ReportStatus @default(PENDING)
-    createdAt   DateTime     @default(now())
-    updatedAt   DateTime     @updatedAt
-    userId      Int
-    user        User     @relation(fields: [userId], references: [id]) 
-    @@index([reportId])
-}
-
-model User {
-    id       Int    @id @default(autoincrement())
-    email    String @unique
-    name     String
-    password String
-    role     Role   @default(USER)
-    reports   Report[]
-}
-
-enum Role {
-    ADMIN
-    MODERATOR
-    USER
 }

@@ -1,11 +1,15 @@
-'use client'
+"use client";
 import { ReportLayout } from "@/components/submit-report/report";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function SubmitReport() {
-  const { data: session} = useSession();
+  const [session, setSession] = useState("");
+
+  if (typeof window !== "undefined") {
+    const accessToken = localStorage.getItem("token");
+    setSession(accessToken || "");
+  }
   const router = useRouter();
 
   useEffect(() => {

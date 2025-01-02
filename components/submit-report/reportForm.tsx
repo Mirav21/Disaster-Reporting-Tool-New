@@ -5,6 +5,7 @@ import { LocationInput } from "./LocationInput";
 import crypto from "crypto";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
+import axios from "axios";
 
 const REPORT_TYPES = [
   "Earthquake",
@@ -16,10 +17,23 @@ const REPORT_TYPES = [
   "Landslide",
 ] as const;
 
-type ReportType = "NON_EMERGENCY" | "LOW_PRIORITY" | "EMERGENCY" | "CRITICAL";
+type ReportType = "NonEmergency" | "LowPriority" | "Emergency" | "Critical";
+
+interface ReportData {
+  reportId: string;
+  severity: ReportType;
+  disasterType: string;
+  contactInfo: string;
+  title: string;
+  description: string;
+  location: string;
+  latitude: number | null;
+  longitude: number | null;
+  imageUrl: string | null;
+}
 
 interface ReportFormProps {
-  onComplete: (data: any) => void;
+  onComplete: (data: ReportData) => void;
 }
 
 export function ReportForm({ onComplete }: ReportFormProps) {
@@ -29,6 +43,7 @@ export function ReportForm({ onComplete }: ReportFormProps) {
     location: "",
     description: "",
     title: "",
+    contactInfo: "",
   });
   const [image, setImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -40,98 +55,107 @@ export function ReportForm({ onComplete }: ReportFormProps) {
     longitude: null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const {data: session} = useSession()
-  console.log(session?.user.id)
+  const { data: session } = useSession();
+  console.log(session?.user.id);
 
-  const addLocationToImage = (base64Image: string, location: string): Promise<string> => {
+  const addLocationToImage = (
+    base64Image: string,
+    location: string
+  ): Promise<string> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-  
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
         // Set canvas dimensions to match the image
         canvas.width = img.width;
         canvas.height = img.height;
-  
+
         // Draw the original image
         ctx?.drawImage(img, 0, 0);
-  
+
         // Set text styling
         if (ctx) {
           // Adjust font size based on image width
           const fontSize = Math.max(20, Math.floor(img.width * 0.06));
           ctx.font = `bold ${fontSize}px Arial`;
-          
+
           // Set text color to red
-          ctx.fillStyle = 'red';
-          ctx.strokeStyle = 'black';
+          ctx.fillStyle = "red";
+          ctx.strokeStyle = "black";
           ctx.lineWidth = 3;
-  
+
           // Position text at the bottom of the image
           const padding = 15;
           const textX = padding;
           const textY = canvas.height - padding;
-  
+
           // Create a semi-transparent dark background for better readability
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+          ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
           const textMetrics = ctx.measureText(location);
-          ctx.fillRect(0, canvas.height - fontSize - 2 * padding, 
-                       textMetrics.width + 2 * padding, 
-                       fontSize + 2 * padding);
-  
+          ctx.fillRect(
+            0,
+            canvas.height - fontSize - 2 * padding,
+            textMetrics.width + 2 * padding,
+            fontSize + 2 * padding
+          );
+
           // Draw text outline
           ctx.strokeText(location, textX, textY);
-          
+
           // Draw text in red
-          ctx.fillStyle = 'red';
+          ctx.fillStyle = "red";
           ctx.fillText(location, textX, textY);
         }
-  
+
         // Convert canvas back to base64
         resolve(canvas.toDataURL());
       };
-  
+
       img.onerror = reject;
       img.src = base64Image;
     });
   };
-  
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-  
+
     setIsAnalyzing(true);
-  
+
     try {
       const base64 = await new Promise((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result);
         reader.readAsDataURL(file);
       });
-  
+
       const response = await fetch("/api/analyze-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: base64 }),
       });
-  
+
       const data = await response.json();
-      console.log(data)
-      
+      console.log(data);
+
       if (data.title && data.description && data.reportType) {
         // Modify image with location if available
         let finalImage = base64 as string;
         if (formData.location) {
           try {
-            finalImage = await addLocationToImage(base64 as string, formData.location);
+            finalImage = await addLocationToImage(
+              base64 as string,
+              formData.location
+            );
           } catch (overlayError) {
             console.error("Error adding location to image", overlayError);
             // Fall back to original image if overlay fails
             finalImage = base64 as string;
           }
         }
-  
+
         setFormData((prev) => ({
           ...prev,
           title: data.title,
@@ -186,41 +210,48 @@ export function ReportForm({ onComplete }: ReportFormProps) {
     try {
       const reportData = {
         reportId: generateReportId(),
-        type: formData.incidentType,
-        specificType: formData.specificType,
+        severity: formData.incidentType,
+        disasterType: formData.specificType,
+        contactInfo: formData.contactInfo,
         title: formData.title,
         description: formData.description,
         location: formData.location,
         latitude: coordinates.latitude,
         longitude: coordinates.longitude,
-        image: image,
-        status: "PENDING",
-        userId: session?.user.id
+        imageUrl: image,
       };
 
-      const response = await fetch("/api/reports/create-report", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(reportData),
-      });
+      console.log(reportData);
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to submit report");
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("User not authenticated. Token missing.");
       }
 
-      onComplete(result);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/disaster-report/submit`,
+        reportData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log(response);
+
+      if (response.status !== 201) {
+        throw new Error(response.data.error || "Failed to submit report");
+      }
+      const data = response.data;
+      onComplete(data);
     } catch (error) {
       console.error("Error submitting report:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -229,10 +260,10 @@ export function ReportForm({ onComplete }: ReportFormProps) {
         <button
           type="button"
           onClick={() =>
-            setFormData((prev) => ({ ...prev, incidentType: "EMERGENCY" }))
+            setFormData((prev) => ({ ...prev, incidentType: "Emergency" }))
           }
           className={`p-6 rounded-2xl border-2 transition-all duration-200 ${
-            formData.incidentType === "EMERGENCY"
+            formData.incidentType === "Emergency"
               ? "bg-red-500/20 border-red-500 shadow-lg shadow-red-500/20"
               : "bg-zinc-900/50 border-zinc-800 hover:bg-red-500/10 hover:border-red-500/50"
           }`}
@@ -261,10 +292,10 @@ export function ReportForm({ onComplete }: ReportFormProps) {
         <button
           type="button"
           onClick={() =>
-            setFormData((prev) => ({ ...prev, incidentType: "NON_EMERGENCY" }))
+            setFormData((prev) => ({ ...prev, incidentType: "NonEmergency" }))
           }
           className={`p-6 rounded-2xl border-2 transition-all duration-200 ${
-            formData.incidentType === "NON_EMERGENCY"
+            formData.incidentType === "NonEmergency"
               ? "bg-orange-500/20 border-orange-500 shadow-lg shadow-orange-500/20"
               : "bg-zinc-900/50 border-zinc-800 hover:bg-orange-500/10 hover:border-orange-500/50"
           }`}
@@ -292,10 +323,10 @@ export function ReportForm({ onComplete }: ReportFormProps) {
         <button
           type="button"
           onClick={() =>
-            setFormData((prev) => ({ ...prev, incidentType: "LOW_PRIORITY" }))
+            setFormData((prev) => ({ ...prev, incidentType: "LowPriority" }))
           }
           className={`p-6 rounded-2xl border-2 transition-all duration-200 ${
-            formData.incidentType === "LOW_PRIORITY"
+            formData.incidentType === "LowPriority"
               ? "bg-blue-500/20 border-blue-500 shadow-lg shadow-blue-500/20"
               : "bg-zinc-900/50 border-zinc-800 hover:bg-blue-500/10 hover:border-blue-500/50"
           }`}
@@ -325,10 +356,10 @@ export function ReportForm({ onComplete }: ReportFormProps) {
         <button
           type="button"
           onClick={() =>
-            setFormData((prev) => ({ ...prev, incidentType: "CRITICAL" }))
+            setFormData((prev) => ({ ...prev, incidentType: "Critical" }))
           }
           className={`p-6 rounded-2xl border-2 transition-all duration-200 ${
-            formData.incidentType === "CRITICAL"
+            formData.incidentType === "Critical"
               ? "bg-purple-500/20 border-purple-500 shadow-lg shadow-purple-500/20"
               : "bg-zinc-900/50 border-zinc-800 hover:bg-purple-500/10 hover:border-purple-500/50"
           }`}
@@ -469,6 +500,36 @@ export function ReportForm({ onComplete }: ReportFormProps) {
         }
       />
 
+      {/* ContactInfo */}
+      <div>
+        <label className="block text-sm font-medium text-zinc-400 mb-2">
+          Contact Number
+        </label>
+        <input
+          type="text" // Changed to text to allow validation on phone number format
+          value={formData.contactInfo}
+          onChange={(e) => {
+            // Validate that the input is a number and its length is between 10 and 11 digits
+            const value = e.target.value;
+            if (/^\d*$/.test(value)) {
+              setFormData((prev) => ({ ...prev, contactInfo: value }));
+            }
+          }}
+          className="w-full rounded-xl bg-zinc-900/50 border border-zinc-800 px-4 py-3.5
+              text-white transition-colors duration-200
+              focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+          required
+        />
+        {/* Error message for invalid contact number */}
+        {formData.contactInfo &&
+          (formData.contactInfo.length < 10 ||
+            formData.contactInfo.length >= 11) && (
+            <p className="text-red-500 text-xs mt-1">
+              Contact number must be exactly 10 digits.
+            </p>
+          )}
+      </div>
+
       {/* Title */}
       <div>
         <label className="block text-sm font-medium text-zinc-400 mb-2">
@@ -509,7 +570,7 @@ export function ReportForm({ onComplete }: ReportFormProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full relative group overflow-hidden rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 
+        className="w-full relative group overflow-hidden rounded-xl bg-gradient-to-br from-green-500 to-green-600 
                  px-4 py-3.5 text-sm font-medium text-white shadow-lg
                  transition-all duration-200 hover:from-sky-400 hover:to-blue-500
                  disabled:opacity-50 disabled:cursor-not-allowed"

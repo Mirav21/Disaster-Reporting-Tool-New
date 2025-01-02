@@ -1,9 +1,3 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"],
-  "rules": {
-    "@typescript-eslint/no-explicit-any": "warn", // Change error to warning
-    "@typescript-eslint/ban-ts-comment": "warn",
-    "no-var": "error",
-    "@next/next/no-img-element": "off" // Ignore img element warning
-  }
+  "extends": ["next/core-web-vitals", "next/typescript"]
 }

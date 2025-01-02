@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
     // Add a validation prompt to check if the image is disaster-related
     const validationPrompt = `Determine if this image depicts a disaster scenario. Respond with ONLY 'YES' or 'NO'. 
-    Consider disaster scenarios like earthquakes, hurricanes, floods, wildfires, tornadoes, tsunamis, or landslides.`;
+    Consider disaster scenarios like earthquakes, hurricanes, floqods, wildfires, tornadoes, tsunamis, or landslides.`;
 
     const validationResult = await model.generateContent([
       validationPrompt,

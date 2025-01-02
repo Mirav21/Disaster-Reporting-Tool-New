@@ -1,9 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+// import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+import { AlertTriangle, Shield, Users, Clock, AlertCircle } from "lucide-react";
+import { LocationInput } from "@/components/submit-report/LocationInput";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+
+interface CustomJwtPayload {
+  role: string;
+}
 
 export default function SignUp() {
   const router = useRouter();
@@ -11,18 +18,21 @@ export default function SignUp() {
     name: "",
     email: "",
     password: "",
+    phone: "",
+    location: "",
+    latitude: null as number | null,
+    longitude: null as number | null,
     confirmPassword: "",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { executeRecaptcha } = useGoogleReCaptcha(); // reCAPTCHA hook
+  // const { executeRecaptcha } = useGoogleReCaptcha();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
-    // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       setIsLoading(false);
@@ -30,31 +40,27 @@ export default function SignUp() {
     }
 
     try {
-      const recaptchaToken = await executeRecaptcha!("signup"); // 'signup' is the action name
+      // const recaptchaToken = await executeRecaptcha!("signup");
 
-      // Proceed if token is retrieved
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          recaptchaToken, // Include reCAPTCHA token in the request body
-        }),
-      });
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/register`,
+        {
+          ...formData,
+          // recaptchaToken,
+        }
+      );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Something went wrong");
+      if (response.status === 200) {
+        router.push("/auth/signin");
+      } else {
+        setError("Failed to create account");
       }
-
-      router.push("/auth/signin");
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Failed to sign up");
+      if (axios.isAxiosError(error)) {
+        setError(error.response?.data?.message || "Something went wrong");
+      } else {
+        setError("Failed to sign up");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -67,136 +73,220 @@ export default function SignUp() {
     }));
   };
 
+  const [accessToken, setAccessToken] = useState("");
+
+  if (typeof window !== "undefined") {
+    const accessToken = localStorage.getItem("token");
+    setAccessToken(accessToken || "");
+  }
+
+  useEffect(() => {
+    if (accessToken) {
+      const decodeToken = jwtDecode<CustomJwtPayload>(accessToken);
+      const role = decodeToken.role;
+
+      if (role === "USER") {
+        router.push("/");
+      } else if (role === "ADMIN") {
+        router.push("/dashboard");
+      } else if (role === "MODERATOR") {
+        router.push("/moderator-dashboard");
+      }
+    }
+  }, [accessToken]);
+
   return (
-    <div className="min-h-screen bg-black flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h1 className="text-center text-3xl font-bold bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent mb-2">
-          Create Account
-        </h1>
-        <h2 className="text-center text-sm text-neutral-400">
-          Sign up to get started
-        </h2>
-      </div>
+    <div className="flex top-0 min-h-screen -mt-16 overflow-hidden">
+      {/* Left side - Information Section */}
+      <div className="hidden lg:flex lg:w-1/2 bg-green-600 text-white p-8 flex-col justify-center">
+        <div className="space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold mb-4">
+              Disaster Management Platform
+            </h1>
+            <p className="text-lg text-green-100 mb-8">
+              Join our platform to contribute to disaster preparedness and
+              response efforts
+            </p>
+          </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-neutral-900/50 backdrop-blur-sm py-8 px-4 shadow-xl border border-neutral-800 rounded-xl sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-neutral-300"
-              >
-                Full Name
-              </label>
-              <div className="mt-1">
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-neutral-800 rounded-lg bg-neutral-900 placeholder-neutral-500 text-neutral-200 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500/20"
-                  placeholder="Enter your full name"
-                />
+          <div className="space-y-6">
+            <div className="flex items-start space-x-4">
+              <AlertTriangle className="w-6 h-6 mt-1 text-green-200" />
+              <div>
+                <h3 className="font-semibold mb-1">Early Warning Systems</h3>
+                <p className="text-green-100 text-sm">
+                  Get real-time alerts about potential disasters in your area
+                </p>
               </div>
             </div>
 
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-neutral-300"
-              >
-                Email address
-              </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-neutral-800 rounded-lg bg-neutral-900 placeholder-neutral-500 text-neutral-200 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500/20"
-                  placeholder="Enter your email"
-                />
+            <div className="flex items-start space-x-4">
+              <Shield className="w-6 h-6 mt-1 text-green-200" />
+              <div>
+                <h3 className="font-semibold mb-1">Resource Management</h3>
+                <p className="text-green-100 text-sm">
+                  Track and manage emergency resources efficiently
+                </p>
               </div>
             </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-neutral-300"
-              >
-                Password
-              </label>
-              <div className="mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-neutral-800 rounded-lg bg-neutral-900 placeholder-neutral-500 text-neutral-200 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500/20"
-                  placeholder="Create a password"
-                />
+            <div className="flex items-start space-x-4">
+              <Users className="w-6 h-6 mt-1 text-green-200" />
+              <div>
+                <h3 className="font-semibold mb-1">Community Coordination</h3>
+                <p className="text-green-100 text-sm">
+                  Connect with local response teams effectively
+                </p>
               </div>
             </div>
 
-            <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-medium text-neutral-300"
-              >
-                Confirm Password
-              </label>
-              <div className="mt-1">
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-neutral-800 rounded-lg bg-neutral-900 placeholder-neutral-500 text-neutral-200 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500/20"
-                  placeholder="Confirm your password"
-                />
+            <div className="flex items-start space-x-4">
+              <Clock className="w-6 h-6 mt-1 text-green-200" />
+              <div>
+                <h3 className="font-semibold mb-1">24/7 Support</h3>
+                <p className="text-green-100 text-sm">
+                  Access round-the-clock emergency response coordination
+                </p>
               </div>
             </div>
-
-            {error && (
-              <div className="text-red-500 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                {error}
-              </div>
-            )}
-
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  "Sign up"
-                )}
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-6 text-center text-sm">
-            <span className="text-neutral-400">Already have an account?</span>{" "}
-            <Link
-              href="/auth/signin"
-              className="text-green-500 hover:text-green-400 font-medium"
-            >
-              Sign in
-            </Link>
           </div>
         </div>
+
+        <footer className="text-sm text-green-200 mt-8">
+          © 2024 Disaster Management Platform
+        </footer>
+      </div>
+
+      {/* Right side - Form Section */}
+      <div className="lg:w-1/2 w-full mt-10 p-8 lg:p-12 bg-black/90 flex justify-center items-center">
+        <form className="w-full max-w-2xl space-y-6" onSubmit={handleSubmit}>
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-green-600 mb-2">
+              Create Account
+            </h2>
+            <p className="text-green-500/90">
+              Join our emergency response network
+            </p>
+          </div>
+
+          {/* Two-column layout for form fields */}
+          <div className="grid grid-cols-1 gap-6">
+            {/* Name field */}
+            <div>
+              <label className="block text-sm font-medium text-green-500 mb-1">
+                Full Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
+                placeholder="John Doe"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Email field */}
+            <div>
+              <label className="block text-sm font-medium text-green-500 mb-1">
+                Email Address
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
+                placeholder="you@example.com"
+              />
+            </div>
+
+            {/* Phone field */}
+            <div>
+              <label className="block text-sm font-medium text-green-500 mb-1">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
+                placeholder="+1 (555) 000-0000"
+              />
+            </div>
+          </div>
+
+          {/* Location input - full width */}
+          <div className="w-full">
+            <label className="block text-sm font-medium text-green-500 mb-1">
+              Location
+            </label>
+            <LocationInput
+              value={formData.location}
+              onChange={(location) =>
+                setFormData((prev) => ({ ...prev, location }))
+              }
+              onCoordinatesChange={(lat, lng) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  latitude: lat,
+                  longitude: lng,
+                }))
+              }
+            />
+          </div>
+
+          {/* Password fields - two columns */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-green-500 mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-green-500 mb-1">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+
+          {/* Error message */}
+          {error && (
+            <div className="bg-red-200 border border-red-400 rounded-lg p-3 text-red-500 text-sm">
+              <AlertCircle className="inline-block mr-2 h-4 w-4" /> {error}
+            </div>
+          )}
+
+          {/* Submit button */}
+          <button
+            type="submit"
+            className="w-full py-4 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-green-400 hover:from-green-400 hover:to-green-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] mt-8"
+            disabled={isLoading}
+          >
+            {isLoading ? "Creating account..." : "Create Account"}
+          </button>
+        </form>
       </div>
     </div>
   );

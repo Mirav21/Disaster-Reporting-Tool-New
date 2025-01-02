@@ -11,26 +11,27 @@ export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const [session, setSession] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    if (token) {
-      setSession(token);
-    } else {
-      setSession(null);
-    }
-  }, [token, session]);
+    const checkSession = () => {
+      if (typeof window !== "undefined") {
+        const storedToken = localStorage.getItem("token");
+        if (storedToken && storedToken !== session) {
+          setSession(storedToken);
+        } else if (!storedToken && session !== null) {
+          setSession(null);
+        }
+      }
+    };
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedToken = localStorage.getItem("token");
-      setToken(storedToken || null);
-    }
-  }, [token, session]);
+    checkSession();
 
-  useEffect(() => {
-    setSession(token);
-  }, [token]);
+    window.addEventListener("storage", checkSession);
+
+    return () => {
+      window.removeEventListener("storage", checkSession);
+    };
+  }, [session]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -59,13 +60,13 @@ export default function Navbar() {
   const signOut = async () => {
     const response = await axios.post(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/logout`,
-      session
+      { token: session }
     );
-    if (response.status == 200) {
+    if (response.status === 200) {
       localStorage.removeItem("token");
       setSession(null);
     }
-    setIsProfileOpen(!isProfileOpen);
+    setIsProfileOpen(false); // Close the profile menu
     router.push("/auth/signin");
   };
 
@@ -122,14 +123,12 @@ export default function Navbar() {
                   </Link>
                 </>
               ) : (
-                <>
-                  <Link
-                    href="/auth/signin"
-                    className="text-sm text-zinc-400 hover:text-white transition-colors"
-                  >
-                    Login/SignUp
-                  </Link>
-                </>
+                <Link
+                  href="/auth/signin"
+                  className="text-sm text-zinc-400 hover:text-white transition-colors"
+                >
+                  Login/SignUp
+                </Link>
               )}
               <Link
                 href="/howitworks"
@@ -141,12 +140,6 @@ export default function Navbar() {
 
             {/* Emergency Button */}
             <div className="flex items-center space-x-4">
-              {/* <Link
-                href="/contact"
-                className="hidden md:block text-sm text-zinc-400 hover:text-white transition-colors"
-              >
-                Contact
-              </Link> */}
               <button className="group flex h-11 items-center gap-2 rounded-full bg-red-500/10 pl-4 pr-5 text-sm font-medium text-red-500 ring-1 ring-inset ring-red-500/20 transition-all hover:bg-red-500/20">
                 <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
                 Emergency: 911
@@ -201,14 +194,8 @@ export default function Navbar() {
                         >
                           Profile
                         </Link>
-                        {/* <Link
-                          href="/settings"
-                          className="block px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800"
-                        >
-                          Settings
-                        </Link> */}
                         <button
-                          onClick={() => signOut()}
+                          onClick={signOut}
                           className="block w-full text-left px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800"
                         >
                           Sign Out

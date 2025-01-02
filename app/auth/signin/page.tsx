@@ -9,42 +9,51 @@ import { jwtDecode } from "jwt-decode";
 
 interface CustomJwtPayload {
   role: string;
-  // Add other properties from your JWT payload if needed
 }
 
 export default function SignIn() {
   const router = useRouter();
-  const [username, setusername] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [accessToken, setAccessToken] = useState("");
+  const [accessToken, setAccessToken] = useState<string | null>(null);
 
-  if (typeof window !== "undefined") {
-    const accessToken = localStorage.getItem("token");
-    setAccessToken(accessToken || "");
-  }
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedToken = localStorage.getItem("token");
+      setAccessToken(storedToken);
+    }
+  }, []);
 
   useEffect(() => {
     if (accessToken) {
-      const token = localStorage.getItem("token") as string;
-      const decodeToken = jwtDecode<CustomJwtPayload>(token);
-      const role = decodeToken.role;
+      try {
+        const decodeToken = jwtDecode<CustomJwtPayload>(accessToken);
+        const role = decodeToken.role;
 
-      if (role === "USER") {
-        router.push("/");
-      } else if (role === "ADMIN") {
-        router.push("/dashboard");
-      } else if (role === "MODERATOR") {
-        router.push("/moderator-dashboard");
+        if (role === "USER") {
+          router.push("/");
+        } else if (role === "ADMIN") {
+          router.push("/dashboard");
+        } else if (role === "MODERATOR") {
+          router.push("/moderator-dashboard");
+        }
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        setError("Invalid token. Please sign in again.");
+        localStorage.removeItem("token");
+        setAccessToken(null);
       }
     }
   }, [accessToken, router]);
 
-  const handleSubmit = async (e: { preventDefault: () => void }) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    console.log("username", username);
+    console.log("password", password);
 
     try {
       const response = await axios.post(
@@ -54,24 +63,11 @@ export default function SignIn() {
           password,
         }
       );
-
-      if (response.status == 200) {
+      console.log("response", response);
+      if (response.status === 200) {
         localStorage.setItem("token", response.data.token);
-
-        if (localStorage.getItem("token")) {
-          //const token = localStorage.getItem("token") as string;
-          //const decodeToken = jwtDecode<CustomJwtPayload>(token);
-          //const role = decodeToken.role;
-
-          // if (role === "USER") {
-          //   router.push("/");
-          // } else if (role === "ADMIN") {
-          //   router.push("/dashboard");
-          // } else if (role === "MODERATOR") {
-          //   router.push("/moderator-dashboard");
-          // }
-          router.push("/");
-        }
+        setAccessToken(response.data.token);
+        router.push("/");
       }
     } catch (error) {
       console.error(error);
@@ -171,7 +167,7 @@ export default function SignIn() {
                     type="text"
                     required
                     value={username}
-                    onChange={(e) => setusername(e.target.value)}
+                    onChange={(e) => setUsername(e.target.value)}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500"
                     placeholder="Enter your username"
                   />

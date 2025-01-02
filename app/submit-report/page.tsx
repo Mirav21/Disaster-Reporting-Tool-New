@@ -1,23 +1,28 @@
 "use client";
+
 import { ReportLayout } from "@/components/submit-report/report";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function SubmitReport() {
-  const [session, setSession] = useState("");
-
-  if (typeof window !== "undefined") {
-    const accessToken = localStorage.getItem("token");
-    setSession(accessToken || "");
-  }
+  const [session, setSession] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to login page if not authenticated
-    if (!session) {
+    // Check for session and redirect if necessary
+    const accessToken =
+      typeof window !== "undefined" ? localStorage?.getItem("token") : null;
+    setSession(accessToken);
+
+    if (!accessToken) {
       router.push("/auth/signin");
     }
-  }, [session, router]);
+  }, [router]);
+
+  // If session is null, we're still checking. You might want to show a loading state here.
+  if (session === null) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="relative min-h-screen bg-black selection:bg-green-500/20 overflow-hidden">

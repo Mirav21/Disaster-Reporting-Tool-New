@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-// import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { AlertTriangle, Shield, Users, Clock, AlertCircle } from "lucide-react";
 import { LocationInput } from "@/components/submit-report/LocationInput";
 import axios from "axios";
@@ -15,7 +14,7 @@ interface CustomJwtPayload {
 export default function SignUp() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: "",
     phone: "",
@@ -26,7 +25,35 @@ export default function SignUp() {
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  // const { executeRecaptcha } = useGoogleReCaptcha();
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedToken = localStorage.getItem("token");
+      setAccessToken(storedToken);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (accessToken) {
+      try {
+        const decodeToken = jwtDecode<CustomJwtPayload>(accessToken);
+        const role = decodeToken.role;
+
+        if (role === "USER") {
+          router.push("/");
+        } else if (role === "ADMIN") {
+          router.push("/dashboard");
+        } else if (role === "MODERATOR") {
+          router.push("/moderator-dashboard");
+        }
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        localStorage.removeItem("token");
+        setAccessToken(null);
+      }
+    }
+  }, [accessToken, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,14 +67,9 @@ export default function SignUp() {
     }
 
     try {
-      // const recaptchaToken = await executeRecaptcha!("signup");
-
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/register`,
-        {
-          ...formData,
-          // recaptchaToken,
-        }
+        formData
       );
 
       if (response.status === 200) {
@@ -72,28 +94,6 @@ export default function SignUp() {
       [e.target.name]: e.target.value,
     }));
   };
-
-  const [accessToken, setAccessToken] = useState("");
-
-  if (typeof window !== "undefined") {
-    const accessToken = localStorage.getItem("token");
-    setAccessToken(accessToken || "");
-  }
-
-  useEffect(() => {
-    if (accessToken) {
-      const decodeToken = jwtDecode<CustomJwtPayload>(accessToken);
-      const role = decodeToken.role;
-
-      if (role === "USER") {
-        router.push("/");
-      } else if (role === "ADMIN") {
-        router.push("/dashboard");
-      } else if (role === "MODERATOR") {
-        router.push("/moderator-dashboard");
-      }
-    }
-  }, [accessToken]);
 
   return (
     <div className="flex top-0 min-h-screen -mt-16 overflow-hidden">
@@ -171,21 +171,18 @@ export default function SignUp() {
           </div>
 
           {/* Two-column layout for form fields */}
-          <div className="grid grid-cols-1 gap-6">
-            {/* Name field */}
-            <div>
-              <label className="block text-sm font-medium text-green-500 mb-1">
-                Full Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
-                placeholder="John Doe"
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-green-500 mb-1">
+              Full Name
+            </label>
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
+              placeholder="John Doe"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

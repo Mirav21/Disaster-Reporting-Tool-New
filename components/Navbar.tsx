@@ -160,7 +160,7 @@ export default function Navbar() {
             <div className="flex items-center space-x-4">
               <button className="group flex h-11 items-center gap-2 rounded-full bg-red-500/10 pl-4 pr-5 text-sm font-medium text-red-500 ring-1 ring-inset ring-red-500/20 transition-all hover:bg-red-500/20">
                 <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
-                Emergency: 911
+                Emergency: 112
               </button>
 
               {/* Profile Button and Dropdown */}

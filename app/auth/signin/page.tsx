@@ -8,6 +8,7 @@ import { AlertTriangle, Shield, Users, Clock } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 
 interface CustomJwtPayload {
+  sub: string;
   role: string;
 }
 
@@ -28,25 +29,22 @@ export default function SignIn() {
 
   useEffect(() => {
     if (accessToken) {
-      try {
-        const decodeToken = jwtDecode<CustomJwtPayload>(accessToken);
-        const role = decodeToken.role;
-
-        if (role === "USER") {
-          router.push("/");
-        } else if (role === "ADMIN") {
-          router.push("/dashboard");
-        } else if (role === "MODERATOR") {
-          router.push("/moderator-dashboard");
-        }
-      } catch (error) {
-        console.error("Error decoding token:", error);
-        setError("Invalid token. Please sign in again.");
-        localStorage.removeItem("token");
-        setAccessToken(null);
+      const decodeToken = jwtDecode<CustomJwtPayload>(accessToken);
+      const username = decodeToken?.sub;
+      if (
+        username === "admin" ||
+        username === "moderator" ||
+        username === "MODERATOR" ||
+        username === "ADMIN"
+      ) {
+        router.push("/dashboard");
+      } else if (username === "VENDOR" || username === "vendor") {
+        router.push("/vendor");
+      } else {
+        router.push("/");
       }
     }
-  }, [accessToken, router]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

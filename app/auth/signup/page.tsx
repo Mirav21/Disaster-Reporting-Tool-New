@@ -8,6 +8,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
 interface CustomJwtPayload {
+  sub: string;
   role: string;
 }
 
@@ -31,6 +32,26 @@ export default function SignUp() {
     if (typeof window !== "undefined") {
       const storedToken = localStorage.getItem("token");
       setAccessToken(storedToken);
+    }
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decodeToken = jwtDecode<CustomJwtPayload>(token);
+      const username = decodeToken?.sub;
+      if (
+        username === "admin" ||
+        username === "moderator" ||
+        username === "MODERATOR" ||
+        username === "ADMIN"
+      ) {
+        router.push("/dashboard");
+      } else if (username === "VENDOR" || username === "vendor") {
+        router.push("/vendor");
+      } else {
+        router.push("/");
+      }
     }
   }, []);
 
@@ -75,13 +96,19 @@ export default function SignUp() {
       if (response.status === 200) {
         router.push("/auth/signin");
       } else {
-        setError("Failed to create account");
+        setError("Unexpected error occurred");
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        setError(error.response?.data?.message || "Something went wrong");
+        const status = error.response?.status;
+
+        if (status === 409) {
+          setError("Username or email already exists");
+        } else {
+          setError("Failed to create account. Please try again later.");
+        }
       } else {
-        setError("Failed to sign up");
+        setError("An unexpected error occurred.");
       }
     } finally {
       setIsLoading(false);

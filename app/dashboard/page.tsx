@@ -28,6 +28,7 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { jwtDecode } from "jwt-decode";
 
 // Define the new interface based on the API response
 interface DisasterReport {
@@ -64,6 +65,11 @@ interface Team {
   status: string;
 }
 
+interface CustomJwtPayload {
+  sub: string;
+  role: string;
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const [reports, setReports] = useState<DisasterReport[]>([]);
@@ -85,6 +91,26 @@ export default function Dashboard() {
     fetchReports();
     setReload(false);
   }, [reload]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decodeToken = jwtDecode<CustomJwtPayload>(token);
+      const username = decodeToken?.sub;
+      if (
+        username === "admin" ||
+        username === "moderator" ||
+        username === "MODERATOR" ||
+        username === "ADMIN"
+      ) {
+        router.push("/dashboard");
+      } else if (username === "VENDOR" || username === "vendor") {
+        router.push("/vendor");
+      } else {
+        router.push("/");
+      }
+    }
+  }, []);
 
   const formatDate = (dateString: string): string => {
     try {

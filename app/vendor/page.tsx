@@ -19,6 +19,12 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+
+interface CustomJwtPayload {
+  sub: string;
+  role: string;
+}
 
 // Types remain the same
 type DisasterStats = {
@@ -78,6 +84,26 @@ export default function RescueTeamDashboard() {
 
   useEffect(() => {
     fetchReports();
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decodeToken = jwtDecode<CustomJwtPayload>(token);
+      const username = decodeToken?.sub;
+      if (
+        username === "admin" ||
+        username === "moderator" ||
+        username === "MODERATOR" ||
+        username === "ADMIN"
+      ) {
+        router.push("/dashboard");
+      } else if (username === "VENDOR" || username === "vendor") {
+        router.push("/vendor");
+      } else {
+        router.push("/");
+      }
+    }
   }, []);
 
   const fetchReports = async () => {

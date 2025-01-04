@@ -9,7 +9,6 @@ export default function SubmitReport() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for session and redirect if necessary
     const accessToken =
       typeof window !== "undefined" ? localStorage?.getItem("token") : null;
     setSession(accessToken);
@@ -19,7 +18,6 @@ export default function SubmitReport() {
     }
   }, [router]);
 
-  // If session is null, we're still checking. You might want to show a loading state here.
   if (session === null) {
     return <div>Loading...</div>;
   }

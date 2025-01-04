@@ -68,14 +68,20 @@ export default function Navbar() {
     }
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token && session === null) {
+      setSession(token);
+    }
+  }, [session]);
+
   const signOut = async () => {
     const response = await axios.post(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/logout`,
       { token: session }
     );
     if (response.status === 200) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("username");
+      localStorage.clear();
       setSession(null);
     }
     setIsProfileOpen(false);

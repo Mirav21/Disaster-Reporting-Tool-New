@@ -1,13 +1,28 @@
-import { signOut } from "next-auth/react";
+import axios from "axios";
 import Link from "next/link";
-//
+import { useRouter } from "next/navigation";
+
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
+  const router = useRouter();
+
   if (!isOpen) return null;
+
+  const signOut = async () => {
+    const session = localStorage.getItem("token");
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/logout`,
+      { token: session }
+    );
+    if (response.status === 200) {
+      localStorage.clear();
+    }
+    router.push("/auth/signin");
+  };
 
   return (
     <div className="fixed inset-0 z-50 md:hidden">

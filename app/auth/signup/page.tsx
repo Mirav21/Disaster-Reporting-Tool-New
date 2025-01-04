@@ -159,7 +159,7 @@ export default function SignUp() {
       </div>
 
       {/* Right side - Form Section */}
-      <div className="lg:w-1/2 w-full mt-10 p-8 lg:p-12 bg-black/90 flex justify-center items-center">
+      <div className="lg:w-1/2 w-full mt-28 p-8 lg:p-12 bg-black/90 flex justify-center items-cente">
         <form className="w-full max-w-2xl space-y-6" onSubmit={handleSubmit}>
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-green-600 mb-2">
@@ -278,7 +278,7 @@ export default function SignUp() {
           {/* Submit button */}
           <button
             type="submit"
-            className="w-full py-4 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-green-400 hover:from-green-400 hover:to-green-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] mt-8"
+            className="w-full py-4 rounded-lg text-md bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 mt-8"
             disabled={isLoading}
           >
             {isLoading ? "Creating account..." : "Create Account"}

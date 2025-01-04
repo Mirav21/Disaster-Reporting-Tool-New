@@ -131,8 +131,7 @@ export default function RescueTeamDashboard() {
       { token: token }
     );
     if (response.status === 200) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("username");
+      localStorage.clear();
     }
     router.push("/auth/signin");
   };

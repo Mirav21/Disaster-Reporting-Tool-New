@@ -152,23 +152,23 @@ export default function SignIn() {
       </div>
 
       {/* Right side - Form Section */}
-      <div className="flex flex-col justify-center lg:w-1/2 bg-gray-100 h-screen sm:px-6 lg:px-8">
+      <div className="flex flex-col justify-center lg:w-1/2 bg-black/90 h-screen sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h1 className="text-center text-3xl font-bold text-green-800 mb-2">
+          <h1 className="text-center text-3xl font-bold text-green-600 mb-2">
             Welcome Back
           </h1>
-          <h2 className="text-center text-sm text-green-800">
+          <h2 className="text-center text-sm text-green-600">
             Sign in to access your account
           </h2>
         </div>
 
         <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-gray-50 p-6 rounded-xl shadow-lg border border-gray-200">
+          <div className="p-6 rounded-xl shadow-lg border border-green-500">
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label
                   htmlFor="username"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-green-500 mb-1"
                 >
                   Username
                 </label>
@@ -180,7 +180,7 @@ export default function SignIn() {
                     required
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500"
+                    className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
                     placeholder="Enter your username"
                   />
                 </div>
@@ -189,7 +189,7 @@ export default function SignIn() {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-green-500 mb-1"
                 >
                   Password
                 </label>
@@ -201,7 +201,7 @@ export default function SignIn() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500"
+                    className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
                     placeholder="Enter your password"
                   />
                 </div>

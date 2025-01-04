@@ -81,7 +81,9 @@ export default function SignIn() {
       }
     } catch (error) {
       console.error(error);
-      setError("An error occurred during sign in");
+      setError(
+        "You are not authorized to access this platform or Invalid Username or Password"
+      );
     } finally {
       setIsLoading(false);
     }

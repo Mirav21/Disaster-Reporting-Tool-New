@@ -630,86 +630,89 @@ export default function Dashboard() {
             )}
           </div>
 
-          {localStorage.getItem("username") === "hrm" && (
-            <>
-              <div className="flex justify-center items-center">
-                <h1 className="text-neutral-200 text-2xl mt-20">
-                  Reviewed Reports
-                </h1>
-              </div>
+          {localStorage.getItem("username") === "admin" ||
+            (localStorage.getItem("username") === "ADMIN" && (
+              <>
+                <div className="flex justify-center items-center">
+                  <h1 className="text-neutral-200 text-2xl mt-20">
+                    Reviewed Reports
+                  </h1>
+                </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {filteredReports.filter((report) => report.reviewReport)
-                  .length > 0 ? (
-                  filteredReports.map(
-                    (report) =>
-                      report.reviewReport &&
-                      report.status !== "COMPLETED" && (
-                        <div
-                          key={report.id}
-                          onClick={() => setSelectedReport(report)}
-                          className={`group bg-neutral-900/50 backdrop-blur-sm rounded-xl p-6 border ${
-                            selectedReport?.id === report.id
-                              ? "border-blue-500/50 ring-1 ring-blue-500/20"
-                              : "border-neutral-800 hover:border-neutral-700"
-                          } transition-all cursor-pointer hover:transform hover:scale-[1.02] hover:shadow-xl`}
-                        >
-                          <div className="space-y-4">
-                            <div className="flex items-center gap-3">
-                              {getStatusIcon(report.status)}
-                              <h2 className="text-lg font-semibold text-white flex-grow truncate">
-                                {report.disasterType} - {report.reportId}
-                              </h2>
-                              <span
-                                className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${getStatusColor(
-                                  "COMPLETED"
-                                )}`}
-                              >
-                                Reviewed
-                              </span>
-                              <span
-                                className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${getStatusColor(
-                                  report.status
-                                )}`}
-                              >
-                                {report.status}
-                              </span>
-                            </div>
-
-                            <p className="text-neutral-400 text-sm line-clamp-2 group-hover:text-neutral-300 transition-colors">
-                              {report.description}
-                            </p>
-
-                            <div className="flex items-center gap-4 text-sm text-neutral-400">
-                              <div className="flex items-center gap-2">
-                                <User className="w-4 h-4" />
-                                <span>{report.contactInfo || "Anonymous"}</span>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {filteredReports.filter((report) => report.reviewReport)
+                    .length > 0 ? (
+                    filteredReports.map(
+                      (report) =>
+                        report.reviewReport &&
+                        report.status !== "COMPLETED" && (
+                          <div
+                            key={report.id}
+                            onClick={() => setSelectedReport(report)}
+                            className={`group bg-neutral-900/50 backdrop-blur-sm rounded-xl p-6 border ${
+                              selectedReport?.id === report.id
+                                ? "border-blue-500/50 ring-1 ring-blue-500/20"
+                                : "border-neutral-800 hover:border-neutral-700"
+                            } transition-all cursor-pointer hover:transform hover:scale-[1.02] hover:shadow-xl`}
+                          >
+                            <div className="space-y-4">
+                              <div className="flex items-center gap-3">
+                                {getStatusIcon(report.status)}
+                                <h2 className="text-lg font-semibold text-white flex-grow truncate">
+                                  {report.disasterType} - {report.reportId}
+                                </h2>
+                                <span
+                                  className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${getStatusColor(
+                                    "COMPLETED"
+                                  )}`}
+                                >
+                                  Reviewed
+                                </span>
+                                <span
+                                  className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${getStatusColor(
+                                    report.status
+                                  )}`}
+                                >
+                                  {report.status}
+                                </span>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Clock className="w-4 h-4" />
-                                <span>{formatDate(report.createdAt)}</span>
-                              </div>
-                              {report.location && (
+
+                              <p className="text-neutral-400 text-sm line-clamp-2 group-hover:text-neutral-300 transition-colors">
+                                {report.description}
+                              </p>
+
+                              <div className="flex items-center gap-4 text-sm text-neutral-400">
                                 <div className="flex items-center gap-2">
-                                  <MapPin className="w-4 h-4" />
-                                  <span>{report.location}</span>
+                                  <User className="w-4 h-4" />
+                                  <span>
+                                    {report.contactInfo || "Anonymous"}
+                                  </span>
                                 </div>
-                              )}
+                                <div className="flex items-center gap-2">
+                                  <Clock className="w-4 h-4" />
+                                  <span>{formatDate(report.createdAt)}</span>
+                                </div>
+                                {report.location && (
+                                  <div className="flex items-center gap-2">
+                                    <MapPin className="w-4 h-4" />
+                                    <span>{report.location}</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )
-                  )
-                ) : (
-                  <div className="flex items-center justify-center col-span-2 h-10">
-                    <h4 className="text-neutral-400 text-md">
-                      No reports have been reviewed.
-                    </h4>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
+                        )
+                    )
+                  ) : (
+                    <div className="flex items-center justify-center col-span-2 h-10">
+                      <h4 className="text-neutral-400 text-md">
+                        No reports have been reviewed.
+                      </h4>
+                    </div>
+                  )}
+                </div>
+              </>
+            ))}
 
           {/* Empty State */}
           {filteredReports.length === 0 && (

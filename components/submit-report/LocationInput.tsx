@@ -208,8 +208,9 @@ export function LocationInput({
         map.on("load", () => {
           if (!markerRef.current) {
             const marker = new mapboxgl.Marker({
-              color: "#FF0000",
+              element: createMarkerElement(),
               draggable: true,
+              anchor: "bottom",
             })
               .setLngLat([lng, lat])
               .addTo(map);

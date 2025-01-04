@@ -247,6 +247,9 @@ export function ReportForm({ onComplete }: ReportFormProps) {
       const data = response.data;
       onComplete(data);
     } catch (error) {
+      toast.error(
+        "Report not Submited! Please Try Again and check for missing Fields"
+      );
       console.error("Error submitting report:", error);
     } finally {
       setIsSubmitting(false);

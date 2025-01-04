@@ -1,7 +1,6 @@
 "use client";
-import { useSession } from "next-auth/react";
+
 import { useEffect, useState } from "react";
-import { signOut } from "next-auth/react";
 import {
   Award,
   Clock,
@@ -22,6 +21,7 @@ import {
 import Link from "next/link";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 // Define the new interface based on the API response
 interface DisasterReport {
@@ -41,6 +41,15 @@ interface DisasterReport {
     status: string;
   } | null;
   title: string | null;
+  reviewReport: {
+    id: string;
+    affectedPeople: string;
+    approved: boolean;
+    casualties: string;
+    detailedDescription: string;
+    numberOfPeopleRescued: string | null;
+    evacuationCentres: string;
+  };
 }
 
 interface Team {
@@ -49,19 +58,8 @@ interface Team {
   status: string;
 }
 
-enum ReportStatus {
-  PENDING = "PENDING",
-  IN_PROGRESS = "IN_PROGRESS",
-  COMPLETED = "COMPLETED",
-}
-
-// type SelectedReport = {
-//   status: string;
-//   teamAssign: { teamName: string } | null;
-// };
-
 export default function Dashboard() {
-  const { data: session } = useSession();
+  const router = useRouter();
   const [reports, setReports] = useState<DisasterReport[]>([]);
   const [filter, setFilter] = useState<string>("ALL");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
@@ -75,10 +73,12 @@ export default function Dashboard() {
   const [sosRadius, setSOSRadius] = useState(5);
   const [sosMessage, setSOSMessage] = useState("");
   const [isSendingAlert, setIsSendingAlert] = useState(false);
+  const [reload, setReload] = useState(false);
 
   useEffect(() => {
     fetchReports();
-  }, []);
+    setReload(false);
+  }, [reload]);
 
   const formatDate = (dateString: string): string => {
     try {
@@ -96,13 +96,8 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => {
-    fetchReports();
-  }, []);
-
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeam, setSelectedTeam] = useState("");
-  //const [, setteamChange] = useState("");
 
   useEffect(() => {
     fetchTeams();
@@ -154,7 +149,7 @@ export default function Dashboard() {
           },
         }
       );
-      //setteamChange(selectedTeam);
+      setSelectedReport(null);
       toast.success("Team assigned successfully");
       fetchReports();
     } catch (error) {
@@ -163,20 +158,47 @@ export default function Dashboard() {
     }
   };
 
+  const signOut = async () => {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/logout`,
+      { token: token }
+    );
+    if (response.status === 200) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
+    }
+    router.push("/auth/signin");
+  };
+
   const fetchReports = async () => {
     setIsLoading(true);
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/disaster-report/admin-reports`
       );
-      const data = await response.json();
-      // Transform the data to ensure status is of type ReportStatus
-      const transformedData = data.map((report: DisasterReport) => ({
-        ...report,
-        status: report.status,
-      }));
-      setReports(transformedData);
-      console.log("Reports:", transformedData);
+      const data: DisasterReport[] = await response.json();
+
+      // Define the sort order
+      const statusOrder = ["PENDING", "IN_PROGRESS", "COMPLETED"];
+
+      // Sort the data based on status
+      const sortedData = data.sort((a, b) => {
+        const statusA = statusOrder.indexOf(a.status);
+        const statusB = statusOrder.indexOf(b.status);
+
+        if (statusA !== statusB) {
+          return statusA - statusB;
+        }
+
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      });
+
+      setReports(sortedData);
+      console.log("Sorted Reports:", sortedData);
     } catch (error) {
       console.error("Error fetching reports:", error);
       setReports([]);
@@ -204,7 +226,8 @@ export default function Dashboard() {
         },
         {}
       );
-      // setReports([]);
+      setReload(true);
+      setSelectedReport(null);
     } catch (error) {
       console.error("Error updating report:", error);
     }
@@ -385,7 +408,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-neutral-950 to-neutral-900 text-white flex">
+    <div className="min-h-[92.5vh] bg-gradient-to-br from-black via-neutral-950 to-neutral-900 text-white flex">
       {/* Sidebar */}
       <aside className="w-64 bg-neutral-900/50 backdrop-blur-md border-r border-neutral-800 flex flex-col">
         <div className="p-6 border-b border-neutral-800">
@@ -459,9 +482,11 @@ export default function Dashboard() {
               </div>
               <div className="flex-grow text-left">
                 <p className="text-sm font-medium truncate">
-                  {session?.user?.name || "Admin"}
+                  {/* {session?.user?.name || "Admin"} */}
                 </p>
-                <p className="text-xs text-neutral-400">Administrator</p>
+                <p className="text-xs text-neutral-400">
+                  {localStorage.getItem("username")}
+                </p>
               </div>
               <MoreHorizontal className="w-5 h-5 text-neutral-400 group-hover:text-white transition-colors" />
             </button>
@@ -494,17 +519,6 @@ export default function Dashboard() {
                 Manage and track all reported incidents
               </p>
             </div>
-
-            {/* <div className="flex gap-4">
-              <button className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded-lg text-neutral-400 hover:text-white transition-colors flex items-center gap-2">
-                <Bell className="w-4 h-4" />
-                <span className="text-sm">Notifications</span>
-              </button>
-              <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white transition-colors flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                <span className="text-sm">New Report</span>
-              </button>
-            </div> */}
           </div>
 
           {/* Search and Filters */}
@@ -519,88 +533,152 @@ export default function Dashboard() {
               />
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 w-5 h-5" />
             </div>
+          </div>
 
-            {/* <select
-              value={filter}
-              onChange={(e) =>
-                setFilter(e.target.value as ReportStatus | "ALL")
-              }
-              className="appearance-none bg-neutral-900/50 backdrop-blur-sm border border-neutral-800 text-neutral-100 rounded-lg pl-4 pr-10 py-2 focus:ring-2 focus:ring-blue-500/20 transition-all"
-            >
-              <option value="ALL">All Statuses</option>
-              {Object.values(ReportStatus).map((status) => (
-                <option key={status} value={status}>
-                  {status.replace("_", " ")}
-                </option>
-              ))}
-            </select> */}
-
-            {/* <select
-              value={typeFilter}
-              onChange={(e) =>
-                setTypeFilter(e.target.value as ReportType | "ALL")
-              }
-              className="appearance-none bg-neutral-900/50 backdrop-blur-sm border border-neutral-800 text-neutral-100 rounded-lg pl-4 pr-10 py-2 focus:ring-2 focus:ring-blue-500/20 transition-all"
-            >
-              <option value="ALL">All Types</option>
-              {Object.values(ReportType).map((type) => (
-                <option key={type} value={type}>
-                  {type.replace("_", " ")}
-                </option>
-              ))}
-            </select> */}
+          <div className="flex justify-center items-center">
+            <h1 className="text-neutral-200 text-2xl">Pending Reports</h1>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredReports.map((report) => (
-              <div
-                key={report.id}
-                onClick={() => setSelectedReport(report)}
-                className={`group bg-neutral-900/50 backdrop-blur-sm rounded-xl p-6 border ${
-                  selectedReport?.id === report.id
-                    ? "border-blue-500/50 ring-1 ring-blue-500/20"
-                    : "border-neutral-800 hover:border-neutral-700"
-                } transition-all cursor-pointer hover:transform hover:scale-[1.02] hover:shadow-xl`}
-              >
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    {getStatusIcon(report.status)}
-                    <h2 className="text-lg font-semibold text-white flex-grow truncate">
-                      {report.disasterType} - {report.reportId}
-                    </h2>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${getStatusColor(
-                        report.status
-                      )}`}
-                    >
-                      {report.status}
-                    </span>
-                  </div>
-
-                  <p className="text-neutral-400 text-sm line-clamp-2 group-hover:text-neutral-300 transition-colors">
-                    {report.description}
-                  </p>
-
-                  <div className="flex items-center gap-4 text-sm text-neutral-400">
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      <span>{report.contactInfo || "Anonymous"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      <span>{formatDate(report.createdAt)}</span>
-                    </div>
-                    {report.location && (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        <span>{report.location}</span>
+            {filteredReports.filter((report) => report.reviewReport == null)
+              .length > 0 ? (
+              filteredReports.map((report) =>
+                report.reviewReport == null ? (
+                  <div
+                    key={report.id}
+                    onClick={() => setSelectedReport(report)}
+                    className={`group bg-neutral-900/50 backdrop-blur-sm rounded-xl p-6 border ${
+                      selectedReport?.id === report.id
+                        ? "border-blue-500/50 ring-1 ring-blue-500/20"
+                        : "border-neutral-800 hover:border-neutral-700"
+                    } transition-all cursor-pointer hover:transform hover:scale-[1.02] hover:shadow-xl`}
+                  >
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        {getStatusIcon(report.status)}
+                        <h2 className="text-lg font-semibold text-white flex-grow truncate">
+                          {report.disasterType} - {report.reportId}
+                        </h2>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${getStatusColor(
+                            report.status
+                          )}`}
+                        >
+                          {report.status}
+                        </span>
                       </div>
-                    )}
+
+                      <p className="text-neutral-400 text-sm line-clamp-2 group-hover:text-neutral-300 transition-colors">
+                        {report.description}
+                      </p>
+
+                      <div className="flex items-center gap-4 text-sm text-neutral-400">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4" />
+                          <span>{report.contactInfo || "Anonymous"}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          <span>{formatDate(report.createdAt)}</span>
+                        </div>
+                        {report.location && (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4" />
+                            <span>{report.location}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ) : null
+              )
+            ) : (
+              <div className="flex items-center justify-center col-span-2 h-10">
+                <h4 className="text-neutral-400 text-md">No pending reports</h4>
               </div>
-            ))}
+            )}
           </div>
+
+          {localStorage.getItem("username") === "hrm" && (
+            <>
+              <div className="flex justify-center items-center">
+                <h1 className="text-neutral-200 text-2xl mt-20">
+                  Reviewed Reports
+                </h1>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {filteredReports.filter((report) => report.reviewReport)
+                  .length > 0 ? (
+                  filteredReports.map(
+                    (report) =>
+                      report.reviewReport &&
+                      report.status !== "COMPLETED" && (
+                        <div
+                          key={report.id}
+                          onClick={() => setSelectedReport(report)}
+                          className={`group bg-neutral-900/50 backdrop-blur-sm rounded-xl p-6 border ${
+                            selectedReport?.id === report.id
+                              ? "border-blue-500/50 ring-1 ring-blue-500/20"
+                              : "border-neutral-800 hover:border-neutral-700"
+                          } transition-all cursor-pointer hover:transform hover:scale-[1.02] hover:shadow-xl`}
+                        >
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-3">
+                              {getStatusIcon(report.status)}
+                              <h2 className="text-lg font-semibold text-white flex-grow truncate">
+                                {report.disasterType} - {report.reportId}
+                              </h2>
+                              <span
+                                className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${getStatusColor(
+                                  "COMPLETED"
+                                )}`}
+                              >
+                                Reviewed
+                              </span>
+                              <span
+                                className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${getStatusColor(
+                                  report.status
+                                )}`}
+                              >
+                                {report.status}
+                              </span>
+                            </div>
+
+                            <p className="text-neutral-400 text-sm line-clamp-2 group-hover:text-neutral-300 transition-colors">
+                              {report.description}
+                            </p>
+
+                            <div className="flex items-center gap-4 text-sm text-neutral-400">
+                              <div className="flex items-center gap-2">
+                                <User className="w-4 h-4" />
+                                <span>{report.contactInfo || "Anonymous"}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4" />
+                                <span>{formatDate(report.createdAt)}</span>
+                              </div>
+                              {report.location && (
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="w-4 h-4" />
+                                  <span>{report.location}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                  )
+                ) : (
+                  <div className="flex items-center justify-center col-span-2 h-10">
+                    <h4 className="text-neutral-400 text-md">
+                      No reports have been reviewed.
+                    </h4>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
 
           {/* Empty State */}
           {filteredReports.length === 0 && (
@@ -626,7 +704,7 @@ export default function Dashboard() {
 
       {/* Report Details Sidebar */}
       {selectedReport && (
-        <div className="fixed inset-y-0 right-0 w-[480px] bg-neutral-900/95 backdrop-blur-xl border-l border-neutral-800 shadow-2xl z-50 overflow-y-auto transition-transform duration-300 transform">
+        <div className="fixed inset-y-0 right-0 w-[480px] bg-neutral-900/95 backdrop-blur-xl border-l border-neutral-800 shadow-2xl z-[50] overflow-y-auto transition-transform duration-300 transform">
           <div className="sticky top-0 bg-neutral-900/95 backdrop-blur-xl border-b border-neutral-800 p-6 flex justify-between items-center">
             <h2 className="text-xl font-semibold">Report Details</h2>
             <button
@@ -637,14 +715,14 @@ export default function Dashboard() {
             </button>
           </div>
 
-          <div className="p-6 space-y-6">
+          <div className="p-6 space-y-6 backdrop-blur-md">
             <div className="space-y-4">
               <div className="flex justify-between items-start">
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-lg font-semibold text-white z-[0] ">
                   {selectedReport.disasterType}
                 </h3>
                 <div
-                  className={`px-3 py-1 rounded-full text-xs font-medium uppercase flex items-center gap-2 ${getStatusColor(
+                  className={`px-3 py-1 rounded-full text-xs font-medium uppercase flex items-center gap-2 z-[0] ${getStatusColor(
                     selectedReport.status
                   )}`}
                 >
@@ -691,18 +769,6 @@ export default function Dashboard() {
                     {new Date(selectedReport.createdAt).toLocaleTimeString()}
                   </p>
                 </div>
-
-                {/* <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User className="w-4 h-4 text-neutral-400" />
-                    <h4 className="text-neutral-400 text-sm">Reported By</h4>
-                  </div>
-                  <p className="text-white">
-                    {selectedReport.userId
-                      ? `User ID: ${selectedReport.userId}`
-                      : "Unknown User"}
-                  </p>
-                </div> */}
               </div>
 
               {selectedReport.imageUrl && (
@@ -723,6 +789,7 @@ export default function Dashboard() {
               <SOSAlertSection />
 
               {selectedReport.status === "IN_PROGRESS" &&
+              !selectedReport.reviewReport &&
               !selectedReport.teamAssign ? (
                 <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -730,24 +797,32 @@ export default function Dashboard() {
                     <h4 className="text-neutral-400 text-sm">Assigned Team</h4>
                   </div>
                   <div className="space-y-2">
-                    <select
-                      value={selectedTeam}
-                      onChange={(e) => setSelectedTeam(e.target.value)}
-                      className="w-full bg-neutral-700 text-white border border-neutral-600 rounded-lg px-4 py-2"
-                    >
-                      <option value="">Select a team</option>
-                      {teams.map((team) => (
-                        <option key={team.team_id} value={team.team_id}>
-                          {team.teamName}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={() => handleAssignTeam(selectedReport.id)}
-                      className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white transition-colors"
-                    >
-                      Assign Team
-                    </button>
+                    {teams.length > 0 ? (
+                      <>
+                        <select
+                          value={selectedTeam}
+                          onChange={(e) => setSelectedTeam(e.target.value)}
+                          className="w-full bg-neutral-700 text-white border border-neutral-600 rounded-lg px-4 py-2"
+                        >
+                          <option value="">Select a team</option>
+                          {teams.map((team) => (
+                            <option key={team.team_id} value={team.team_id}>
+                              {team.teamName}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={() => handleAssignTeam(selectedReport.id)}
+                          className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white transition-colors"
+                        >
+                          Assign Team
+                        </button>
+                      </>
+                    ) : (
+                      <p className="text-neutral-400 text-sm">
+                        No team available
+                      </p>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -762,52 +837,41 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {/* <>
-                {selectedReport.assignedTeams.length > 0 ? (
-                  <p className="text-neutral-100">
-                    {selectedReport.assignedTeams[0].name} (
-                    {selectedReport.assignedTeams[0].specialization})
-                  </p>
-                ) : (
-                  <select
-                    onChange={(e) => onAssign(report.id, e.target.value)}
-                    className="bg-neutral-700 text-neutral-100 border border-neutral-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 transition duration-300 w-full"
-                  >
-                    <option value="">Assign a team</option>
-                    {rescueTeams.map((team) => (
-                      <option key={team.id} value={team.id}>
-                        {team.name} ({team.specialization})
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </> */}
+              <div className="sticky bottom-0 bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-800 -m-6 p-5">
+                <div className="flex gap-3 w-full">
+                  <div className="flex-2">
+                    {selectedReport.reviewReport &&
+                      selectedReport.status === "IN_PROGRESS" && (
+                        <button
+                          value="COMPLETED"
+                          onClick={() =>
+                            updateReportStatus(selectedReport.id, "COMPLETED")
+                          }
+                          className="w-full appearance-none hover:bg-neutral-700 bg-neutral-800 border border-neutral-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        >
+                          Mark as COMPLETED
+                        </button>
+                      )}
 
-              <div className="sticky bottom-0 bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-800 -mx-6 -mb-6 p-6">
-                <div className="flex gap-4">
-                  <select
-                    value={selectedReport.status}
-                    onChange={(e) => {
-                      const newStatus = e.target.value;
-                      updateReportStatus(selectedReport.id, newStatus);
-                    }}
-                    className="flex-grow appearance-none bg-neutral-800 border border-neutral-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                  >
-                    {Object.values(ReportStatus).map((status) => (
-                      <option key={status} value={status}>
-                        {status.replace("_", " ")}
-                      </option>
-                    ))}
-                  </select>
+                    {selectedReport.reviewReport === null &&
+                      selectedReport.status === "PENDING" && (
+                        <button
+                          value="IN_PROGRESS"
+                          onClick={() =>
+                            updateReportStatus(selectedReport.id, "IN_PROGRESS")
+                          }
+                          className="w-full appearance-none hover:bg-neutral-700 bg-neutral-800 border border-neutral-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        >
+                          Mark as IN_PROGRESS
+                        </button>
+                      )}
+                  </div>
 
                   <button
                     onClick={() => setSelectedReport(null)}
-                    className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 hover:text-white transition-colors"
+                    className="flex-1 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 hover:text-white transition-colors"
                   >
                     Close
-                  </button>
-                  <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white transition-colors">
-                    Save Changes
                   </button>
                 </div>
               </div>

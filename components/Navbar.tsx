@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import MobileMenu from "./MobileMenu";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 
 export default function Navbar() {
   const router = useRouter();
@@ -57,6 +58,16 @@ export default function Navbar() {
     setIsProfileOpen(!isProfileOpen);
   };
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      if (decodedToken?.sub) {
+        localStorage.setItem("username", decodedToken.sub);
+      }
+    }
+  }, []);
+
   const signOut = async () => {
     const response = await axios.post(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/logout`,
@@ -64,9 +75,10 @@ export default function Navbar() {
     );
     if (response.status === 200) {
       localStorage.removeItem("token");
+      localStorage.removeItem("username");
       setSession(null);
     }
-    setIsProfileOpen(false); // Close the profile menu
+    setIsProfileOpen(false);
     router.push("/auth/signin");
   };
 

@@ -52,8 +52,6 @@ export default function SignIn() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    console.log("username", username);
-    console.log("password", password);
 
     try {
       const response = await axios.post(
@@ -67,7 +65,21 @@ export default function SignIn() {
       if (response.status === 200) {
         localStorage.setItem("token", response.data.token);
         setAccessToken(response.data.token);
-        router.push("/");
+        const token = response.data.token;
+        if (token) {
+          const decodedToken = jwtDecode(token);
+          if (decodedToken?.sub) {
+            localStorage.setItem("username", decodedToken.sub);
+          }
+        }
+
+        if (localStorage.getItem("username") === "admin") {
+          router.push("/dashboard");
+        } else if (localStorage.getItem("username") === "moderator") {
+          router.push("/moderator-dashboard");
+        } else {
+          router.push("/");
+        }
       }
     } catch (error) {
       console.error(error);

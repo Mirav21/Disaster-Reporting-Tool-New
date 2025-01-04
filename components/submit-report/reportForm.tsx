@@ -159,7 +159,7 @@ export function ReportForm({ onComplete }: ReportFormProps) {
         setFormData((prev) => ({
           ...prev,
           title: data.title,
-          description: data.description,
+          // description: data.description,
           specificType: data.reportType,
         }));
         setImage(finalImage);

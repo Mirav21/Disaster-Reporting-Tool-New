@@ -6,6 +6,7 @@ import {
   Clock,
   MapPin,
   User,
+  Users,
   FileText,
   Check,
   XCircle,
@@ -17,11 +18,16 @@ import {
   LogOut,
   ChevronRight,
   AlertTriangle,
+  AlertCircle,
+  UserCheck,
+  Building,
 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Define the new interface based on the API response
 interface DisasterReport {
@@ -834,6 +840,96 @@ export default function Dashboard() {
                     {selectedReport.teamAssign?.teamName || "No Team Assigned"}
                   </p>
                 </div>
+              )}
+
+              {selectedReport.reviewReport && (
+                <>
+                  <div className="flex justify-between items-center text-2xl bg-neutral-900/95 backdrop-blur-xl border-t border-b border-neutral-800 -mx-6 p-6">
+                    <h2 className="text-xl font-semibold">Review Section</h2>
+                    {/* <Badge
+                      variant={
+                        selectedReport.reviewReport.approved
+                          ? "default"
+                          : "destructive"
+                      }
+                    >
+                      {selectedReport.reviewReport.approved
+                        ? "Approved"
+                        : "Pending"}
+                    </Badge> */}
+                  </div>
+
+                  <div className="backdrop-blur-md py-3">
+                    <div className="space-y-5">
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <Card className="bg-neutral-800/50 backdrop-blur-sm border-0">
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Users className="w-4 h-4 text-blue-400" />
+                              <span className="text-neutral-400 text-sm">
+                                Affected People
+                              </span>
+                            </div>
+                            <p className="text-xl font-bold text-green-500">
+                              {selectedReport.reviewReport.affectedPeople}
+                            </p>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="bg-neutral-800/50 backdrop-blur-sm border-0">
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <AlertCircle className="w-4 h-4 text-red-400" />
+                              <span className="text-neutral-400 text-sm">
+                                Casualties
+                              </span>
+                            </div>
+                            <p className="text-xl font-bold text-green-500">
+                              {selectedReport.reviewReport.casualties}
+                            </p>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="bg-neutral-800/50 backdrop-blur-sm border-0">
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <UserCheck className="w-4 h-4 text-green-400" />
+                              <span className="text-neutral-400 text-sm">
+                                People Rescued
+                              </span>
+                            </div>
+                            <p className="text-xl font-bold text-green-500">
+                              {selectedReport.reviewReport
+                                .numberOfPeopleRescued || "0"}
+                            </p>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="bg-neutral-800/50 backdrop-blur-sm border-0">
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Building className="w-4 h-4 text-purple-400" />
+                              <span className="text-neutral-400 text-sm">
+                                Evacuation Centers
+                              </span>
+                            </div>
+                            <p className="text-xl font-bold text-green-500">
+                              {selectedReport.reviewReport.evacuationCentres}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {/* Detailed Description */}
+                      <Alert className="bg-neutral-800/30 border-neutral-700">
+                        <AlertDescription className="text-neutral-200">
+                          {selectedReport.reviewReport.detailedDescription}
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+                  </div>
+                </>
               )}
 
               <div className="sticky bottom-0 bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-800 -m-6 p-5">

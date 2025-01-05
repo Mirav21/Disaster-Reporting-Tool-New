@@ -135,32 +135,41 @@ const WeatherDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTimeframe] = useState<"hourly" | "daily">("daily");
-  const [isUsingStaticData, setIsUsingStaticData] = useState(true);
+  const [isUsingStaticData] = useState(true);
 
   const fetchWeatherData = useCallback(async (lat: number, lng: number) => {
     setLoading(true);
     try {
       if (!OPENWEATHER_API_KEY) {
-        throw new Error("API key not found");
+        throw new Error("OpenWeather API key not configured");
       }
 
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&units=metric&exclude=minutely,alerts&appid=${OPENWEATHER_API_KEY}`
+        `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&units=metric&exclude=minutely,alerts&appid=${OPENWEATHER_API_KEY}`
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch weather data");
+        throw new Error(`Weather API error: ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log("Weather API response:", data); // Debug log
+
+      if (!data.current) {
+        throw new Error("Invalid weather data received");
+      }
+
       setWeatherData(data);
-      setIsUsingStaticData(false);
       setError(null);
     } catch (err) {
-      console.error(err);
-      setWeatherData(staticWeatherData);
-      setIsUsingStaticData(true);
-      setError("Using demo data due to API unavailability");
+      console.error("Error fetching weather data:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch weather data"
+      );
+      // Only set static data if it's an API key issue
+      if (err instanceof Error && err.message.includes("API key")) {
+        setWeatherData(staticWeatherData);
+      }
     } finally {
       setLoading(false);
     }
@@ -171,35 +180,61 @@ const WeatherDashboard: React.FC = () => {
 
     setLoading(true);
     try {
-      // First, get coordinates from OpenWeatherMap Geocoding API
+      if (!OPENWEATHER_API_KEY) {
+        throw new Error("OpenWeather API key not configured");
+      }
+
       const geoResponse = await fetch(
         `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(
           searchQuery
         )}&limit=1&appid=${OPENWEATHER_API_KEY}`
       );
-      const geoData = await geoResponse.json();
 
-      if (geoData && geoData.length > 0) {
-        const { lat, lon, name, state, country } = geoData[0];
-        setLocation({ lat, lng: lon });
-        setLocationName(`${name}${state ? `, ${state}` : ""}, ${country}`);
-        setViewport((prev) => ({
-          ...prev,
-          latitude: lat,
-          longitude: lon,
-        }));
-        await fetchWeatherData(lat, lon);
-        setError(null);
-      } else {
-        setError("Location not found. Please try another search.");
+      if (!geoResponse.ok) {
+        throw new Error(`Geocoding API error: ${geoResponse.statusText}`);
       }
-    } catch (error) {
-      console.error("Error searching location:", error);
-      setError("Error searching location. Please try again.");
+
+      const geoData = await geoResponse.json();
+      console.log("Geocoding API response:", geoData); // Debug log
+
+      if (!geoData || geoData.length === 0) {
+        throw new Error("Location not found");
+      }
+
+      const { lat, lon, name, state, country } = geoData[0];
+      setLocation({ lat, lng: lon });
+      setLocationName(`${name}${state ? `, ${state}` : ""}, ${country}`);
+      setViewport((prev) => ({
+        ...prev,
+        latitude: lat,
+        longitude: lon,
+      }));
+
+      await fetchWeatherData(lat, lon);
+    } catch (err) {
+      console.error("Error in search:", err);
+      setError(err instanceof Error ? err.message : "Search failed");
     } finally {
       setLoading(false);
     }
   }, [searchQuery, fetchWeatherData]);
+
+  useEffect(() => {
+    // Check if we have the required API keys
+    if (!OPENWEATHER_API_KEY) {
+      setError("OpenWeather API key not configured");
+      setWeatherData(staticWeatherData);
+      setLoading(false);
+      return;
+    }
+
+    if (!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN) {
+      setError("Mapbox API key not configured");
+    }
+
+    // Initial weather fetch
+    fetchWeatherData(location.lat, location.lng);
+  }, [fetchWeatherData, location.lat, location.lng]);
 
   const getLocation = useCallback(() => {
     setLoading(true);
@@ -265,6 +300,9 @@ const WeatherDashboard: React.FC = () => {
       }));
     }
 
+    // Check if daily data exists before mapping
+    if (!weatherData.daily) return [];
+
     return weatherData.daily.map((day) => ({
       date: new Date(day.dt * 1000).toLocaleDateString("en-US", {
         weekday: "short",
@@ -276,6 +314,33 @@ const WeatherDashboard: React.FC = () => {
       rainChance: Math.round(day.pop * 100),
     }));
   }, [weatherData, activeTimeframe]);
+
+  const safeRound = (value: number | undefined) => {
+    return typeof value === "number" ? Math.round(value) : "--";
+  };
+
+  const getCurrentData = () => {
+    return {
+      temp: safeRound(weatherData?.current?.temp),
+      humidity: safeRound(weatherData?.current?.humidity),
+      wind_speed: safeRound(weatherData?.current?.wind_speed),
+      clouds: safeRound(weatherData?.current?.clouds),
+      feels_like: safeRound(weatherData?.current?.feels_like),
+      pressure: weatherData?.current?.pressure ?? "--",
+      visibility: weatherData?.current?.visibility
+        ? (weatherData.current.visibility / 1000).toFixed(1)
+        : "--",
+      weather: weatherData?.current?.weather?.[0] ?? {
+        main: "Unknown",
+        description: "Weather data unavailable",
+        icon: "03d",
+      },
+    };
+  };
+
+  if (!weatherData) return null;
+
+  const currentData = getCurrentData();
 
   if (loading) {
     return (
@@ -347,13 +412,12 @@ const WeatherDashboard: React.FC = () => {
               <div>
                 <p className="text-emerald-400 mb-1">Temperature</p>
                 <h2 className="text-4xl font-bold text-white">
-                  {Math.round(weatherData.current.temp)}°C
+                  {currentData.temp}°C
                 </h2>
                 <div className="flex items-center gap-2 text-sm text-gray-400">
-                  <span>
-                    Feels like {Math.round(weatherData.current.feels_like)}°C
-                  </span>
-                  {weatherData.current.temp > weatherData.daily[0].temp.min && (
+                  <span>Feels like {currentData.feels_like}°C</span>
+                  {weatherData?.current?.temp >
+                    weatherData?.daily?.[0]?.temp?.min && (
                     <ArrowUpRight className="h-4 w-4 text-emerald-400" />
                   )}
                 </div>
@@ -369,10 +433,10 @@ const WeatherDashboard: React.FC = () => {
               <div>
                 <p className="text-emerald-400 mb-1">Humidity & Pressure</p>
                 <h2 className="text-4xl font-bold text-white">
-                  {weatherData.current.humidity}%
+                  {currentData.humidity}%
                 </h2>
                 <p className="text-sm text-gray-400">
-                  {weatherData.current.pressure} hPa
+                  {currentData.pressure} hPa
                 </p>
               </div>
               <Droplets className="h-12 w-12 text-emerald-400" />
@@ -386,11 +450,10 @@ const WeatherDashboard: React.FC = () => {
               <div>
                 <p className="text-emerald-400 mb-1">Wind & Visibility</p>
                 <h2 className="text-4xl font-bold text-white">
-                  {Math.round(weatherData.current.wind_speed)} m/s
+                  {currentData.wind_speed} m/s
                 </h2>
                 <p className="text-sm text-gray-400">
-                  Visibility:{" "}
-                  {(weatherData.current.visibility / 1000).toFixed(1)} km
+                  Visibility: {currentData.visibility} km
                 </p>
               </div>
               <Wind className="h-12 w-12 text-emerald-400" />
@@ -404,10 +467,10 @@ const WeatherDashboard: React.FC = () => {
               <div>
                 <p className="text-emerald-400 mb-1">Conditions</p>
                 <h2 className="text-4xl font-bold text-white">
-                  {weatherData.current.clouds}%
+                  {currentData.clouds}%
                 </h2>
                 <p className="text-sm text-gray-400">
-                  {weatherData.current.weather[0].description}
+                  {currentData.weather.description}
                 </p>
               </div>
               <Cloud className="h-12 w-12 text-emerald-400" />

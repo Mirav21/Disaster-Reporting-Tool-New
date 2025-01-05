@@ -86,6 +86,7 @@ export default function Dashboard() {
   const [sosMessage, setSOSMessage] = useState("");
   const [isSendingAlert, setIsSendingAlert] = useState(false);
   const [reload, setReload] = useState(false);
+  //const [user, setUser] = useState("");
 
   useEffect(() => {
     fetchReports();
@@ -97,6 +98,7 @@ export default function Dashboard() {
     if (token) {
       const decodeToken = jwtDecode<CustomJwtPayload>(token);
       const username = decodeToken?.sub;
+      //setUser(username);
       if (
         username === "admin" ||
         username === "moderator" ||

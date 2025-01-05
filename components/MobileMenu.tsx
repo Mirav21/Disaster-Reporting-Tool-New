@@ -85,12 +85,12 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             >
               Contact
             </Link> */}
-            <Link
+            {/* <Link
               href="/profile"
               className="text-sm text-zinc-400 hover:text-white transition-colors"
             >
               Profile
-            </Link>
+            </Link> */}
             {/* <Link
               href="/settings"
               className="text-sm text-zinc-400 hover:text-white transition-colors"

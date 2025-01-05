@@ -5,6 +5,7 @@ import MobileMenu from "./MobileMenu";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
+import DhruvaImage from "./DhruvaImage";
 
 export default function Navbar() {
   const router = useRouter();
@@ -96,58 +97,41 @@ export default function Navbar() {
             {/* Logo and Brand */}
             <div className="flex items-center space-x-3">
               <Link href="/" className="flex items-center space-x-3">
-                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
-                  <svg
-                    className="h-5 w-5 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
+                <div className="h-12 w-12 rounded-xl flex items-center justify-center">
+                  <DhruvaImage />
                 </div>
                 <span className="text-lg font-semibold text-white">
-                  Crisis Connect
+                  DhruvaSetu
                 </span>
               </Link>
             </div>
 
             {/* Main Navigation */}
             <div className="hidden md:flex items-center space-x-6">
-              {session ? (
-                <>
-                  <Link
-                    href="/submit-report"
-                    className="text-sm text-zinc-400 hover:text-white transition-colors"
-                  >
-                    Submit Report
-                  </Link>
-                  <Link
-                    href="/track-report"
-                    className="text-sm text-zinc-400 hover:text-white transition-colors"
-                  >
-                    Track Report
-                  </Link>
-                  <Link
-                    href="/weather-report"
-                    className="text-sm text-zinc-400 hover:text-white transition-colors"
-                  >
-                    Live Weather
-                  </Link>
-                </>
-              ) : (
-                <Link
-                  href="/auth/signin"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors"
-                >
-                  Login/SignUp
-                </Link>
-              )}
+              <Link
+                href="/submit-report"
+                className="text-sm text-zinc-400 hover:text-white transition-colors"
+              >
+                Submit Report
+              </Link>
+              <Link
+                href="/track-report"
+                className="text-sm text-zinc-400 hover:text-white transition-colors"
+              >
+                Track Report
+              </Link>
+              <Link
+                href="/dhruva"
+                className="text-sm text-zinc-400 hover:text-white transition-colors"
+              >
+                Dhruva
+              </Link>
+              {/* <Link
+                href="/weather-report"
+                className="text-sm text-zinc-400 hover:text-white transition-colors"
+              >
+                Live Weather
+              </Link> */}
               <Link
                 href="/howitworks"
                 className="text-sm text-zinc-400 hover:text-white transition-colors"
@@ -158,7 +142,7 @@ export default function Navbar() {
 
             {/* Emergency Button */}
             <div className="flex items-center space-x-4">
-              <button className="group flex h-11 items-center gap-2 rounded-full bg-red-500/10 pl-4 pr-5 text-sm font-medium text-red-500 ring-1 ring-inset ring-red-500/20 transition-all hover:bg-red-500/20">
+              <button className="group flex h-11 items-center gap-2 rounded-full bg-white/10 pl-4 pr-5 text-sm font-medium text-red-500 ring-1 ring-inset ring-red-500/20 transition-all hover:bg-red-500/20">
                 <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
                 Emergency: 112
               </button>

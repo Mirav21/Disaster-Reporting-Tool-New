@@ -10,7 +10,6 @@ import {
   MapPin,
   Clock,
   Users,
-  BarChart,
   Heart,
   Home,
   Shell,

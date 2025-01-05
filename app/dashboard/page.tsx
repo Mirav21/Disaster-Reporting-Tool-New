@@ -14,7 +14,6 @@ import {
   Search,
   MoreHorizontal,
   Bell,
-  Settings,
   LogOut,
   ChevronRight,
   AlertTriangle,

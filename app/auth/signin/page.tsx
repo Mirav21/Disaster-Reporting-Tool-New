@@ -19,6 +19,7 @@ export default function SignIn() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -193,23 +194,27 @@ export default function SignIn() {
               </div>
 
               <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-green-500 mb-1"
-                >
+                <label className="block text-sm font-medium text-green-500 mb-1">
                   Password
                 </label>
-                <div className="mt-1">
+                <div className="relative">
                   <input
                     id="password"
+                    type={showPassword ? "text" : "password"}
                     name="password"
-                    type="password"
-                    required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
-                    placeholder="Enter your password"
+                    placeholder="••••••••"
+                    required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-3 flex items-center text-black hover:text-black/80 transition-all duration-200"
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
                 </div>
               </div>
 

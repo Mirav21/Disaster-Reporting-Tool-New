@@ -276,6 +276,7 @@ export function LocationInput({
             setCoordinates(null);
             setAddress(null);
           }}
+          required
           onFocus={() => setShowSuggestions(true)}
           placeholder="Enter location or use map"
           className="w-full rounded-xl bg-zinc-900/50 border border-zinc-800 pl-4 pr-12 py-3.5

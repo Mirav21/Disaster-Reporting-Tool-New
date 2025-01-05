@@ -27,6 +27,7 @@ export default function SignUp() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -100,12 +101,13 @@ export default function SignUp() {
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
+        console.error("usernae error : ");
         const status = error.response?.status;
 
         if (status === 409) {
-          setError("Username or email already exists");
+          setError(error?.response?.data);
         } else {
-          setError("Failed to create account. Please try again later.");
+          setError("Failed to create an account. Please try again later");
         }
       } else {
         setError("An unexpected error occurred.");
@@ -209,6 +211,7 @@ export default function SignUp() {
               onChange={handleChange}
               className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
               placeholder="John Doe"
+              required
             />
           </div>
 
@@ -225,6 +228,7 @@ export default function SignUp() {
                 onChange={handleChange}
                 className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
                 placeholder="you@example.com"
+                required
               />
             </div>
 
@@ -240,6 +244,7 @@ export default function SignUp() {
                 onChange={handleChange}
                 className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
                 placeholder="+1 (555) 000-0000"
+                required
               />
             </div>
           </div>
@@ -271,12 +276,13 @@ export default function SignUp() {
                 Password
               </label>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
                 placeholder="••••••••"
+                required
               />
             </div>
 
@@ -284,14 +290,24 @@ export default function SignUp() {
               <label className="block text-sm font-medium text-green-500 mb-1">
                 Confirm Password
               </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-3 flex items-center text-black hover:text-black/80 transition-all duration-200"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
           </div>
 

@@ -190,12 +190,34 @@ export default function Navbar() {
                       </>
                     ) : (
                       <>
-                        <Link
-                          href="/users/user-profile"
-                          className="block px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800"
-                        >
-                          Profile
-                        </Link>
+                        {(() => {
+                          const username = localStorage
+                            .getItem("username")
+                            ?.toLowerCase();
+                          return username === "admin" ||
+                            username === "moderator" ? (
+                            <Link
+                              href="/dashboard"
+                              className="block px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800"
+                            >
+                              Dashboard
+                            </Link>
+                          ) : null;
+                        })()}
+                        {(() => {
+                          const username = localStorage
+                            .getItem("username")
+                            ?.toLowerCase();
+                          return username === "vendor" ||
+                            username === "moderator" ? (
+                            <Link
+                              href="/vendor"
+                              className="block px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800"
+                            >
+                              Dashboard
+                            </Link>
+                          ) : null;
+                        })()}
                         <button
                           onClick={signOut}
                           className="block w-full text-left px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800"

@@ -71,10 +71,16 @@ export default function SignIn() {
           }
         }
 
-        if (localStorage.getItem("username") === "admin") {
+        if (localStorage.getItem("username")?.toLowerCase() === "admin") {
           router.push("/dashboard");
-        } else if (localStorage.getItem("username") === "moderator") {
+        } else if (
+          localStorage.getItem("username")?.toLowerCase() === "moderator"
+        ) {
           router.push("/moderator-dashboard");
+        } else if (
+          localStorage.getItem("username")?.toLowerCase() === "vendor"
+        ) {
+          router.push("/vendor");
         } else {
           router.push("/");
         }

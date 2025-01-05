@@ -21,6 +21,7 @@ import {
   AlertCircle,
   UserCheck,
   Building,
+  Menu,
 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
@@ -86,7 +87,8 @@ export default function Dashboard() {
   const [sosMessage, setSOSMessage] = useState("");
   const [isSendingAlert, setIsSendingAlert] = useState(false);
   const [reload, setReload] = useState(false);
-  //const [user, setUser] = useState("");
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchReports();
@@ -441,199 +443,231 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-[92.5vh] bg-gradient-to-br from-black via-neutral-950 to-neutral-900 text-white flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-neutral-900/50 backdrop-blur-md border-r border-neutral-800 flex flex-col">
-        <div className="p-6 border-b border-neutral-800">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-            Admin Panel
-          </h1>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-black via-neutral-950 to-neutral-900 text-white">
+      {/* Mobile Header */}
+      <div className="lg:hidden flex items-center justify-between p-4 bg-neutral-900/95 backdrop-blur-md border-b border-neutral-800 sticky top-0 z-30">
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="p-2 hover:bg-neutral-800 rounded-lg"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+          Admin Panel
+        </h1>
+        <div className="w-6" /> {/* Spacer for alignment */}
+      </div>
 
-        <nav className="flex-grow">
-          <div className="px-4 py-2 text-xs font-medium text-neutral-400 uppercase tracking-wider">
-            Main Menu
+      <div className="flex">
+        {/* Overlay */}
+        {isSidebarOpen && (
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
+        {/* Sidebar */}
+        <aside
+          className={`
+          fixed top-0 left-0 w-64 bg-neutral-900/95 backdrop-blur-md border-r border-neutral-800 
+          transform transition-transform duration-300 ease-in-out z-50
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0 lg:static lg:z-0
+        `}
+        >
+          <div className="hidden lg:block p-6 border-b border-neutral-800">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+              Admin Panel
+            </h1>
           </div>
-          <ul className="space-y-1">
-            <li>
-              <Link
-                href="/dashboard"
-                className="px-4 py-3 mx-2 rounded-lg hover:bg-blue-500/10 cursor-pointer flex items-center gap-3 text-blue-400 transition-colors group"
-              >
-                <FileText className="w-5 h-5" />
-                Reports
-                <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/users"
-                className="px-4 py-3 mx-2 rounded-lg hover:bg-neutral-800 cursor-pointer flex items-center gap-3 text-neutral-400 hover:text-white transition-colors group"
-              >
-                <User className="w-5 h-5" />
-                Users
-                <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-            </li>
-          </ul>
 
-          <div className="px-4 py-2 mt-6 text-xs font-medium text-neutral-400 uppercase tracking-wider">
-            Settings
-          </div>
-          <ul className="space-y-1">
-            <li>
-              <Link
-                href="/notifications"
-                className="px-4 py-3 mx-2 rounded-lg hover:bg-neutral-800 cursor-pointer flex items-center gap-3 text-neutral-400 hover:text-white transition-colors group"
-              >
-                <Bell className="w-5 h-5" />
-                Notifications
-                <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/settings"
-                className="px-4 py-3 mx-2 rounded-lg hover:bg-neutral-800 cursor-pointer flex items-center gap-3 text-neutral-400 hover:text-white transition-colors group"
-              >
-                <Settings className="w-5 h-5" />
-                Settings
-                <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-            </li>
-          </ul>
-        </nav>
-
-        <div className="p-4 border-t border-neutral-800">
-          <div className="relative">
-            <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-800 transition-colors group"
-            >
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex-grow text-left">
-                <p className="text-sm font-medium truncate">
-                  {/* {session?.user?.name || "Admin"} */}
-                </p>
-                <p className="text-xs text-neutral-400">
-                  {localStorage.getItem("username")}
-                </p>
-              </div>
-              <MoreHorizontal className="w-5 h-5 text-neutral-400 group-hover:text-white transition-colors" />
-            </button>
-
-            {showUserMenu && (
-              <div className="absolute bottom-full left-0 w-full mb-2 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl">
-                <button
-                  onClick={() => signOut()}
-                  className="w-full flex items-center gap-2 px-4 py-3 text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors rounded-lg"
+          <nav className="flex-grow">
+            <div className="px-4 py-2 text-xs font-medium text-neutral-400 uppercase tracking-wider">
+              Main Menu
+            </div>
+            <ul className="space-y-1">
+              <li>
+                <Link
+                  href="/dashboard"
+                  className="px-4 py-3 mx-2 rounded-lg hover:bg-blue-500/10 cursor-pointer flex items-center gap-3 text-blue-400 transition-colors group"
                 >
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </aside>
+                  <FileText className="w-5 h-5" />
+                  Reports
+                  <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/users"
+                  className="px-4 py-3 mx-2 rounded-lg hover:bg-neutral-800 cursor-pointer flex items-center gap-3 text-neutral-400 hover:text-white transition-colors group"
+                >
+                  <User className="w-5 h-5" />
+                  Users
+                  <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              </li>
+            </ul>
 
-      {/* Main Content */}
-      <main className="flex-grow p-8 overflow-y-auto">
-        <div className="max-w-7xl mx-auto space-y-8">
-          {/* Header */}
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-white">
-                Reports Dashboard
-              </h1>
-              <p className="text-neutral-400">
-                Manage and track all reported incidents
-              </p>
+            <div className="px-4 py-2 mt-6 text-xs font-medium text-neutral-400 uppercase tracking-wider">
+              Settings
             </div>
-          </div>
+            <ul className="space-y-1">
+              <li>
+                <Link
+                  href="/notifications"
+                  className="px-4 py-3 mx-2 rounded-lg hover:bg-neutral-800 cursor-pointer flex items-center gap-3 text-neutral-400 hover:text-white transition-colors group"
+                >
+                  <Bell className="w-5 h-5" />
+                  Notifications
+                  <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/settings"
+                  className="px-4 py-3 mx-2 rounded-lg hover:bg-neutral-800 cursor-pointer flex items-center gap-3 text-neutral-400 hover:text-white transition-colors group"
+                >
+                  <Settings className="w-5 h-5" />
+                  Settings
+                  <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              </li>
+            </ul>
+          </nav>
 
-          {/* Search and Filters */}
-          <div className="flex gap-4 flex-wrap">
-            <div className="flex-grow relative">
-              <input
-                type="text"
-                placeholder="Search reports..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-neutral-900/50 backdrop-blur-sm border border-neutral-800 rounded-lg pl-10 pr-4 py-2 text-white placeholder-neutral-400 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/20 transition-all"
-              />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 w-5 h-5" />
-            </div>
-          </div>
+          <div className="p-4 border-t border-neutral-800 mt-auto">
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-800 transition-colors group"
+              >
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-grow text-left">
+                  <p className="text-sm font-medium truncate">Admin</p>
+                  <p className="text-xs text-neutral-400">
+                    {localStorage.getItem("username")}
+                  </p>
+                </div>
+                <MoreHorizontal className="w-5 h-5 text-neutral-400 group-hover:text-white transition-colors" />
+              </button>
 
-          <div className="flex justify-center items-center">
-            <h1 className="text-neutral-200 text-2xl">Pending Reports</h1>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredReports.filter((report) => report.reviewReport == null)
-              .length > 0 ? (
-              filteredReports.map((report) =>
-                report.reviewReport == null ? (
-                  <div
-                    key={report.id}
-                    onClick={() => setSelectedReport(report)}
-                    className={`group bg-neutral-900/50 backdrop-blur-sm rounded-xl p-6 border ${
-                      selectedReport?.id === report.id
-                        ? "border-blue-500/50 ring-1 ring-blue-500/20"
-                        : "border-neutral-800 hover:border-neutral-700"
-                    } transition-all cursor-pointer hover:transform hover:scale-[1.02] hover:shadow-xl`}
+              {showUserMenu && (
+                <div className="absolute bottom-full left-0 w-full mb-2 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl">
+                  <button
+                    onClick={() => signOut()}
+                    className="w-full flex items-center gap-2 px-4 py-3 text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors rounded-lg"
                   >
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        {getStatusIcon(report.status)}
-                        <h2 className="text-lg font-semibold text-white flex-grow truncate">
-                          {report.disasterType} - {report.reportId}
-                        </h2>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${getStatusColor(
-                            report.status
-                          )}`}
-                        >
-                          {report.status}
-                        </span>
-                      </div>
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </aside>
 
-                      <p className="text-neutral-400 text-sm line-clamp-2 group-hover:text-neutral-300 transition-colors">
-                        {report.description}
-                      </p>
+        {/* Main Content */}
+        <main className="flex-1 p-4 lg:p-8">
+          <div className="max-w-7xl mx-auto space-y-6">
+            {/* Header */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+              <div>
+                <h1 className="text-xl lg:text-2xl font-bold text-white">
+                  Reports Dashboard
+                </h1>
+                <p className="text-neutral-400">
+                  Manage and track all reported incidents
+                </p>
+              </div>
+            </div>
+            {/* Search and Filters */}
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex-grow relative">
+                <input
+                  type="text"
+                  placeholder="Search reports..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-neutral-900/50 backdrop-blur-sm border border-neutral-800 rounded-lg pl-10 pr-4 py-2 text-white placeholder-neutral-400 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/20 transition-all"
+                />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 w-5 h-5" />
+              </div>
+            </div>
+            {/* Pending Reports Section */}
+            <div className="flex justify-center items-center">
+              <h1 className="text-neutral-200 text-xl lg:text-2xl">
+                Pending Reports
+              </h1>
+            </div>
+            {/* Reports Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+              {filteredReports.filter((report) => report.reviewReport == null)
+                .length > 0 ? (
+                filteredReports.map((report) =>
+                  report.reviewReport == null ? (
+                    <div
+                      key={report.id}
+                      onClick={() => setSelectedReport(report)}
+                      className={`group bg-neutral-900/50 backdrop-blur-sm rounded-xl p-4 lg:p-6 border ${
+                        selectedReport?.id === report.id
+                          ? "border-blue-500/50 ring-1 ring-blue-500/20"
+                          : "border-neutral-800 hover:border-neutral-700"
+                      } transition-all cursor-pointer hover:transform hover:scale-[1.02] hover:shadow-xl`}
+                    >
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          {getStatusIcon(report.status)}
+                          <h2 className="text-base lg:text-lg font-semibold text-white flex-grow truncate">
+                            {report.disasterType} - {report.reportId}
+                          </h2>
+                          <span
+                            className={`px-2 lg:px-3 py-1 rounded-full text-xs font-medium uppercase ${getStatusColor(
+                              report.status
+                            )}`}
+                          >
+                            {report.status}
+                          </span>
+                        </div>
 
-                      <div className="flex items-center gap-4 text-sm text-neutral-400">
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4" />
-                          <span>{report.contactInfo || "Anonymous"}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
-                          <span>{formatDate(report.createdAt)}</span>
-                        </div>
-                        {report.location && (
+                        <p className="text-neutral-400 text-sm line-clamp-2 group-hover:text-neutral-300 transition-colors">
+                          {report.description}
+                        </p>
+
+                        <div className="flex flex-wrap items-center gap-3 lg:gap-4 text-sm text-neutral-400">
                           <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4" />
-                            <span>{report.location}</span>
+                            <User className="w-4 h-4" />
+                            <span>{report.contactInfo || "Anonymous"}</span>
                           </div>
-                        )}
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            <span>{formatDate(report.createdAt)}</span>
+                          </div>
+                          {report.location && (
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4" />
+                              <span className="truncate">
+                                {report.location}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ) : null
-              )
-            ) : (
-              <div className="flex items-center justify-center col-span-2 h-10">
-                <h4 className="text-neutral-400 text-md">No pending reports</h4>
-              </div>
-            )}
-          </div>
+                  ) : null
+                )
+              ) : (
+                <div className="flex items-center justify-center col-span-1 lg:col-span-2 h-10">
+                  <h4 className="text-neutral-400 text-md">
+                    No pending reports
+                  </h4>
+                </div>
+              )}
+            </div>
 
-          {localStorage.getItem("username") === "admin" ||
-            (localStorage.getItem("username") === "ADMIN" && (
+            {localStorage.getItem("username")?.toLowerCase() === "admin" && (
               <>
                 <div className="flex justify-center items-center">
                   <h1 className="text-neutral-200 text-2xl mt-20">
@@ -714,170 +748,193 @@ export default function Dashboard() {
                   )}
                 </div>
               </>
-            ))}
+            )}
 
-          {/* Empty State */}
-          {filteredReports.length === 0 && (
-            <div className="text-center py-16 bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-800">
-              <FileText className="mx-auto mb-4 w-12 h-12 text-neutral-500" />
-              <p className="text-lg text-neutral-400">
-                No reports found matching the selected filters.
-              </p>
-              <button
-                onClick={() => {
-                  setFilter("ALL");
-                  setTypeFilter("ALL");
-                  setSearchTerm("");
-                }}
-                className="mt-4 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 hover:text-white transition-colors text-sm"
-              >
-                Clear Filters
-              </button>
-            </div>
-          )}
-        </div>
-      </main>
-
-      {/* Report Details Sidebar */}
-      {selectedReport && (
-        <div className="fixed inset-y-0 right-0 w-[480px] bg-neutral-900/95 backdrop-blur-xl border-l border-neutral-800 shadow-2xl z-[50] overflow-y-auto transition-transform duration-300 transform">
-          <div className="sticky top-0 bg-neutral-900/95 backdrop-blur-xl border-b border-neutral-800 p-6 flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Report Details</h2>
-            <button
-              onClick={() => setSelectedReport(null)}
-              className="p-2 hover:bg-neutral-800 rounded-lg text-neutral-400 hover:text-white transition-colors"
-            >
-              <XCircle className="w-6 h-6" />
-            </button>
-          </div>
-
-          <div className="p-6 space-y-6 backdrop-blur-md">
-            <div className="space-y-4">
-              <div className="flex justify-between items-start">
-                <h3 className="text-lg font-semibold text-white z-[0] ">
-                  {selectedReport.disasterType}
-                </h3>
-                <div
-                  className={`px-3 py-1 rounded-full text-xs font-medium uppercase flex items-center gap-2 z-[0] ${getStatusColor(
-                    selectedReport.status
-                  )}`}
+            {/* Empty State */}
+            {filteredReports.length === 0 && (
+              <div className="text-center py-16 bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-800">
+                <FileText className="mx-auto mb-4 w-12 h-12 text-neutral-500" />
+                <p className="text-lg text-neutral-400">
+                  No reports found matching the selected filters.
+                </p>
+                <button
+                  onClick={() => {
+                    setFilter("ALL");
+                    setTypeFilter("ALL");
+                    setSearchTerm("");
+                  }}
+                  className="mt-4 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 hover:text-white transition-colors text-sm"
                 >
-                  {getStatusIcon(selectedReport.status)}
-                  {selectedReport.status.replace("_", " ")}
-                </div>
+                  Clear Filters
+                </button>
               </div>
+            )}
 
-              <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
-                <h4 className="text-neutral-400 text-sm mb-2">Description</h4>
-                <p className="text-white">{selectedReport.description}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Award className="w-4 h-4 text-neutral-400" />
-                    <h4 className="text-neutral-400 text-sm">Type</h4>
-                  </div>
-                  <p className="text-white">
-                    {selectedReport.disasterType.replace("_", " ")}
-                  </p>
+            {/* Report Details Sidebar */}
+            {selectedReport && (
+              <div className="fixed inset-y-0 right-0 w-full lg:w-[480px] bg-neutral-900/95 backdrop-blur-xl border-l border-neutral-800 shadow-2xl z-[60] overflow-y-auto">
+                <div className="sticky top-0 bg-neutral-900/95 backdrop-blur-xl border-b border-neutral-800 p-4 lg:p-6 flex justify-between items-center">
+                  <h2 className="text-lg lg:text-xl font-semibold">
+                    Report Details
+                  </h2>
+                  <button
+                    onClick={() => setSelectedReport(null)}
+                    className="p-2 hover:bg-neutral-800 rounded-lg text-neutral-400 hover:text-white transition-colors"
+                  >
+                    <XCircle className="w-6 h-6" />
+                  </button>
                 </div>
 
-                <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MapPin className="w-4 h-4 text-neutral-400" />
-                    <h4 className="text-neutral-400 text-sm">Location</h4>
-                  </div>
-                  <p className="text-white">
-                    {selectedReport.location || "N/A"}
-                  </p>
-                </div>
-              </div>
+                {/* Report Details Content */}
+                <div className="p-4 lg:p-6 space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-start">
+                      <h3 className="text-lg font-semibold text-white z-[0] ">
+                        {selectedReport.disasterType}
+                      </h3>
+                      <div
+                        className={`px-3 py-1 rounded-full text-xs font-medium uppercase flex items-center gap-2 z-[0] ${getStatusColor(
+                          selectedReport.status
+                        )}`}
+                      >
+                        {getStatusIcon(selectedReport.status)}
+                        {selectedReport.status.replace("_", " ")}
+                      </div>
+                    </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="w-4 h-4 text-neutral-400" />
-                    <h4 className="text-neutral-400 text-sm">Created At</h4>
-                  </div>
-                  <p className="text-white">
-                    {new Date(selectedReport.createdAt).toLocaleDateString()}{" "}
-                    {new Date(selectedReport.createdAt).toLocaleTimeString()}
-                  </p>
-                </div>
-              </div>
+                    <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                      <h4 className="text-neutral-400 text-sm mb-2">
+                        Description
+                      </h4>
+                      <p className="text-white">{selectedReport.description}</p>
+                    </div>
 
-              {selectedReport.imageUrl && (
-                <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
-                  <h4 className="text-neutral-400 text-sm mb-2">
-                    Attached Image
-                  </h4>
-                  <div className="overflow-hidden rounded-xl border border-neutral-700">
-                    <img
-                      src={selectedReport.imageUrl}
-                      alt="Report Attachment"
-                      className="w-full h-auto object-cover transition-transform hover:scale-105"
-                    />
-                  </div>
-                </div>
-              )}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Award className="w-4 h-4 text-neutral-400" />
+                          <h4 className="text-neutral-400 text-sm">Type</h4>
+                        </div>
+                        <p className="text-white">
+                          {selectedReport.disasterType.replace("_", " ")}
+                        </p>
+                      </div>
 
-              <SOSAlertSection />
+                      <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <MapPin className="w-4 h-4 text-neutral-400" />
+                          <h4 className="text-neutral-400 text-sm">Location</h4>
+                        </div>
+                        <p className="text-white">
+                          {selectedReport.location || "N/A"}
+                        </p>
+                      </div>
+                    </div>
 
-              {selectedReport.status === "IN_PROGRESS" &&
-              !selectedReport.reviewReport &&
-              !selectedReport.teamAssign ? (
-                <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User className="w-4 h-4 text-neutral-400" />
-                    <h4 className="text-neutral-400 text-sm">Assigned Team</h4>
-                  </div>
-                  <div className="space-y-2">
-                    {teams.length > 0 ? (
-                      <>
-                        <select
-                          value={selectedTeam}
-                          onChange={(e) => setSelectedTeam(e.target.value)}
-                          className="w-full bg-neutral-700 text-white border border-neutral-600 rounded-lg px-4 py-2"
-                        >
-                          <option value="">Select a team</option>
-                          {teams.map((team) => (
-                            <option key={team.team_id} value={team.team_id}>
-                              {team.teamName}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() => handleAssignTeam(selectedReport.id)}
-                          className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white transition-colors"
-                        >
-                          Assign Team
-                        </button>
-                      </>
-                    ) : (
-                      <p className="text-neutral-400 text-sm">
-                        No team available
-                      </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Clock className="w-4 h-4 text-neutral-400" />
+                          <h4 className="text-neutral-400 text-sm">
+                            Created At
+                          </h4>
+                        </div>
+                        <p className="text-white">
+                          {new Date(
+                            selectedReport.createdAt
+                          ).toLocaleDateString()}{" "}
+                          {new Date(
+                            selectedReport.createdAt
+                          ).toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    {selectedReport.imageUrl && (
+                      <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                        <h4 className="text-neutral-400 text-sm mb-2">
+                          Attached Image
+                        </h4>
+                        <div className="overflow-hidden rounded-xl border border-neutral-700">
+                          <img
+                            src={selectedReport.imageUrl}
+                            alt="Report Attachment"
+                            className="w-full h-auto object-cover transition-transform hover:scale-105"
+                          />
+                        </div>
+                      </div>
                     )}
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User className="w-4 h-4 text-neutral-400" />
-                    <h4 className="text-neutral-400 text-sm">Assigned Team</h4>
-                  </div>
-                  <p className="text-white">
-                    {selectedReport.teamAssign?.teamName || "No Team Assigned"}
-                  </p>
-                </div>
-              )}
 
-              {selectedReport.reviewReport && (
-                <>
-                  <div className="flex justify-between items-center text-2xl bg-neutral-900/95 backdrop-blur-xl border-t border-b border-neutral-800 -mx-6 p-6">
-                    <h2 className="text-xl font-semibold">Review Section</h2>
-                    {/* <Badge
+                    <SOSAlertSection />
+
+                    {selectedReport.status === "IN_PROGRESS" &&
+                    !selectedReport.reviewReport &&
+                    !selectedReport.teamAssign ? (
+                      <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <User className="w-4 h-4 text-neutral-400" />
+                          <h4 className="text-neutral-400 text-sm">
+                            Assigned Team
+                          </h4>
+                        </div>
+                        <div className="space-y-2">
+                          {teams.length > 0 ? (
+                            <>
+                              <select
+                                value={selectedTeam}
+                                onChange={(e) =>
+                                  setSelectedTeam(e.target.value)
+                                }
+                                className="w-full bg-neutral-700 text-white border border-neutral-600 rounded-lg px-4 py-2"
+                              >
+                                <option value="">Select a team</option>
+                                {teams.map((team) => (
+                                  <option
+                                    key={team.team_id}
+                                    value={team.team_id}
+                                  >
+                                    {team.teamName}
+                                  </option>
+                                ))}
+                              </select>
+                              <button
+                                onClick={() =>
+                                  handleAssignTeam(selectedReport.id)
+                                }
+                                className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white transition-colors"
+                              >
+                                Assign Team
+                              </button>
+                            </>
+                          ) : (
+                            <p className="text-neutral-400 text-sm">
+                              No team available
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <User className="w-4 h-4 text-neutral-400" />
+                          <h4 className="text-neutral-400 text-sm">
+                            Assigned Team
+                          </h4>
+                        </div>
+                        <p className="text-white">
+                          {selectedReport.teamAssign?.teamName ||
+                            "No Team Assigned"}
+                        </p>
+                      </div>
+                    )}
+
+                    {selectedReport.reviewReport && (
+                      <>
+                        <div className="flex justify-between items-center text-2xl bg-neutral-900/95 backdrop-blur-xl border-t border-b border-neutral-800 -mx-6 p-6">
+                          <h2 className="text-xl font-semibold">
+                            Review Section
+                          </h2>
+                          {/* <Badge
                       variant={
                         selectedReport.reviewReport.approved
                           ? "default"
@@ -888,123 +945,140 @@ export default function Dashboard() {
                         ? "Approved"
                         : "Pending"}
                     </Badge> */}
-                  </div>
+                        </div>
 
-                  <div className="backdrop-blur-md py-3">
-                    <div className="space-y-5">
-                      {/* Stats Grid */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <Card className="bg-neutral-800/50 backdrop-blur-sm border-0">
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Users className="w-4 h-4 text-blue-400" />
-                              <span className="text-neutral-400 text-sm">
-                                Affected People
-                              </span>
-                            </div>
-                            <p className="text-xl font-bold text-green-500">
-                              {selectedReport.reviewReport.affectedPeople}
-                            </p>
-                          </CardContent>
-                        </Card>
+                        <div className="backdrop-blur-md py-3">
+                          <div className="space-y-5">
+                            {/* Stats Grid */}
+                            <div className="grid grid-cols-2 gap-4">
+                              <Card className="bg-neutral-800/50 backdrop-blur-sm border-0">
+                                <CardContent className="p-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Users className="w-4 h-4 text-blue-400" />
+                                    <span className="text-neutral-400 text-sm">
+                                      Affected People
+                                    </span>
+                                  </div>
+                                  <p className="text-xl font-bold text-green-500">
+                                    {selectedReport.reviewReport.affectedPeople}
+                                  </p>
+                                </CardContent>
+                              </Card>
 
-                        <Card className="bg-neutral-800/50 backdrop-blur-sm border-0">
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              <AlertCircle className="w-4 h-4 text-red-400" />
-                              <span className="text-neutral-400 text-sm">
-                                Casualties
-                              </span>
-                            </div>
-                            <p className="text-xl font-bold text-green-500">
-                              {selectedReport.reviewReport.casualties}
-                            </p>
-                          </CardContent>
-                        </Card>
+                              <Card className="bg-neutral-800/50 backdrop-blur-sm border-0">
+                                <CardContent className="p-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <AlertCircle className="w-4 h-4 text-red-400" />
+                                    <span className="text-neutral-400 text-sm">
+                                      Casualties
+                                    </span>
+                                  </div>
+                                  <p className="text-xl font-bold text-green-500">
+                                    {selectedReport.reviewReport.casualties}
+                                  </p>
+                                </CardContent>
+                              </Card>
 
-                        <Card className="bg-neutral-800/50 backdrop-blur-sm border-0">
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              <UserCheck className="w-4 h-4 text-green-400" />
-                              <span className="text-neutral-400 text-sm">
-                                People Rescued
-                              </span>
-                            </div>
-                            <p className="text-xl font-bold text-green-500">
-                              {selectedReport.reviewReport
-                                .numberOfPeopleRescued || "0"}
-                            </p>
-                          </CardContent>
-                        </Card>
+                              <Card className="bg-neutral-800/50 backdrop-blur-sm border-0">
+                                <CardContent className="p-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <UserCheck className="w-4 h-4 text-green-400" />
+                                    <span className="text-neutral-400 text-sm">
+                                      People Rescued
+                                    </span>
+                                  </div>
+                                  <p className="text-xl font-bold text-green-500">
+                                    {selectedReport.reviewReport
+                                      .numberOfPeopleRescued || "0"}
+                                  </p>
+                                </CardContent>
+                              </Card>
 
-                        <Card className="bg-neutral-800/50 backdrop-blur-sm border-0">
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Building className="w-4 h-4 text-purple-400" />
-                              <span className="text-neutral-400 text-sm">
-                                Evacuation Centers
-                              </span>
+                              <Card className="bg-neutral-800/50 backdrop-blur-sm border-0">
+                                <CardContent className="p-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Building className="w-4 h-4 text-purple-400" />
+                                    <span className="text-neutral-400 text-sm">
+                                      Evacuation Centers
+                                    </span>
+                                  </div>
+                                  <p className="text-xl font-bold text-green-500">
+                                    {
+                                      selectedReport.reviewReport
+                                        .evacuationCentres
+                                    }
+                                  </p>
+                                </CardContent>
+                              </Card>
                             </div>
-                            <p className="text-xl font-bold text-green-500">
-                              {selectedReport.reviewReport.evacuationCentres}
-                            </p>
-                          </CardContent>
-                        </Card>
+
+                            {/* Detailed Description */}
+                            <Alert className="bg-neutral-800/30 border-neutral-700">
+                              <AlertDescription className="text-neutral-200">
+                                {
+                                  selectedReport.reviewReport
+                                    .detailedDescription
+                                }
+                              </AlertDescription>
+                            </Alert>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    <div className="sticky bottom-0 bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-800 -m-6 p-5">
+                      <div className="flex gap-3 w-full">
+                        <div className="flex-2">
+                          {selectedReport.reviewReport &&
+                            selectedReport.status === "IN_PROGRESS" && (
+                              <button
+                                value="COMPLETED"
+                                onClick={() =>
+                                  updateReportStatus(
+                                    selectedReport.id,
+                                    "COMPLETED"
+                                  )
+                                }
+                                className="w-full appearance-none hover:bg-neutral-700 bg-neutral-800 border border-neutral-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                              >
+                                Mark as COMPLETED
+                              </button>
+                            )}
+
+                          {selectedReport.reviewReport === null &&
+                            selectedReport.status === "PENDING" && (
+                              <button
+                                value="IN_PROGRESS"
+                                onClick={() =>
+                                  updateReportStatus(
+                                    selectedReport.id,
+                                    "IN_PROGRESS"
+                                  )
+                                }
+                                className="w-full appearance-none hover:bg-neutral-700 bg-neutral-800 border border-neutral-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                              >
+                                Mark as IN_PROGRESS
+                              </button>
+                            )}
+                        </div>
+
+                        <button
+                          onClick={() => setSelectedReport(null)}
+                          className="flex-1 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 hover:text-white transition-colors"
+                        >
+                          Close
+                        </button>
                       </div>
-
-                      {/* Detailed Description */}
-                      <Alert className="bg-neutral-800/30 border-neutral-700">
-                        <AlertDescription className="text-neutral-200">
-                          {selectedReport.reviewReport.detailedDescription}
-                        </AlertDescription>
-                      </Alert>
                     </div>
                   </div>
-                </>
-              )}
-
-              <div className="sticky bottom-0 bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-800 -m-6 p-5">
-                <div className="flex gap-3 w-full">
-                  <div className="flex-2">
-                    {selectedReport.reviewReport &&
-                      selectedReport.status === "IN_PROGRESS" && (
-                        <button
-                          value="COMPLETED"
-                          onClick={() =>
-                            updateReportStatus(selectedReport.id, "COMPLETED")
-                          }
-                          className="w-full appearance-none hover:bg-neutral-700 bg-neutral-800 border border-neutral-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                        >
-                          Mark as COMPLETED
-                        </button>
-                      )}
-
-                    {selectedReport.reviewReport === null &&
-                      selectedReport.status === "PENDING" && (
-                        <button
-                          value="IN_PROGRESS"
-                          onClick={() =>
-                            updateReportStatus(selectedReport.id, "IN_PROGRESS")
-                          }
-                          className="w-full appearance-none hover:bg-neutral-700 bg-neutral-800 border border-neutral-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                        >
-                          Mark as IN_PROGRESS
-                        </button>
-                      )}
-                  </div>
-
-                  <button
-                    onClick={() => setSelectedReport(null)}
-                    className="flex-1 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 hover:text-white transition-colors"
-                  >
-                    Close
-                  </button>
                 </div>
               </div>
-            </div>
+            )}
           </div>
-        </div>
-      )}
+        </main>
+      </div>
+
+      {/* Modals */}
       <SOSAlertModal />
     </div>
   );

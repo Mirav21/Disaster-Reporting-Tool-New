@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect, useRef } from "react";
 import {
   FileText,
@@ -15,6 +16,8 @@ import {
   Shell,
   Save,
   RefreshCw,
+  Menu,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -26,7 +29,6 @@ interface CustomJwtPayload {
   role: string;
 }
 
-// Types remain the same
 type DisasterStats = {
   rescueTeamsDeployed: string;
   affectedPeople: string;
@@ -74,6 +76,7 @@ export default function RescueTeamDashboard() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Create refs for form inputs
   const affectedPeopleRef = useRef<HTMLInputElement>(null);
@@ -86,6 +89,7 @@ export default function RescueTeamDashboard() {
     fetchReports();
   }, []);
 
+  // Add authentication check
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -147,6 +151,8 @@ export default function RescueTeamDashboard() {
       disasterReportId: report.id,
     });
     setSelectedReport(report);
+    // Close sidebar on mobile when viewing report details
+    setIsSidebarOpen(false);
   };
 
   const signOut = async () => {
@@ -162,7 +168,7 @@ export default function RescueTeamDashboard() {
     router.push("/auth/signin");
   };
 
-  const getStatusBadgeColor = (status: keyof typeof colors) => {
+  const getStatusBadgeColor = (status: string) => {
     const colors = {
       PENDING: "bg-amber-500/20 text-amber-200 border border-amber-500/30",
       IN_PROGRESS: "bg-blue-500/20 text-blue-200 border border-blue-500/30",
@@ -170,7 +176,7 @@ export default function RescueTeamDashboard() {
       COMPLETED:
         "bg-emerald-500/20 text-emerald-200 border border-emerald-500/30",
     };
-    return colors[status];
+    return colors[status as keyof typeof colors] || colors.PENDING;
   };
 
   const submitResponse = async () => {
@@ -275,11 +281,50 @@ export default function RescueTeamDashboard() {
       </div>
     );
   }
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-neutral-800 border-t-blue-500"></div>
+          <p className="text-neutral-400">Loading reports...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-[92.5vh] bg-gradient-to-br from-black via-neutral-950 to-neutral-900 text-white flex">
+    <div className="min-h-screen bg-gradient-to-br from-black via-neutral-950 to-neutral-900 text-white flex flex-col md:flex-row">
+      {/* Mobile Header */}
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-neutral-800 bg-neutral-900/50">
+        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+          Rescue Team
+        </h1>
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="p-2 hover:bg-neutral-800 rounded-lg"
+        >
+          {isSidebarOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <Menu className="w-6 h-6" />
+          )}
+        </button>
+      </div>
+
       {/* Sidebar */}
-      <aside className="w-64 bg-neutral-900/50 backdrop-blur-md border-r border-neutral-800 flex flex-col">
+      <aside
+        className={`
+        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        md:translate-x-0
+        fixed md:relative
+        inset-y-0 left-0
+        w-64 bg-neutral-900/50 backdrop-blur-md
+        border-r border-neutral-800
+        flex flex-col
+        z-30
+        transition-transform duration-200 ease-in-out
+      `}
+      >
         <div className="p-6 border-b border-neutral-800">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
             Rescue Team
@@ -352,10 +397,10 @@ export default function RescueTeamDashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-grow p-8 overflow-y-auto">
-        <div className="max-w-7xl mx-auto space-y-8">
+      <main className="flex-grow p-4 md:p-8 overflow-y-auto">
+        <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
           {/* Header */}
-          <div>
+          <div className="hidden md:block">
             <h1 className="text-2xl font-bold">Disaster Reports</h1>
             <p className="text-neutral-400">
               Respond to and manage disaster reports
@@ -365,7 +410,7 @@ export default function RescueTeamDashboard() {
           {/* Search */}
           <div className="relative">
             <input
-              placeholder="Search reports by title or location..."
+              placeholder="Search reports..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-neutral-900/50 backdrop-blur-sm border border-neutral-800 rounded-lg pl-10 pr-4 py-2 text-white placeholder-neutral-400"
@@ -374,7 +419,7 @@ export default function RescueTeamDashboard() {
           </div>
 
           {/* Reports Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             {reports.length > 0 ? (
               reports
                 .filter(
@@ -442,7 +487,7 @@ export default function RescueTeamDashboard() {
                                 Casualties
                               </span>
                             </div>
-                            <p className="text-xl font-bold mt-1">
+                            <p className="text-xl font-bold mt-5 md:mt-1 lg:mt-1">
                               {report.reviewReport.casualties}
                             </p>
                           </div>
@@ -469,9 +514,19 @@ export default function RescueTeamDashboard() {
         </div>
       </main>
 
-      {/* Report Details Sidebar */}
+      {/* Report Details Sidebar - Mobile Optimized */}
       {selectedReport && (
-        <div className="fixed inset-y-0 right-0 w-[480px] bg-neutral-900/95 backdrop-blur-xl border-l border-neutral-800 shadow-2xl z-50 overflow-y-auto">
+        <div
+          className={`
+          fixed inset-0 md:inset-y-0 md:right-0 md:w-[480px]
+          bg-neutral-900/95 backdrop-blur-xl
+          border-l border-neutral-800
+          shadow-2xl z-50
+          overflow-y-auto
+          transition-transform duration-200 ease-in-out
+          ${selectedReport ? "translate-x-0" : "translate-x-full"}
+        `}
+        >
           <div className="p-6 border-b border-neutral-800 flex justify-between items-center">
             <h2 className="text-xl font-semibold">Report Response</h2>
             <button
@@ -650,6 +705,12 @@ export default function RescueTeamDashboard() {
             </div>
           </div>
         </div>
+      )}
+      {isSidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 z-20"
+          onClick={() => setIsSidebarOpen(false)}
+        />
       )}
     </div>
   );

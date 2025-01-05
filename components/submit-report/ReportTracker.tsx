@@ -12,16 +12,33 @@ const Map = dynamic(() => import("react-map-gl"), {
 });
 
 interface ReportDetails {
+  longitude: number;
+  latitude: number;
   id: string;
   reportId: string;
-  status: string;
-  createdAt: string;
-  title: string;
   description: string;
+  disasterType: string;
+  severity: string;
+  status: string;
   location: string;
-  latitude: number;
-  longitude: number;
-  image: string;
+  contactInfo: string;
+  imageUrl: string | null;
+  createdAt: string;
+  teamAssign: {
+    teamName: string;
+    team_id: string;
+    status: string;
+  } | null;
+  title: string | null;
+  reviewReport: {
+    id: string;
+    affectedPeople: string;
+    approved: boolean;
+    casualties: string;
+    detailedDescription: string;
+    numberOfPeopleRescued: string | null;
+    evacuationCentres: string;
+  };
 }
 
 export function ReportTracker() {
@@ -45,52 +62,81 @@ export function ReportTracker() {
     }
 
     try {
-      const response = await fetch(`/api/reports/${reportId}/details`);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/disaster-report/admin-reports`
+      );
+
       if (!response.ok) {
-        throw new Error("Report not found");
+        throw new Error("Failed to fetch reports");
       }
+
       const data = await response.json();
-      console.log(data);
 
-      // If location is coordinates (like "23.235789, 72.663040")
-      if (
-        data.location &&
-        /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(data.location)
-      ) {
-        const [latitude, longitude] = data.location.split(",").map(parseFloat);
-        data.latitude = latitude;
-        data.longitude = longitude;
+      const matchedReport = data.find(
+        (report: ReportDetails) =>
+          report.reportId === reportId || report.id === reportId
+      );
+
+      if (!matchedReport) {
+        setError("Report not found. Please check the ID and try again.");
+        setLoading(false);
+        return;
       }
-      // If location is an address and Mapbox token is available
-      else if (data.location && process.env.NEXT_PUBLIC_MAPBOX_TOKEN) {
-        try {
-          const geocodeResponse = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-              data.location
-            )}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`
-          );
 
-          if (geocodeResponse.ok) {
-            const geocodeData = await geocodeResponse.json();
-            if (geocodeData.features && geocodeData.features.length > 0) {
-              const [longitude, latitude] = geocodeData.features[0].center;
-              data.longitude = longitude;
-              data.latitude = latitude;
+      if (matchedReport.location) {
+        // If location is coordinates (like "23.235789, 72.663040")
+        if (/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(matchedReport.location)) {
+          const [latitude, longitude] = matchedReport.location
+            .split(",")
+            .map(parseFloat);
+          matchedReport.latitude = latitude;
+          matchedReport.longitude = longitude;
+        }
+        // If location is an address and Mapbox token is available
+        else if (process.env.NEXT_PUBLIC_MAPBOX_TOKEN) {
+          try {
+            const geocodeResponse = await fetch(
+              `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+                matchedReport.location
+              )}.json?access_token=${
+                process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+              }`
+            );
+
+            if (geocodeResponse.ok) {
+              const geocodeData = await geocodeResponse.json();
+              if (geocodeData.features && geocodeData.features.length > 0) {
+                const [longitude, latitude] = geocodeData.features[0].center;
+                matchedReport.longitude = longitude;
+                matchedReport.latitude = latitude;
+              }
             }
+          } catch (geocodeError) {
+            console.error("Geocoding failed", geocodeError);
           }
-        } catch (geocodeError) {
-          console.error("Geocoding failed", geocodeError);
         }
       }
 
-      setReportDetails(data);
+      setReportDetails(matchedReport);
     } catch (error) {
       console.error("Error fetching report", error);
-      setError("Unable to find report. Please check the ID and try again.");
+      setError("Unable to fetch reports. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
+
+  function getStatusColor(status: string): string {
+    if (!status) return "text-white";
+
+    const colors: { [key: string]: string } = {
+      PENDING: "text-yellow-400",
+      IN_PROGRESS: "text-blue-400",
+      COMPLETED: "text-green-400",
+      REJECTED: "text-red-400",
+    };
+    return colors[status.toUpperCase() as keyof typeof colors] || "text-white";
+  }
 
   return (
     <div className="w-full">
@@ -211,30 +257,23 @@ export function ReportTracker() {
                       )} 
                         px-3 py-1 rounded-full bg-emerald-900/10`}
                     >
-                      {reportDetails.status.toUpperCase()}
+                      {reportDetails.status}
                     </span>
                   </div>
 
-                  {/* <div className="p-3 rounded-lg bg-white/5 space-y-1.5">
-                    <span className="text-zinc-400 text-sm">Image</span>
-                    {reportDetails.image ? (
-                      <img
-                        src={reportDetails.image}
-                        alt="Report"
-                        className="rounded-lg shadow-lg border border-white/5"
-                      />
-                    ) : (
-                      <p className="text-white text-sm">
-                        No image available for this report.
-                      </p>
-                    )}
-                  </div> */}
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-emerald-900/20">
+                    <span className="text-zinc-400">Assigned Team</span>
+                    <span className="text-white font-mono">
+                      {reportDetails?.teamAssign?.teamName ||
+                        "No team assigned"}
+                    </span>
+                  </div>
 
                   <div className="p-3 rounded-lg bg-white/5 space-y-1.5">
                     <span className="text-zinc-400 text-sm">Image</span>
-                    {reportDetails.image ? (
+                    {reportDetails.imageUrl ? (
                       <Image
-                        src={reportDetails.image}
+                        src={reportDetails.imageUrl}
                         alt="Report"
                         className="rounded-lg shadow-lg border border-white/5"
                         width={500}
@@ -341,14 +380,4 @@ export function ReportTracker() {
       </div>
     </div>
   );
-}
-
-function getStatusColor(status: string): string {
-  const statusColors: Record<string, string> = {
-    pending: "text-yellow-400",
-    processing: "text-emerald-400",
-    completed: "text-green-400",
-    failed: "text-red-400",
-  };
-  return statusColors[status.toLowerCase()] || "text-white";
 }

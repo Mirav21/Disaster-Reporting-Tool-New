@@ -57,6 +57,17 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           </div>
 
           <nav className="flex flex-col space-y-4">
+            {(() => {
+              const username = localStorage.getItem("username")?.toLowerCase();
+              return username === "admin" || username === "moderator" ? (
+                <Link
+                  href="/dashboard"
+                  className="text-sm text-zinc-400 hover:text-white transition-colors"
+                >
+                  Dashboard
+                </Link>
+              ) : null;
+            })()}
             <Link
               href="/submit-report"
               className="text-sm text-zinc-400 hover:text-white transition-colors"
@@ -78,25 +89,6 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             >
               How It Works
             </Link>
-            {/* <Link
-              href="/contact"
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
-              onClick={onClose}
-            >
-              Contact
-            </Link> */}
-            {/* <Link
-              href="/profile"
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
-            >
-              Profile
-            </Link> */}
-            {/* <Link
-              href="/settings"
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
-            >
-              Settings
-            </Link> */}
             <button
               onClick={() => signOut()}
               className="text-sm text-left text-zinc-400 hover:text-white transition-colors"

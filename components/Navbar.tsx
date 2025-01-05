@@ -84,8 +84,8 @@ export default function Navbar() {
     if (response.status === 200) {
       localStorage.clear();
       setSession(null);
+      setIsMobileMenuOpen(false);
     }
-    setIsProfileOpen(false);
     router.push("/auth/signin");
   };
 
@@ -142,8 +142,8 @@ export default function Navbar() {
 
             {/* Emergency Button */}
             <div className="flex items-center space-x-4">
-              <button className="group flex h-11 items-center gap-2 rounded-full bg-white/10 pl-4 pr-5 text-sm font-medium text-red-500 ring-1 ring-inset ring-red-500/20 transition-all hover:bg-red-500/20">
-                <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
+              <button className="group hidden md:flex lg:flex h-11 items-center gap-2 rounded-full bg-white/10 pl-4 pr-5 text-sm font-medium text-red-500 ring-1 ring-inset ring-red-500/20 transition-all hover:bg-red-500/20">
+                <span className="h-1.5 w-1.5 rounded-full bg-white/70 animate-pulse" />
                 Emergency: 112
               </button>
 
@@ -173,7 +173,7 @@ export default function Navbar() {
 
                 {isProfileOpen && (
                   <div className="absolute right-0 mt-2 w-48 rounded-md bg-zinc-900 py-1 shadow-lg ring-1 ring-black ring-opacity-5">
-                    {!session ? (
+                    {!localStorage.getItem("token") ? (
                       <>
                         <Link
                           href="/auth/signin"

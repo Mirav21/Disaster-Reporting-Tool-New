@@ -202,17 +202,24 @@ export default function Dashboard() {
     );
     if (response.status === 200) {
       localStorage.clear();
+      setIsSidebarOpen(false);
     }
     router.push("/auth/signin");
   };
 
   const fetchReports = async () => {
+    const token = localStorage.getItem("token");
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/disaster-report/admin-reports`
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/disaster-report/admin-reports`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-      const data: DisasterReport[] = await response.json();
+      const data: DisasterReport[] = response.data;
 
       // Define the sort order
       const statusOrder = ["PENDING", "IN_PROGRESS", "COMPLETED"];
@@ -232,7 +239,6 @@ export default function Dashboard() {
       });
 
       setReports(sortedData);
-      console.log("Sorted Reports:", sortedData);
     } catch (error) {
       console.error("Error fetching reports:", error);
       setReports([]);
@@ -444,7 +450,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-neutral-950 to-neutral-900 text-white">
       {/* Mobile Header */}
-      <div className="lg:hidden flex items-center justify-between p-4 bg-neutral-900/95 backdrop-blur-md border-b border-neutral-800 sticky top-0 z-30">
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-neutral-800 bg-neutral-900/50">
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="p-2 hover:bg-neutral-800 rounded-lg"
@@ -469,11 +475,16 @@ export default function Dashboard() {
         {/* Sidebar */}
         <aside
           className={`
-          fixed top-0 left-0 w-64 bg-neutral-900/95 backdrop-blur-md border-r border-neutral-800 
-          transform transition-transform duration-300 ease-in-out z-50
-          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          lg:translate-x-0 lg:static lg:z-0
-        `}
+        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        md:translate-x-0
+        fixed md:relative
+        inset-y-0 left-0
+        w-64 bg-neutral-900/50 backdrop-blur-md
+        border-r border-neutral-800
+        flex flex-col
+        z-30
+        transition-transform duration-200 ease-in-out
+      `}
         >
           <div className="hidden lg:block p-6 border-b border-neutral-800">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">

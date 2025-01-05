@@ -90,7 +90,10 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
               How It Works
             </Link>
             <button
-              onClick={() => signOut()}
+              onClick={async () => {
+                await signOut();
+                onClose();
+              }}
               className="text-sm text-left text-zinc-400 hover:text-white transition-colors"
             >
               Sign Out

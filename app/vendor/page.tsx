@@ -343,7 +343,7 @@ export default function RescueTeamDashboard() {
                 <ChevronRight className="w-4 h-4 ml-auto" />
               </Link>
             </li>
-            <li>
+            {/* <li>
               <Link
                 href="/teams"
                 className="px-4 py-3 rounded-lg hover:bg-neutral-800 text-neutral-400 flex items-center gap-3"
@@ -360,7 +360,7 @@ export default function RescueTeamDashboard() {
                 <BarChart className="w-5 h-5" />
                 Analytics
               </Link>
-            </li>
+            </li> */}
           </ul>
         </nav>
 

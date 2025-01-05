@@ -497,7 +497,7 @@ export default function Dashboard() {
                   <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link
                   href="/users"
                   className="px-4 py-3 mx-2 rounded-lg hover:bg-neutral-800 cursor-pointer flex items-center gap-3 text-neutral-400 hover:text-white transition-colors group"
@@ -506,10 +506,10 @@ export default function Dashboard() {
                   Users
                   <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
-              </li>
+              </li> */}
             </ul>
 
-            <div className="px-4 py-2 mt-6 text-xs font-medium text-neutral-400 uppercase tracking-wider">
+            {/* <div className="px-4 py-2 mt-6 text-xs font-medium text-neutral-400 uppercase tracking-wider">
               Settings
             </div>
             <ul className="space-y-1">
@@ -533,7 +533,7 @@ export default function Dashboard() {
                   <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
-            </ul>
+            </ul> */}
           </nav>
 
           <div className="p-4 border-t border-neutral-800 mt-auto">

@@ -3,6 +3,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { Providers } from "./providers";
 import { Toaster } from "react-hot-toast";
+import ChatBotUI from "@/components/ChatBotUI";
 
 export const metadata: Metadata = {
   title: "Safe Report - Crowdsourced Disaster Reporting",
@@ -26,9 +27,9 @@ export default function RootLayout({
               <div className="absolute inset-0 h-full bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.04),transparent_70%)]" />
             </div>
             <Toaster />
-            {/* Pass session and reloadKey to Navbar */}
             <Navbar />
             <main className="pt-16">{children}</main>
+            <ChatBotUI />
           </div>
         </Providers>
       </body>

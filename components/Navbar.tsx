@@ -11,6 +11,7 @@ export default function Navbar() {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const [session, setSession] = useState<string | null>(null);
 
@@ -77,16 +78,23 @@ export default function Navbar() {
   }, [session]);
 
   const signOut = async () => {
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/logout`,
-      { token: session }
-    );
-    if (response.status === 200) {
-      localStorage.clear();
-      setSession(null);
-      setIsMobileMenuOpen(false);
+    try {
+      setIsSigningOut(true);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/logout`,
+        { token: session }
+      );
+      if (response.status === 200) {
+        localStorage.clear();
+        setSession(null);
+        setIsMobileMenuOpen(false);
+        router.push("/auth/signin");
+      }
+    } catch (error) {
+      console.error("Error signing out:", error);
+    } finally {
+      setIsSigningOut(false);
     }
-    router.push("/auth/signin");
   };
 
   return (
@@ -120,18 +128,6 @@ export default function Navbar() {
               >
                 Track Report
               </Link>
-              <Link
-                href="/dhruva"
-                className="text-sm text-zinc-400 hover:text-white transition-colors"
-              >
-                Dhruva
-              </Link>
-              {/* <Link
-                href="/weather-report"
-                className="text-sm text-zinc-400 hover:text-white transition-colors"
-              >
-                Live Weather
-              </Link> */}
               <Link
                 href="/howitworks"
                 className="text-sm text-zinc-400 hover:text-white transition-colors"
@@ -208,8 +204,7 @@ export default function Navbar() {
                           const username = localStorage
                             .getItem("username")
                             ?.toLowerCase();
-                          return username === "vendor" ||
-                            username === "moderator" ? (
+                          return username === "vendor" ? (
                             <Link
                               href="/vendor"
                               className="block px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800"
@@ -220,9 +215,17 @@ export default function Navbar() {
                         })()}
                         <button
                           onClick={signOut}
-                          className="block w-full text-left px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800"
+                          disabled={isSigningOut}
+                          className="block w-full text-left px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                         >
-                          Sign Out
+                          <span>
+                            {isSigningOut ? "Signing Out..." : "Sign Out"}
+                          </span>
+                          {isSigningOut && (
+                            <div className="flex items-center justify-center">
+                              <div className="w-4 h-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
+                            </div>
+                          )}
                         </button>
                       </>
                     )}

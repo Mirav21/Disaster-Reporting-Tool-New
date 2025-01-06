@@ -448,7 +448,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-neutral-950 to-neutral-900 text-white">
+    <div className="min-h-[93vh] bg-gradient-to-br from-black via-neutral-950 to-neutral-900 text-white flex flex-col md:flex-row">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 border-b border-neutral-800 bg-neutral-900/50">
         <button
@@ -507,43 +507,7 @@ export default function Dashboard() {
                   <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
-              {/* <li>
-                <Link
-                  href="/users"
-                  className="px-4 py-3 mx-2 rounded-lg hover:bg-neutral-800 cursor-pointer flex items-center gap-3 text-neutral-400 hover:text-white transition-colors group"
-                >
-                  <User className="w-5 h-5" />
-                  Users
-                  <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              </li> */}
             </ul>
-
-            {/* <div className="px-4 py-2 mt-6 text-xs font-medium text-neutral-400 uppercase tracking-wider">
-              Settings
-            </div>
-            <ul className="space-y-1">
-              <li>
-                <Link
-                  href="/notifications"
-                  className="px-4 py-3 mx-2 rounded-lg hover:bg-neutral-800 cursor-pointer flex items-center gap-3 text-neutral-400 hover:text-white transition-colors group"
-                >
-                  <Bell className="w-5 h-5" />
-                  Notifications
-                  <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/settings"
-                  className="px-4 py-3 mx-2 rounded-lg hover:bg-neutral-800 cursor-pointer flex items-center gap-3 text-neutral-400 hover:text-white transition-colors group"
-                >
-                  <Settings className="w-5 h-5" />
-                  Settings
-                  <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              </li>
-            </ul> */}
           </nav>
 
           <div className="p-4 border-t border-neutral-800 mt-auto">
@@ -556,7 +520,9 @@ export default function Dashboard() {
                   <User className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-grow text-left">
-                  <p className="text-sm font-medium truncate">Admin</p>
+                  <p className="text-sm font-medium truncate">
+                    Admin / Moderator
+                  </p>
                   <p className="text-xs text-neutral-400">
                     {localStorage.getItem("username")}
                   </p>
@@ -1056,7 +1022,9 @@ export default function Dashboard() {
                             )}
 
                           {selectedReport.reviewReport === null &&
-                            selectedReport.status === "PENDING" && (
+                            selectedReport.status === "PENDING" &&
+                            localStorage.getItem("username")?.toLowerCase() ===
+                              "admin" && (
                               <button
                                 value="IN_PROGRESS"
                                 onClick={() =>

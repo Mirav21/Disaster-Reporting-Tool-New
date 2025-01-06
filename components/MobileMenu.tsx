@@ -89,15 +89,25 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             >
               How It Works
             </Link>
-            <button
-              onClick={async () => {
-                await signOut();
-                onClose();
-              }}
-              className="text-sm text-left text-zinc-400 hover:text-white transition-colors"
-            >
-              Sign Out
-            </button>
+            {localStorage.getItem("token") ? (
+              <button
+                onClick={async () => {
+                  await signOut();
+                  onClose();
+                }}
+                className="text-sm text-left text-zinc-400 hover:text-white transition-colors"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <Link
+                href="/auth/signin"
+                className="text-sm text-zinc-400 hover:text-white transition-colors"
+                onClick={onClose}
+              >
+                Login
+              </Link>
+            )}
           </nav>
         </div>
       </div>

@@ -77,7 +77,7 @@ export default function SignIn() {
         } else if (
           localStorage.getItem("username")?.toLowerCase() === "moderator"
         ) {
-          router.push("/moderator-dashboard");
+          router.push("/dashboard");
         } else if (
           localStorage.getItem("username")?.toLowerCase() === "vendor"
         ) {

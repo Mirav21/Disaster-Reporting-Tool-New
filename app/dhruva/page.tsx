@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
 import DhruvaImage from "@/components/DhruvaImage";
+import { useRouter } from "next/navigation";
 
-// Message formatting component
+// Message formatting component remains unchanged
 const FormattedMessage = ({ content }: { content: string }) => {
   return (
     <ReactMarkdown
@@ -43,12 +44,15 @@ const DisasterGuardChat = () => {
     content: string;
   }
 
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [chatHeight, setChatHeight] = useState("100vh");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Initial welcome message
     setMessages([
       {
         type: "bot",
@@ -56,6 +60,18 @@ const DisasterGuardChat = () => {
           "Welcome to DisasterGuard AI! I'm here to provide expert guidance on disaster preparedness, response, and recovery. How can I assist you today?",
       },
     ]);
+
+    // Calculate and set chat height
+    const calculateHeight = () => {
+      const vh = window.innerHeight;
+      const headerHeight = 56; // Typical mobile header height
+      const safeArea = 20; // Safe area padding
+      setChatHeight(`${vh - headerHeight - safeArea}px`);
+    };
+
+    calculateHeight();
+    window.addEventListener("resize", calculateHeight);
+    return () => window.removeEventListener("resize", calculateHeight);
   }, []);
 
   useEffect(() => {
@@ -95,62 +111,64 @@ const DisasterGuardChat = () => {
 
   const handleClear = () => {
     setMessages([]);
+    router.push("/");
   };
 
   return (
-    <div className="min-h-[90vh] py-2 bg-zinc-950 flex items-center justify-center">
-      <Card className="w-full max-w-3xl bg-zinc-900 border-none shadow-2xl">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-8 border-b border-zinc-800 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-xl flex items-center justify-center">
+    <div
+      className="w-full bg-zinc-950 flex items-center justify-center"
+      style={{ height: chatHeight }}
+    >
+      <Card className="w-full h-full max-w-3xl bg-zinc-900 border-none shadow-2xl">
+        <CardContent className="h-full p-4 flex flex-col">
+          <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-4">
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-xl flex items-center justify-center">
                 <DhruvaImage />
               </div>
               <div>
-                <h2 className="text-green-500 text-xl font-bold">
+                <h2 className="text-green-500 text-lg font-bold">
                   Chat With Dhruva
                 </h2>
-                <p className="text-zinc-400 text-sm">
+                <p className="text-zinc-400 text-xs">
                   24/7 Emergency Response Assistant
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={handleClear}
-                className="text-zinc-400 hover:text-red-500"
-                size="sm"
-                variant="ghost"
-              >
-                <XCircle className="w-5 h-5" />
-              </Button>
-            </div>
+            <Button
+              onClick={handleClear}
+              className="text-zinc-400 hover:text-red-500"
+              size="sm"
+              variant="ghost"
+            >
+              <XCircle className="w-5 h-5" />
+            </Button>
           </div>
 
-          <ScrollArea className="h-[600px] pr-4 mb-6">
-            <div className="space-y-6">
+          <ScrollArea className="flex-1 pr-4 mb-4">
+            <div className="space-y-4">
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
-                  className={`flex items-start gap-3 ${
+                  className={`flex items-start gap-2 ${
                     msg.type === "user" ? "flex-row-reverse" : "flex-row"
                   }`}
                 >
                   <div
-                    className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                    className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                       msg.type === "user"
                         ? "bg-green-600"
                         : "bg-zinc-800 border border-green-500"
                     }`}
                   >
                     {msg.type === "user" ? (
-                      <User className="w-6 h-6 text-white" />
+                      <User className="w-4 h-4 text-white" />
                     ) : (
-                      <Bot className="w-6 h-6 text-green-400" />
+                      <Bot className="w-4 h-4 text-green-400" />
                     )}
                   </div>
                   <div
-                    className={`px-5 py-4 rounded-2xl max-w-[80%] shadow-lg ${
+                    className={`px-4 py-3 rounded-2xl max-w-[80%] shadow-lg ${
                       msg.type === "user"
                         ? "bg-green-600 text-white rounded-tr-none"
                         : "bg-zinc-800 text-green-50 rounded-tl-none border border-zinc-700"
@@ -165,11 +183,11 @@ const DisasterGuardChat = () => {
                 </div>
               ))}
               {loading && (
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-zinc-800 border border-green-500 flex items-center justify-center">
-                    <Bot className="w-6 h-6 text-green-400" />
+                <div className="flex items-start gap-2">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-800 border border-green-500 flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-green-400" />
                   </div>
-                  <div className="bg-zinc-800 text-green-50 px-5 py-4 rounded-2xl rounded-tl-none border border-zinc-700">
+                  <div className="bg-zinc-800 text-green-50 px-4 py-3 rounded-2xl rounded-tl-none border border-zinc-700">
                     <div className="flex gap-2">
                       <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" />
                       <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce delay-150" />
@@ -182,19 +200,19 @@ const DisasterGuardChat = () => {
             </div>
           </ScrollArea>
 
-          <form onSubmit={handleSubmit} className="flex gap-3">
+          <form onSubmit={handleSubmit} className="flex gap-2 mt-auto">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about emergency preparedness...(Say Hello!)"
-              className="flex-1 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400 focus-visible:ring-green-500 h-12"
+              placeholder="Ask about emergency preparedness..."
+              className="flex-1 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400 focus-visible:ring-green-500 h-10"
             />
             <Button
               type="submit"
               disabled={loading}
-              className="bg-green-600 hover:bg-green-700 text-white h-12 px-6"
+              className="bg-green-600 hover:bg-green-700 text-white h-10 px-4"
             >
-              <Send className="w-5 h-5" />
+              <Send className="w-4 h-4" />
             </Button>
           </form>
         </CardContent>

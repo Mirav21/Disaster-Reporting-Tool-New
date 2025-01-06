@@ -7,11 +7,12 @@ export default function ChatBotUI() {
   const [isDhruva, setIsDhruva] = useState(false);
 
   useEffect(() => {
-    if (
-      typeof window !== "undefined" &&
-      window.location.href.includes("dhruva")
-    ) {
-      setIsDhruva(true);
+    if (typeof window !== "undefined") {
+      // Check for query parameter 'dhruva'
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has("dhruva")) {
+        setIsDhruva(true);
+      }
     }
   }, []);
 

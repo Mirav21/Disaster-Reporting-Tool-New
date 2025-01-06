@@ -116,7 +116,7 @@ const DisasterGuardChat = () => {
 
   return (
     <div
-      className="w-full bg-zinc-950 flex items-center justify-center"
+      className="w-full mt-1 bg-zinc-950 flex items-center justify-center fixed z-[100]" // Increased z-index
       style={{ height: chatHeight }}
     >
       <Card className="w-full h-full max-w-3xl bg-zinc-900 border-none shadow-2xl">

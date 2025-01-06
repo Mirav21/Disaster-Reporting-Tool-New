@@ -14,7 +14,7 @@ const ChatButton = () => {
 
   return (
     <button
-      className="fixed bottom-6 right-6 flex items-center justify-center space-x-2 rounded-full bg-green-500 p-4 text-white shadow-lg transition-all duration-300 ease-in-out hover:bg-green-600 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+      className="fixed bottom-6 right-6 z-50 flex items-center justify-center space-x-2 rounded-full bg-green-500 p-4 text-white shadow-lg transition-all duration-300 ease-in-out hover:bg-green-600 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => redirectToChat()}

@@ -29,7 +29,9 @@ export default function RootLayout({
             <Toaster />
             <Navbar />
             <main className="pt-16">{children}</main>
-            <ChatBotUI />
+            <div className="z-50">
+              <ChatBotUI />
+            </div>
           </div>
         </Providers>
       </body>

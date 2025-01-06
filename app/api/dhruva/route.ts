@@ -4,7 +4,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 // Helper function to add delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+// const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function POST(request: Request) {
   try {
@@ -32,9 +32,6 @@ Text: "${query}"`;
       });
     }
 
-    // Add delay after language detection
-    await delay(1000);
-
     // Handle common greetings
     const greetings = {
       English: "Hello! How can I assist you today? If you have a query related to disasters, feel free to ask.",
@@ -49,9 +46,6 @@ Text: "${query}"`;
         response: greetings[detectedLanguage as keyof typeof greetings],
       });
     }
-    
-    // Add delay before validation check
-    await delay(1000);
     
     const validationPrompt = `Determine if the following query is related to disaster scenarios. Respond with ONLY 'YES' or 'NO'. 
 Example scenarios include:
@@ -69,9 +63,6 @@ Query: "${query}"`;
       };
       return NextResponse.json({ response: nonDisasterResponses[detectedLanguage as keyof typeof nonDisasterResponses] });
     }
-    
-    // Add delay before final response
-    await delay(1000);
     
     const prompt = `You are an expert disaster management chatbot. Respond to the following query related to disaster scenarios in ${detectedLanguage}. Provide concise, helpful, and actionable information. Structure your response in clear, numbered points. Use the language ${detectedLanguage}.
     Query: "${query}"`;    

@@ -102,7 +102,7 @@ export default function SignIn() {
       <div className="lg:w-1/2 bg-green-600 text-white p-8 flex-col justify-center hidden lg:flex">
         <div className="space-y-8">
           <div>
-            <h1 className="text-3xl font-bold mb-4">Welcome to Our Platform</h1>
+            <h1 className="text-3xl font-bold mb-4">Welcome to Dhruva Setu</h1>
             <p className="text-lg text-green-100 mb-8">
               Join our community to access personalized resources and guidance
               tailored to your needs.

@@ -187,6 +187,23 @@ function calculateDistance(
   return R * c; // Distance in kilometers
 }
 
+interface User {
+  id: string;
+  email: string;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+// interface Report {
+//   id: string;
+//   type: string;
+//   description: string;
+//   latitude: number | null;
+//   longitude: number | null;
+//   location: string;
+// }
+
+
 // Email transporter setup
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -244,17 +261,18 @@ export async function POST(req: NextRequest) {
     console.log(usersResult)
     const allUsers = usersResult.rows;
 
-    const usersInArea = allUsers.filter((user: any) => {
+    const usersInArea = allUsers.filter((user: User) => {
       if (!user.latitude || !user.longitude) return false;
-
+    
       const distance = calculateDistance(
-        report.latitude,
-        report.longitude,
+        report.latitude!,
+        report.longitude!,
         user.latitude,
         user.longitude
       );
       return distance <= radius;
     });
+    
 
     if (usersInArea.length === 0) {
       return NextResponse.json({

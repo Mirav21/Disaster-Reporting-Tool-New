@@ -63,6 +63,7 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                 <Link
                   href="/dashboard"
                   className="text-sm text-zinc-400 hover:text-white transition-colors"
+                  onClick={onClose}
                 >
                   Dashboard
                 </Link>

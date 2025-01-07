@@ -1,22 +1,36 @@
 import React from "react";
 import Link from "next/link";
-import { ShieldCheck, Bolt, Globe, Heart, Users, Activity, ArrowRight, Phone, AlertTriangle, Check } from "lucide-react";
+import {
+  ShieldCheck,
+  Bolt,
+  Globe,
+  Heart,
+  Users,
+  Activity,
+  ArrowRight,
+  Phone,
+  AlertTriangle,
+  Check,
+} from "lucide-react";
 
 export default function Home() {
   const features = [
     {
       title: "Real-Time Data Sharing",
-      description: "Instant processing and sharing of critical disaster information with emergency responders.",
+      description:
+        "Instant processing and sharing of critical disaster information with emergency responders.",
       icon: <Bolt className="h-6 w-6" />,
     },
     {
       title: "Guaranteed Anonymity",
-      description: "Advanced privacy protocols ensure complete protection of reporter identities.",
+      description:
+        "Advanced privacy protocols ensure complete protection of reporter identities.",
       icon: <ShieldCheck className="h-6 w-6" />,
     },
     {
       title: "Nationwide Network",
-      description: "Collaborative platform connecting communities, volunteers, and emergency services.",
+      description:
+        "Collaborative platform connecting communities, volunteers, and emergency services.",
       icon: <Globe className="h-6 w-6" />,
     },
   ];
@@ -45,20 +59,22 @@ export default function Home() {
     "Public Safety Threats",
     "Medical Emergencies",
     "Environmental Hazards",
-    "Resource Shortages"
+    "Resource Shortages",
   ];
 
   const testimonials = [
     {
-      quote: "This platform helped our community coordinate emergency responses during the recent floods.",
+      quote:
+        "This platform helped our community coordinate emergency responses during the recent floods.",
       author: "Emergency Response Coordinator",
-      location: "Portland, OR"
+      location: "Portland, OR",
     },
     {
-      quote: "The anonymous reporting feature gave us crucial early warnings about developing situations.",
+      quote:
+        "The anonymous reporting feature gave us crucial early warnings about developing situations.",
       author: "Local Police Chief",
-      location: "Austin, TX"
-    }
+      location: "Austin, TX",
+    },
   ];
 
   return (
@@ -85,8 +101,9 @@ export default function Home() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-lg text-green-100 mb-10">
-            Our platform bridges the gap between those experiencing disasters and those who can help. 
-            By providing anonymous, real-time reporting, we enable swift and effective emergency responses.
+            Our platform bridges the gap between those experiencing disasters
+            and those who can help. By providing anonymous, real-time reporting,
+            we enable swift and effective emergency responses.
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center gap-4">
@@ -106,7 +123,7 @@ export default function Home() {
           {/* Emergency Contact */}
           <div className="mt-12 inline-flex items-center gap-2 rounded-full bg-red-500/10 px-4 py-2 text-red-400 border border-red-500/30">
             <Phone className="h-4 w-4" />
-            <span>Emergency? Call 911 for immediate assistance</span>
+            <span>Emergency? Call 112 for immediate assistance</span>
           </div>
         </section>
 
@@ -132,10 +149,15 @@ export default function Home() {
 
         {/* Emergency Types Section */}
         <section className="mt-24 text-center">
-          <h2 className="text-3xl font-bold mb-8">Types of Emergencies We Monitor</h2>
+          <h2 className="text-3xl font-bold mb-8">
+            Types of Emergencies We Monitor
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {emergencyTypes.map((type, index) => (
-              <div key={index} className="flex items-center gap-2 bg-white/5 rounded-lg p-4">
+              <div
+                key={index}
+                className="flex items-center gap-2 bg-white/5 rounded-lg p-4"
+              >
                 <Check className="h-5 w-5 text-green-500" />
                 <span className="text-green-100">{type}</span>
               </div>
@@ -147,7 +169,8 @@ export default function Home() {
         <section className="mt-24 text-center">
           <h2 className="text-4xl font-bold mb-6">Our Collective Impact</h2>
           <p className="max-w-2xl mx-auto text-green-200 mb-12">
-            Together, we&apos;re building a more resilient and responsive emergency support ecosystem.
+            Together, we&apos;re building a more resilient and responsive
+            emergency support ecosystem.
           </p>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -170,8 +193,13 @@ export default function Home() {
         <section className="mt-24">
           <div className="grid md:grid-cols-2 gap-6">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white/5 rounded-2xl p-8 border border-white/10">
-                <p className="text-lg text-green-100 mb-4">&quot;{testimonial.quote}&quot;</p>
+              <div
+                key={index}
+                className="bg-white/5 rounded-2xl p-8 border border-white/10"
+              >
+                <p className="text-lg text-green-100 mb-4">
+                  &quot;{testimonial.quote}&quot;
+                </p>
                 <div className="text-sm text-green-300">
                   <p className="font-semibold">{testimonial.author}</p>
                   <p>{testimonial.location}</p>
@@ -184,7 +212,8 @@ export default function Home() {
         <section className="mt-24 text-center bg-gradient-to-br from-green-500/10 to-teal-500/10 rounded-2xl p-12 border border-green-500/20">
           <h2 className="text-4xl font-bold mb-6">Join Our Mission</h2>
           <p className="max-w-2xl mx-auto text-green-200 mb-10">
-            Become a critical part of our disaster response network. Your commitment can save lives and help communities rebuild.
+            Become a critical part of our disaster response network. Your
+            commitment can save lives and help communities rebuild.
           </p>
 
           <Link href="/volunteer">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Award,
   Clock,
@@ -83,7 +83,12 @@ export default function Dashboard() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showSOSModal, setShowSOSModal] = useState(false);
   const [sosRadius, setSOSRadius] = useState(5);
-  const [sosMessage, setSOSMessage] = useState("");
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [sosMessage, setSOSMessage] = useState(
+    textareaRef.current?.value || ""
+  );
+
   const [isSendingAlert, setIsSendingAlert] = useState(false);
   const [reload, setReload] = useState(false);
 
@@ -392,8 +397,7 @@ export default function Dashboard() {
                 Alert Message
               </label>
               <textarea
-                value={sosMessage}
-                onChange={(e) => setSOSMessage(e.target.value)}
+                ref={textareaRef}
                 placeholder="Enter emergency alert message..."
                 className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-white h-32 resize-none"
               />
@@ -415,7 +419,7 @@ export default function Dashboard() {
               </button>
               <button
                 onClick={sendSOSAlert}
-                disabled={isSendingAlert || !sosMessage.trim()}
+                disabled={isSendingAlert}
                 className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-red-500/50 disabled:cursor-not-allowed rounded-lg text-white transition-colors flex items-center justify-center gap-2"
               >
                 {isSendingAlert ? (

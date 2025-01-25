@@ -656,8 +656,7 @@ export default function Dashboard() {
                     .length > 0 ? (
                     filteredReports.map(
                       (report) =>
-                        report.reviewReport &&
-                        report.status !== "COMPLETED" && (
+                        report.reviewReport && (
                           <div
                             key={report.id}
                             onClick={() => setSelectedReport(report)}
@@ -1023,8 +1022,12 @@ export default function Dashboard() {
 
                           {selectedReport.reviewReport === null &&
                             selectedReport.status === "PENDING" &&
-                            localStorage.getItem("username")?.toLowerCase() ===
-                              "admin" && (
+                            (["admin", "moderator"] as const).includes(
+                              (localStorage
+                                .getItem("username")
+                                ?.toLowerCase() as "admin" | "moderator") ||
+                                "guest"
+                            ) && (
                               <button
                                 value="IN_PROGRESS"
                                 onClick={() =>

@@ -85,9 +85,7 @@ export default function Dashboard() {
   const [sosRadius, setSOSRadius] = useState(5);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [sosMessage, setSOSMessage] = useState(
-    textareaRef.current?.value || ""
-  );
+  const [sosMessage] = useState(textareaRef.current?.value || "");
 
   const [isSendingAlert, setIsSendingAlert] = useState(false);
   const [reload, setReload] = useState(false);

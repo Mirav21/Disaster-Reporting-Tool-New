@@ -101,7 +101,6 @@ export default function SignUp() {
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error("usernae error : ");
         const status = error.response?.status;
 
         if (status === 409) {
@@ -125,15 +124,15 @@ export default function SignUp() {
   };
 
   return (
-    <div className="flex top-0 min-h-screen -mt-16 overflow-hidden">
+    <div className="flex top-0 min-h-screen overflow-hidden">
       {/* Left side - Information Section */}
-      <div className="hidden lg:flex lg:w-1/2 bg-green-600 text-white p-8 flex-col justify-center">
+      <div className="hidden lg:flex lg:w-1/2 bg-green-600 dark:bg-green-800 text-white p-8 flex-col justify-center">
         <div className="space-y-8">
           <div>
             <h1 className="text-3xl font-bold mb-4">
               Disaster Management Platform
             </h1>
-            <p className="text-lg text-green-100 mb-8">
+            <p className="text-lg text-green-100 dark:text-green-200 mb-8">
               Join our platform to contribute to disaster preparedness and
               response efforts
             </p>
@@ -141,40 +140,40 @@ export default function SignUp() {
 
           <div className="space-y-6">
             <div className="flex items-start space-x-4">
-              <AlertTriangle className="w-6 h-6 mt-1 text-green-200" />
+              <AlertTriangle className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
               <div>
                 <h3 className="font-semibold mb-1">Early Warning Systems</h3>
-                <p className="text-green-100 text-sm">
+                <p className="text-green-100 dark:text-green-200 text-sm">
                   Get real-time alerts about potential disasters in your area
                 </p>
               </div>
             </div>
 
             <div className="flex items-start space-x-4">
-              <Shield className="w-6 h-6 mt-1 text-green-200" />
+              <Shield className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
               <div>
                 <h3 className="font-semibold mb-1">Resource Management</h3>
-                <p className="text-green-100 text-sm">
+                <p className="text-green-100 dark:text-green-200 text-sm">
                   Track and manage emergency resources efficiently
                 </p>
               </div>
             </div>
 
             <div className="flex items-start space-x-4">
-              <Users className="w-6 h-6 mt-1 text-green-200" />
+              <Users className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
               <div>
                 <h3 className="font-semibold mb-1">Community Coordination</h3>
-                <p className="text-green-100 text-sm">
+                <p className="text-green-100 dark:text-green-200 text-sm">
                   Connect with local response teams effectively
                 </p>
               </div>
             </div>
 
             <div className="flex items-start space-x-4">
-              <Clock className="w-6 h-6 mt-1 text-green-200" />
+              <Clock className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
               <div>
                 <h3 className="font-semibold mb-1">24/7 Support</h3>
-                <p className="text-green-100 text-sm">
+                <p className="text-green-100 dark:text-green-200 text-sm">
                   Access round-the-clock emergency response coordination
                 </p>
               </div>
@@ -182,26 +181,26 @@ export default function SignUp() {
           </div>
         </div>
 
-        <footer className="text-sm text-green-200 mt-8">
+        <footer className="text-sm text-green-200 dark:text-green-300 mt-8">
           © 2024 Disaster Management Platform
         </footer>
       </div>
 
       {/* Right side - Form Section */}
-      <div className="lg:w-1/2 w-full mt-28 p-8 lg:p-12 bg-black/90 flex justify-center items-cente">
+      <div className="lg:w-1/2 w-full p-8 lg:p-12 bg-white dark:bg-black/90 flex justify-center items-center">
         <form className="w-full max-w-2xl space-y-6" onSubmit={handleSubmit}>
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-green-600 mb-2">
+            <h2 className="text-3xl font-bold text-green-600 dark:text-green-500 mb-2">
               Create Account
             </h2>
-            <p className="text-green-500/90">
+            <p className="text-green-600/90 dark:text-green-500/90">
               Join our emergency response network
             </p>
           </div>
 
           {/* Two-column layout for form fields */}
           <div>
-            <label className="block text-sm font-medium text-green-500 mb-1">
+            <label className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1">
               Full Name
             </label>
             <input
@@ -209,7 +208,7 @@ export default function SignUp() {
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
+              className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
               placeholder="John Doe"
               required
             />
@@ -218,7 +217,7 @@ export default function SignUp() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Email field */}
             <div>
-              <label className="block text-sm font-medium text-green-500 mb-1">
+              <label className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1">
                 Email Address
               </label>
               <input
@@ -226,7 +225,7 @@ export default function SignUp() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
+                className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
                 placeholder="you@example.com"
                 required
               />
@@ -234,7 +233,7 @@ export default function SignUp() {
 
             {/* Phone field */}
             <div>
-              <label className="block text-sm font-medium text-green-500 mb-1">
+              <label className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1">
                 Phone Number
               </label>
               <input
@@ -242,7 +241,7 @@ export default function SignUp() {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
+                className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
                 placeholder="+1 (555) 000-0000"
                 required
               />
@@ -251,7 +250,7 @@ export default function SignUp() {
 
           {/* Location input - full width */}
           <div className="w-full">
-            <label className="block text-sm font-medium text-green-500 mb-1">
+            <label className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1">
               Location
             </label>
             <LocationInput
@@ -266,13 +265,17 @@ export default function SignUp() {
                   longitude: lng,
                 }))
               }
+              className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 
+             px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 
+             focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 
+             hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
             />
           </div>
 
           {/* Password fields - two columns */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-green-500 mb-1">
+              <label className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1">
                 Password
               </label>
               <input
@@ -280,14 +283,14 @@ export default function SignUp() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
+                className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
                 placeholder="••••••••"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-green-500 mb-1">
+              <label className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1">
                 Confirm Password
               </label>
               <div className="relative">
@@ -296,14 +299,14 @@ export default function SignUp() {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
+                  className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
                   placeholder="••••••••"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-3 flex items-center text-black hover:text-black/80 transition-all duration-200"
+                  className="absolute inset-y-0 right-3 flex items-center text-green-700 dark:text-green-400 hover:text-green-600 dark:hover:text-green-300 transition-all duration-200"
                 >
                   {showPassword ? "Hide" : "Show"}
                 </button>
@@ -313,7 +316,7 @@ export default function SignUp() {
 
           {/* Error message */}
           {error && (
-            <div className="bg-red-200 border border-red-400 rounded-lg p-3 text-red-500 text-sm">
+            <div className="bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-800 rounded-lg p-3 text-red-600 dark:text-red-400 text-sm">
               <AlertCircle className="inline-block mr-2 h-4 w-4" /> {error}
             </div>
           )}
@@ -321,7 +324,7 @@ export default function SignUp() {
           {/* Submit button */}
           <button
             type="submit"
-            className="w-full py-4 rounded-lg text-md bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 mt-8"
+            className="w-full py-4 rounded-lg text-md bg-green-600 dark:bg-green-700 text-white hover:bg-green-700 dark:hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 mt-8"
             disabled={isLoading}
           >
             {isLoading ? "Creating account..." : "Create Account"}

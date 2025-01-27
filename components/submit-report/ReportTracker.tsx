@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { Search, Loader, MapPin } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Marker } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import Image from "next/image";
 
 const Map = dynamic(() => import("react-map-gl"), {
   ssr: false,
@@ -127,32 +127,35 @@ export function ReportTracker() {
   };
 
   function getStatusColor(status: string): string {
-    if (!status) return "text-white";
+    if (!status) return "text-gray-300 dark:text-gray-400";
 
     const colors: { [key: string]: string } = {
-      PENDING: "text-yellow-400",
-      IN_PROGRESS: "text-blue-400",
-      COMPLETED: "text-green-400",
-      REJECTED: "text-red-400",
+      PENDING: "text-yellow-500 dark:text-yellow-400",
+      IN_PROGRESS: "text-blue-500 dark:text-blue-400",
+      COMPLETED: "text-green-500 dark:text-green-400",
+      REJECTED: "text-red-500 dark:text-red-400",
     };
-    return colors[status.toUpperCase() as keyof typeof colors] || "text-white";
+    return (
+      colors[status.toUpperCase() as keyof typeof colors] ||
+      "text-gray-300 dark:text-gray-400"
+    );
   }
 
   return (
     <div className="w-full">
       {/* Header Section */}
       <div className="text-center mb-8">
-        <div className="inline-flex h-9 items-center mt-10 gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 text-sm text-emerald-400">
+        <div className="inline-flex h-9 items-center mt-10 gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 dark:bg-emerald-900/20 px-4 text-sm text-emerald-600 dark:text-emerald-400">
           <Search className="w-4 h-4" />
           Track Your Report Status
         </div>
-        <h1 className="mt-6 bg-gradient-to-b from-white to-white/80 bg-clip-text text-4xl font-bold tracking-tight text-transparent">
+        <h1 className="mt-6 text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
           Track Your Report
-          <span className="block bg-gradient-to-r from-emerald-400 to-green-500 bg-clip-text text-transparent">
+          <span className="block bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">
             Stay Informed
           </span>
         </h1>
-        <p className="mt-4 text-zinc-400 max-w-xl mx-auto">
+        <p className="mt-4 text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
           Enter your report ID to check the current status and updates
         </p>
       </div>
@@ -160,8 +163,7 @@ export function ReportTracker() {
       {/* Dynamic Layout Container */}
       <div className="flex justify-center">
         <div
-          className={`transition-all duration-300 ease-in-out 
-          ${
+          className={`transition-all duration-300 ease-in-out ${
             reportDetails
               ? "w-full grid md:grid-cols-2 gap-8"
               : "max-w-lg w-full"
@@ -169,15 +171,15 @@ export function ReportTracker() {
         >
           {/* Form Section */}
           <div
-            className={`bg-zinc-900/50 backdrop-blur-xl rounded-2xl border 
-            border-white/5 p-6 w-full transition-all duration-300
-            ${reportDetails ? "" : "mx-auto"}`}
+            className={`bg-white dark:bg-gray-900 backdrop-blur-xl rounded-2xl border border-gray-200 dark:border-gray-800 p-6 w-full transition-all duration-300 shadow-lg ${
+              reportDetails ? "" : "mx-auto"
+            }`}
           >
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="relative">
                 <label
                   htmlFor="reportId"
-                  className="block text-sm font-medium mb-2 text-zinc-400"
+                  className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
                 >
                   Report ID
                 </label>
@@ -186,16 +188,16 @@ export function ReportTracker() {
                   id="reportId"
                   value={reportId}
                   onChange={(e) => setReportId(e.target.value)}
-                  className="w-full px-4 py-3 bg-black/50 border border-white/5 rounded-xl
-                           text-white placeholder-zinc-500 focus:outline-none focus:ring-2 
-                           focus:ring-emerald-500/50 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl
+                         text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 
+                         focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent transition-all"
                   placeholder="Enter your report ID"
                   disabled={loading}
                 />
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 p-4 rounded-xl border border-red-500/20">
+                <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-200 dark:border-red-800">
                   <svg
                     className="h-5 w-5 flex-shrink-0"
                     fill="none"
@@ -217,10 +219,9 @@ export function ReportTracker() {
                 type="submit"
                 disabled={loading}
                 className="w-full bg-gradient-to-r from-emerald-500 to-green-600 
-                         text-white py-3 px-4 rounded-xl hover:from-emerald-400 
-                         hover:to-green-500 transition-all duration-200 
-                         disabled:opacity-50 disabled:cursor-not-allowed
-                         flex items-center justify-center space-x-2"
+                       text-white py-3 px-4 rounded-xl hover:from-emerald-600 hover:to-green-700
+                       transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+                       flex items-center justify-center space-x-2 shadow-lg"
               >
                 {loading ? (
                   <Loader className="w-5 h-5 animate-spin" />
@@ -234,69 +235,79 @@ export function ReportTracker() {
 
           {/* Results Section */}
           <div
-            className={`transition-all duration-300 
-            ${
+            className={`transition-all duration-300 ${
               reportDetails
                 ? "opacity-100 translate-x-0"
                 : "opacity-0 translate-x-8 absolute"
             }`}
           >
             {reportDetails && (
-              <div className="rounded-xl border border-white/5 bg-black/30 backdrop-blur-xl p-6 h-full">
-                <h2 className="text-xl font-semibold text-white flex items-center gap-2 mb-6">
-                  <div className="h-2 w-2 rounded-full bg-emerald-400" />
+              <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 h-full shadow-lg">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-6">
+                  <div className="h-2 w-2 rounded-full bg-emerald-500" />
                   Report Details
                 </h2>
 
                 <div className="grid gap-4">
-                  <div className="flex justify-between items-center p-3 rounded-lg bg-emerald-900/20">
-                    <span className="text-zinc-400">Status</span>
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Status
+                    </span>
                     <span
                       className={`font-medium ${getStatusColor(
                         reportDetails.status
-                      )} 
-                        px-3 py-1 rounded-full bg-emerald-900/10`}
+                      )} px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700`}
                     >
                       {reportDetails.status}
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-center p-3 rounded-lg bg-emerald-900/20">
-                    <span className="text-zinc-400">Assigned Team</span>
-                    <span className="text-white font-mono">
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Assigned Team
+                    </span>
+                    <span className="text-gray-900 dark:text-white font-mono">
                       {reportDetails?.teamAssign?.teamName ||
                         "No team assigned"}
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-white/5 space-y-1.5">
-                    <span className="text-zinc-400 text-sm">Image</span>
+                  <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 space-y-1.5">
+                    <span className="text-gray-600 dark:text-gray-400 text-sm">
+                      Image
+                    </span>
                     {reportDetails.imageUrl ? (
-                      <Image
-                        src={reportDetails.imageUrl}
-                        alt="Report"
-                        className="rounded-lg shadow-lg border border-white/5"
-                        width={500}
-                        height={300}
-                        layout="responsive"
-                      />
+                      <div className="mt-2">
+                        <Image
+                          src={reportDetails.imageUrl}
+                          alt="Report"
+                          className="rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
+                          width={500}
+                          height={300}
+                          layout="responsive"
+                        />
+                      </div>
                     ) : (
-                      <p className="text-white text-sm">
+                      <p className="text-gray-900 dark:text-white text-sm">
                         No image available for this report.
                       </p>
                     )}
                   </div>
 
-                  <div className="flex justify-between items-center p-3 rounded-lg bg-emerald-900/20">
-                    <span className="text-zinc-400">Report ID</span>
-                    <span className="text-white font-mono">
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Report ID
+                    </span>
+                    <span className="text-gray-900 dark:text-white font-mono">
                       {reportDetails.reportId || reportDetails.id}
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-center p-3 rounded-lg bg-emerald-900/20">
-                    <span className="text-zinc-400">Submitted On</span>
-                    <span className="text-white">
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Submitted On
+                    </span>
+                    <span className="text-gray-900 dark:text-white">
                       {new Date(reportDetails.createdAt).toLocaleDateString(
                         undefined,
                         {
@@ -308,28 +319,32 @@ export function ReportTracker() {
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-emerald-900/20 space-y-1.5">
-                    <span className="text-zinc-400 text-sm">Title</span>
-                    <span className="text-white block font-medium">
+                  <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 space-y-1.5">
+                    <span className="text-gray-600 dark:text-gray-400 text-sm">
+                      Title
+                    </span>
+                    <span className="text-gray-900 dark:text-white block font-medium">
                       {reportDetails.title}
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-emerald-900/20 space-y-1.5">
-                    <span className="text-zinc-400 text-sm">Location</span>
-                    <span className="text-white block font-medium">
+                  <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 space-y-1.5">
+                    <span className="text-gray-600 dark:text-gray-400 text-sm">
+                      Location
+                    </span>
+                    <span className="text-gray-900 dark:text-white block font-medium">
                       {reportDetails.location}
                     </span>
                   </div>
 
                   {reportDetails?.location && (
-                    <div className="p-3 rounded-lg bg-white/5 space-y-1.5">
-                      <span className="text-zinc-400 text-sm flex items-center gap-2">
-                        <MapPin className="w-4 h-4" /> Location
+                    <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 space-y-1.5">
+                      <span className="text-gray-600 dark:text-gray-400 text-sm flex items-center gap-2">
+                        <MapPin className="w-4 h-4" /> Location Map
                       </span>
-                      <div className="h-64 w-full rounded-lg overflow-hidden border border-white/10">
+                      <div className="h-64 w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
                         {!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ? (
-                          <div className="w-full h-full flex items-center justify-center text-yellow-400 bg-yellow-900/10 p-4">
+                          <div className="w-full h-full flex items-center justify-center text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 p-4">
                             Mapbox token is not configured. Please set
                             NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN.
                           </div>
@@ -355,20 +370,22 @@ export function ReportTracker() {
                             </Marker>
                           </Map>
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-yellow-400 bg-yellow-900/10 p-4">
+                          <div className="w-full h-full flex items-center justify-center text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 p-4">
                             Unable to resolve location coordinates
                           </div>
                         )}
                       </div>
-                      <p className="text-white text-sm mt-2">
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
                         {reportDetails.location}
                       </p>
                     </div>
                   )}
 
-                  <div className="p-3 rounded-lg bg-emerald-900/20 space-y-1.5">
-                    <span className="text-zinc-400 text-sm">Description</span>
-                    <p className="text-white text-sm leading-relaxed">
+                  <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 space-y-1.5">
+                    <span className="text-gray-600 dark:text-gray-400 text-sm">
+                      Description
+                    </span>
+                    <p className="text-gray-900 dark:text-white text-sm leading-relaxed">
                       {reportDetails.description}
                     </p>
                   </div>

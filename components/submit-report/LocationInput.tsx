@@ -7,6 +7,7 @@ interface LocationInputProps {
   value: string;
   onChange: (value: string) => void;
   onCoordinatesChange?: (lat: number | null, lng: number | null) => void;
+  className?: string;
 }
 
 interface Suggestion {
@@ -48,6 +49,7 @@ export function LocationInput({
   value,
   onChange,
   onCoordinatesChange,
+  className,
 }: LocationInputProps) {
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -261,10 +263,10 @@ export function LocationInput({
   }, []);
 
   return (
-    <div className="space-y-4">
-      <label className="block text-sm font-medium text-zinc-400">
+    <div className="space-y-2">
+      {/* <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Location
-      </label>
+      </label> */}
       <div className="relative" ref={inputRef}>
         <input
           type="text"
@@ -279,23 +281,25 @@ export function LocationInput({
           required
           onFocus={() => setShowSuggestions(true)}
           placeholder="Enter location or use map"
-          className="w-full rounded-xl bg-zinc-900/50 border border-zinc-800 pl-4 pr-12 py-3.5
-                     text-white transition-colors duration-200
-                     focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+          // className="w-full rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-4 py-3.5
+          //            text-gray-900 dark:text-gray-100 transition-colors duration-200
+          //            focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+          className={className}
         />
         <button
           type="button"
           onClick={getLocation}
           className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5
-                   rounded-lg bg-sky-500/10 text-sky-400 
-                   hover:bg-sky-500/20 transition-colors duration-200
-                   disabled:opacity-50 disabled:cursor-not-allowed"
+                 rounded-lg bg-sky-500/10 dark:bg-sky-400/20 text-sky-500 
+                 dark:text-sky-300 
+                 hover:bg-sky-500/20 dark:hover:bg-sky-400/30 transition-colors duration-200
+                 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isGettingLocation}
           title="Get current location"
         >
           {isGettingLocation ? (
             <svg
-              className="animate-spin h-5 w-5"
+              className="animate-spin h-5 w-5 text-sky-500 dark:text-sky-300"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -316,7 +320,7 @@ export function LocationInput({
             </svg>
           ) : (
             <svg
-              className="h-5 w-5"
+              className="h-5 w-5 text-zinc-700 dark:text-zinc-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -337,16 +341,20 @@ export function LocationInput({
           )}
         </button>
         {accuracy && (
-          <div className="absolute -bottom-6 right-0 text-xs text-zinc-400">
+          <div className="absolute -bottom-6 right-0 text-xs text-zinc-500 dark:text-zinc-400">
             Accuracy: ±{Math.round(accuracy)}m
           </div>
         )}
         {showSuggestions && suggestions.length > 0 && (
-          <ul className="absolute z-10 w-full bg-zinc-800 border border-zinc-700 rounded-b-xl mt-1 max-h-60 overflow-auto">
+          <ul
+            className="absolute z-10 w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 
+                     dark:border-zinc-700 rounded-b-xl mt-1 max-h-60 overflow-auto"
+          >
             {suggestions.map((suggestion, index) => (
               <li
                 key={index}
-                className="px-4 py-2 hover:bg-zinc-700 cursor-pointer text-white"
+                className="px-4 py-2 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer 
+                       text-zinc-900 dark:text-white"
                 onClick={() => {
                   onChange(suggestion.place_name);
                   setShowSuggestions(false);
@@ -360,9 +368,9 @@ export function LocationInput({
         )}
       </div>
       {locationError && (
-        <p className="text-sm text-red-400 flex items-center gap-2">
+        <p className="text-sm text-red-500 dark:text-red-400 flex items-center gap-2">
           <svg
-            className="h-4 w-4"
+            className="h-4 w-4 text-red-500 dark:text-red-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -381,11 +389,14 @@ export function LocationInput({
         <>
           <div className="relative w-full h-64 rounded-xl overflow-hidden">
             <div ref={mapContainerRef} className="w-full h-full" />
-            <div className="absolute bottom-2 left-2 bg-zinc-900/90 text-white text-xs px-2 py-1 rounded">
+            <div
+              className="absolute bottom-2 left-2 bg-zinc-100 dark:bg-zinc-900/90 
+                        text-zinc-900 dark:text-white text-xs px-2 py-1 rounded"
+            >
               Click map or drag pin to set location
             </div>
           </div>
-          <p className="text-sm text-white mt-2">
+          <p className="text-sm text-zinc-900 dark:text-white mt-2">
             Address: {address || "Loading..."}
           </p>
         </>

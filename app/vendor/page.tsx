@@ -15,18 +15,16 @@ import {
   Shell,
   Save,
   RefreshCw,
-  Menu,
-  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
+// import { jwtDecode } from "jwt-decode";
 
-interface CustomJwtPayload {
-  sub: string;
-  role: string;
-}
+// interface CustomJwtPayload {
+//   sub: string;
+//   role: string;
+// }
 
 type DisasterStats = {
   rescueTeamsDeployed: string;
@@ -90,10 +88,12 @@ export default function RescueTeamDashboard() {
 
   // Add authentication check
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const decodeToken = jwtDecode<CustomJwtPayload>(token);
-      const username = decodeToken?.sub;
+    // const token = localStorage.getItem("token");
+    const username = localStorage.getItem("username");
+    if (username) {
+      // const decodeToken = jwtDecode<CustomJwtPayload>(token);
+      // const username = decodeToken?.sub;
+      //setUser(username);
       if (
         username === "admin" ||
         username === "moderator" ||
@@ -169,12 +169,16 @@ export default function RescueTeamDashboard() {
 
   const getStatusBadgeColor = (status: string) => {
     const colors = {
-      PENDING: "bg-amber-500/20 text-amber-200 border border-amber-500/30",
-      IN_PROGRESS: "bg-blue-500/20 text-blue-200 border border-blue-500/30",
-      RESPONDED: "bg-blue-500/20 text-blue-200 border border-blue-500/30",
+      PENDING:
+        "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200 border border-amber-200 dark:border-amber-500/30",
+      IN_PROGRESS:
+        "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200 border border-blue-200 dark:border-blue-500/30",
       COMPLETED:
-        "bg-emerald-500/20 text-emerald-200 border border-emerald-500/30",
+        "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-500/30",
+      DISMISSED:
+        "bg-gray-100 text-gray-800 dark:bg-neutral-500/20 dark:text-neutral-200 border border-gray-200 dark:border-neutral-500/30",
     };
+
     return colors[status as keyof typeof colors] || colors.PENDING;
   };
 
@@ -254,8 +258,14 @@ export default function RescueTeamDashboard() {
     type?: string;
   }) => (
     <div className="space-y-2">
-      <label className="text-sm text-neutral-400">{label}</label>
+      <label
+        htmlFor={label}
+        className="text-sm text-neutral-800 dark:text-neutral-400"
+      >
+        {label}
+      </label>
       <input
+        id={label}
         type={type}
         min="0"
         defaultValue={defaultValue}
@@ -265,49 +275,33 @@ export default function RescueTeamDashboard() {
             e.target.value = e.target.value.replace(/[^\d]/g, "");
           }
         }}
-        className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white"
+        className="w-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-lg px-3 py-2 text-neutral-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
       />
     </div>
   );
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
+      <div className="flex items-center justify-center min-h-screen bg-neutral-100 dark:bg-black">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-neutral-800 border-t-blue-500"></div>
-          <p className="text-neutral-400">Loading reports...</p>
-        </div>
-      </div>
-    );
-  }
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-neutral-800 border-t-blue-500"></div>
-          <p className="text-neutral-400">Loading reports...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-neutral-300 dark:border-neutral-800 border-t-blue-500 dark:border-t-blue-400"></div>
+          <p className="text-neutral-600 dark:text-neutral-400">
+            Loading reports...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-neutral-950 to-neutral-900 text-white flex flex-col md:flex-row">
+    <div className="min-h-screen bg-white text-white flex flex-col md:flex-row dark:bg-gradient-to-br dark:from-neutral-900 dark:via-neutral-950 dark:to-black dark:text-white">
       {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b border-neutral-800 bg-neutral-900/50">
-        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-neutral-800 bg-neutral-900">
+        <div className="p-2 hover:bg-neutral-800 rounded-lg"></div>
+        <h1 className="text-xl font-bold bg-gradient-to-r text-white bg-clip-text">
           Rescue Team
         </h1>
-        <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="p-2 hover:bg-neutral-800 rounded-lg"
-        >
-          {isSidebarOpen ? (
-            <X className="w-6 h-6" />
-          ) : (
-            <Menu className="w-6 h-6" />
-          )}
-        </button>
+        <div className="w-6" /> {/* Spacer for alignment */}
       </div>
 
       {/* Sidebar */}
@@ -317,15 +311,15 @@ export default function RescueTeamDashboard() {
         md:translate-x-0
         fixed md:relative
         inset-y-0 left-0
-        w-64 bg-neutral-900/50 backdrop-blur-md
-        border-r border-neutral-800
+        w-64 bg-gray-100 dark:bg-neutral-900/50 backdrop-blur-md
+        border-r border-gray-200 dark:border-neutral-800
         flex flex-col
         z-30
         transition-transform duration-200 ease-in-out
       `}
       >
-        <div className="p-6 border-b border-neutral-800">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+        <div className="p-6 border-b border-gray-200 dark:border-neutral-800">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-black dark:text-transparent">
             Rescue Team
           </h1>
         </div>
@@ -335,56 +329,40 @@ export default function RescueTeamDashboard() {
             <li>
               <Link
                 href="/dashboard"
-                className="px-4 py-3 rounded-lg bg-blue-500/10 text-blue-400 flex items-center gap-3"
+                className="px-4 py-3 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center gap-3 hover:bg-blue-200 dark:hover:bg-blue-500/10"
               >
                 <FileText className="w-5 h-5" />
                 Reports
                 <ChevronRight className="w-4 h-4 ml-auto" />
               </Link>
             </li>
-            {/* <li>
-              <Link
-                href="/teams"
-                className="px-4 py-3 rounded-lg hover:bg-neutral-800 text-neutral-400 flex items-center gap-3"
-              >
-                <Users className="w-5 h-5" />
-                Team Status
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/analytics"
-                className="px-4 py-3 rounded-lg hover:bg-neutral-800 text-neutral-400 flex items-center gap-3"
-              >
-                <BarChart className="w-5 h-5" />
-                Analytics
-              </Link>
-            </li> */}
           </ul>
         </nav>
 
-        <div className="p-4 border-t border-neutral-800">
+        <div className="p-4 border-t border-gray-200 dark:border-neutral-800">
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-800"
+              className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-800"
             >
               <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
                 <User className="w-5 h-5 text-white" />
               </div>
               <div className="flex-grow text-left">
-                <p className="text-sm font-medium">Rescue Team Member</p>
-                <p className="text-xs text-neutral-400">
+                <p className="text-sm font-medium text-black dark:text-white">
+                  Rescue Team Member
+                </p>
+                <p className="text-xs text-gray-600 dark:text-neutral-400">
                   Vendor | {localStorage.getItem("username") || "Rescue Team"}
                 </p>
               </div>
             </button>
 
             {showUserMenu && (
-              <div className="absolute bottom-full left-0 w-full mb-2 bg-neutral-900 border border-neutral-800 rounded-lg">
+              <div className="absolute bottom-full left-0 w-full mb-2 bg-gray-100 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg">
                 <button
                   onClick={() => signOut()}
-                  className="w-full flex items-center gap-2 px-4 py-3 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg"
+                  className="w-full flex items-center gap-2 px-4 py-3 text-gray-600 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-lg"
                 >
                   <LogOut className="w-4 h-4" />
                   Sign Out
@@ -400,8 +378,10 @@ export default function RescueTeamDashboard() {
         <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
           {/* Header */}
           <div className="hidden md:block">
-            <h1 className="text-2xl font-bold">Disaster Reports</h1>
-            <p className="text-neutral-400">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">
+              Disaster Reports
+            </h1>
+            <p className="text-gray-500 dark:text-neutral-400">
               Respond to and manage disaster reports
             </p>
           </div>
@@ -412,9 +392,9 @@ export default function RescueTeamDashboard() {
               placeholder="Search reports..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-neutral-900/50 backdrop-blur-sm border border-neutral-800 rounded-lg pl-10 pr-4 py-2 text-white placeholder-neutral-400"
+              className="w-full bg-gray-100 dark:bg-neutral-900 border border-gray-300 dark:border-neutral-800 rounded-lg pl-10 pr-4 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-neutral-400 transition-all"
             />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-neutral-400 w-5 h-5" />
           </div>
 
           {/* Reports Grid */}
@@ -434,11 +414,11 @@ export default function RescueTeamDashboard() {
                   <div
                     key={report.reportId}
                     onClick={() => startResponding(report)}
-                    className="group bg-neutral-900/50 backdrop-blur-sm rounded-xl p-6 border border-neutral-800 hover:border-neutral-700 cursor-pointer"
+                    className="group g-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-800 hover:border-gray-400 dark:hover:border-neutral-700 cursor-pointer rounded-xl p-6 transition-all shadow-sm dark:shadow-neutral-800"
                   >
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold text-white">
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                           {report.title || "Untitled Report"}
                         </h2>
                         <span
@@ -454,7 +434,7 @@ export default function RescueTeamDashboard() {
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-4 text-sm text-neutral-400">
+                      <div className="flex items-center gap-4 text-gray-500 dark:text-neutral-400 text-sm">
                         <div className="flex items-center gap-2">
                           <MapPin className="w-4 h-4" />
                           <span>{report.location}</span>
@@ -468,25 +448,25 @@ export default function RescueTeamDashboard() {
                       </div>
                       {report.reviewReport && (
                         <div className="grid grid-cols-2 gap-4 mt-4">
-                          <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                          <div className="bg-gray-200 dark:bg-neutral-800 rounded-xl p-4">
                             <div className="flex items-center gap-2">
-                              <Users className="w-4 h-4 text-blue-400" />
-                              <span className="text-neutral-400 text-sm">
+                              <Users className="w-4 h-4 text-blue-500" />
+                              <span className="text-gray-600 dark:text-neutral-400 text-sm">
                                 Affected People
                               </span>
                             </div>
-                            <p className="text-xl font-bold mt-1">
+                            <p className="text-xl font-bold mt-1 text-gray-900 dark:text-white">
                               {report.reviewReport.affectedPeople}
                             </p>
                           </div>
-                          <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                          <div className="bg-gray-200 dark:bg-neutral-800 rounded-xl p-4">
                             <div className="flex items-center gap-2">
-                              <Users className="w-4 h-4 text-blue-400" />
-                              <span className="text-neutral-400 text-sm">
+                              <Users className="w-4 h-4 text-blue-500" />
+                              <span className="text-gray-600 dark:text-neutral-400 text-sm">
                                 Casualties
                               </span>
                             </div>
-                            <p className="text-xl font-bold mt-5 md:mt-1 lg:mt-1">
+                            <p className="text-xl font-bold mt-1 text-gray-900 dark:text-white">
                               {report.reviewReport.casualties}
                             </p>
                           </div>
@@ -496,14 +476,16 @@ export default function RescueTeamDashboard() {
                   </div>
                 ))
             ) : (
-              <div className="col-span-1 lg:col-span-2 text-center py-16 bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-800">
-                <FileText className="mx-auto mb-4 w-12 h-12 text-neutral-500" />
-                <p className="text-lg text-neutral-400">No reports founds.</p>
+              <div className="col-span-1 lg:col-span-2 text-center py-16 bg-gray-100 dark:bg-neutral-900 border border-gray-300 dark:border-neutral-800 rounded-xl">
+                <FileText className="mx-auto mb-4 w-12 h-12 text-gray-500 dark:text-neutral-500" />
+                <p className="text-lg text-gray-600 dark:text-neutral-400">
+                  No reports found.
+                </p>
                 <button
                   onClick={() => {
                     fetchReports();
                   }}
-                  className="mt-4 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 hover:text-white transition-colors text-sm"
+                  className="mt-4 px-4 py-2 bg-gray-300 dark:bg-neutral-800 hover:bg-gray-400 dark:hover:bg-neutral-700 rounded-lg text-gray-900 dark:text-white transition-all text-sm"
                 >
                   Refresh
                 </button>
@@ -516,24 +498,25 @@ export default function RescueTeamDashboard() {
       {/* Report Details Sidebar - Mobile Optimized */}
       {selectedReport && (
         <div
-          className={`
-          fixed inset-0 md:inset-y-0 md:right-0 md:w-[480px]
-          bg-neutral-900/95 backdrop-blur-xl
-          border-l border-neutral-800
-          shadow-2xl z-50
-          overflow-y-auto
-          transition-transform duration-200 ease-in-out
-          ${selectedReport ? "translate-x-0" : "translate-x-full"}
-        `}
+          className={`fixed inset-0 md:inset-y-0 md:right-0 md:w-[480px]
+    bg-white dark:bg-neutral-800/95 backdrop-blur-xl
+    border-l border-neutral-300 dark:border-neutral-700
+    shadow-2xl z-50
+    overflow-y-auto
+    transition-transform duration-200 ease-in-out
+    ${selectedReport ? "translate-x-0" : "translate-x-full"}
+  `}
         >
-          <div className="p-6 border-b border-neutral-800 flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Report Response</h2>
+          <div className="p-6 border-b border-neutral-300 dark:border-neutral-700 flex justify-between items-center">
+            <h2 className="text-xl font-semibold text-black dark:text-white">
+              Report Response
+            </h2>
             <button
               onClick={() => {
                 setSelectedReport(null);
                 setEditingStats(null);
               }}
-              className="p-2 hover:bg-neutral-800 rounded-lg text-neutral-400"
+              className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg text-neutral-600 dark:text-neutral-300"
             >
               ×
             </button>
@@ -542,7 +525,7 @@ export default function RescueTeamDashboard() {
           <div className="p-6 space-y-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">
+                <h3 className="text-lg font-semibold text-black dark:text-white">
                   {selectedReport.title}
                 </h3>
                 <span
@@ -558,9 +541,13 @@ export default function RescueTeamDashboard() {
                 </span>
               </div>
 
-              <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
-                <h4 className="text-neutral-400 text-sm mb-2">Description</h4>
-                <p className="text-white">{selectedReport.description}</p>
+              <div className="bg-neutral-200 dark:bg-neutral-700/50 backdrop-blur-sm rounded-xl p-4">
+                <h4 className="text-neutral-700 dark:text-neutral-400 text-sm mb-2">
+                  Description
+                </h4>
+                <p className="text-black dark:text-white">
+                  {selectedReport.description}
+                </p>
               </div>
 
               {editingStats ? (
@@ -606,7 +593,7 @@ export default function RescueTeamDashboard() {
                   <button
                     onClick={submitResponse}
                     disabled={isSaving}
-                    className="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 rounded-lg text-white flex items-center justify-center gap-2"
+                    className="w-full px-4 py-3 bg-green-500 hover:bg-green-600 disabled:bg-blue-500/50 rounded-lg text-white flex items-center justify-center gap-2"
                   >
                     {isSaving ? (
                       <>
@@ -626,73 +613,79 @@ export default function RescueTeamDashboard() {
                 selectedReport.reviewReport && (
                   <>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                      <div className="bg-neutral-200 dark:bg-neutral-700/50 backdrop-blur-sm rounded-xl p-4">
                         <div className="flex items-center gap-2">
                           <Users className="w-4 h-4 text-blue-400" />
-                          <h4 className="text-neutral-400 text-sm">
+                          <h4 className="text-neutral-600 dark:text-neutral-400 text-sm">
                             Affected People
                           </h4>
                         </div>
-                        <p className="text-2xl font-bold mt-1">
+                        <p className="text-2xl font-bold mt-1 text-black dark:text-white">
                           {selectedReport.reviewReport.affectedPeople}
                         </p>
                       </div>
-                      <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                      <div className="bg-neutral-200 dark:bg-neutral-700/50 backdrop-blur-sm rounded-xl p-4">
                         <div className="flex items-center gap-2">
                           <Heart className="w-4 h-4 text-red-400" />
-                          <h4 className="text-neutral-400 text-sm">
+                          <h4 className="text-neutral-600 dark:text-neutral-400 text-sm">
                             Casualties
                           </h4>
                         </div>
-                        <p className="text-2xl font-bold mt-1">
+                        <p className="text-2xl font-bold mt-1 text-black dark:text-white">
                           {selectedReport.reviewReport.casualties}
                         </p>
                       </div>
-                      <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                      <div className="bg-neutral-200 dark:bg-neutral-700/50 backdrop-blur-sm rounded-xl p-4">
                         <div className="flex items-center gap-2">
                           <Home className="w-4 h-4 text-emerald-400" />
-                          <h4 className="text-neutral-400 text-sm">
+                          <h4 className="text-neutral-600 dark:text-neutral-400 text-sm">
                             Evacuation Centers
                           </h4>
                         </div>
-                        <p className="text-2xl font-bold mt-1">
+                        <p className="text-2xl font-bold mt-1 text-black dark:text-white">
                           {selectedReport.reviewReport.evacuationCentres}
                         </p>
                       </div>
                     </div>
 
-                    <div className="bg-neutral-800/50 backdrop-blur-sm rounded-xl p-4">
+                    <div className="bg-neutral-200 dark:bg-neutral-700/50 backdrop-blur-sm rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-4">
                         <Shell className="w-4 h-4 text-neutral-400" />
-                        <h4 className="text-neutral-400 text-sm">
+                        <h4 className="text-neutral-600 dark:text-neutral-400 text-sm">
                           Response Information
                         </h4>
                       </div>
                       <div className="space-y-2">
                         <p className="text-sm">
-                          <span className="text-neutral-400">Team Name:</span>{" "}
-                          <span className="text-white">
+                          <span className="text-neutral-600 dark:text-neutral-400">
+                            Team Name:
+                          </span>{" "}
+                          <span className="text-black dark:text-white">
                             {selectedReport.teamAssign?.teamName ||
                               "Not Assigned"}
                           </span>
                         </p>
                         <p className="text-sm">
-                          <span className="text-neutral-400">Team Status:</span>{" "}
-                          <span className="text-white">
+                          <span className="text-neutral-600 dark:text-neutral-400">
+                            Team Status:
+                          </span>{" "}
+                          <span className="text-black dark:text-white">
                             {selectedReport.teamAssign?.status || "Pending"}
                           </span>
                         </p>
                         <p className="text-sm">
-                          <span className="text-neutral-400">
+                          <span className="text-neutral-600 dark:text-neutral-400">
                             Disaster Type:
                           </span>{" "}
-                          <span className="text-white">
+                          <span className="text-black dark:text-white">
                             {selectedReport.disasterType}
                           </span>
                         </p>
                         <p className="text-sm">
-                          <span className="text-neutral-400">Severity:</span>{" "}
-                          <span className="text-white">
+                          <span className="text-neutral-600 dark:text-neutral-400">
+                            Severity:
+                          </span>{" "}
+                          <span className="text-black dark:text-white">
                             {selectedReport.severity}
                           </span>
                         </p>
@@ -705,6 +698,7 @@ export default function RescueTeamDashboard() {
           </div>
         </div>
       )}
+
       {isSidebarOpen && (
         <div
           className="md:hidden fixed inset-0 bg-black/50 z-20"

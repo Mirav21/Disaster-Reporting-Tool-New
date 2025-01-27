@@ -60,7 +60,6 @@ export default function SignIn() {
           password,
         }
       );
-      console.log("response", response);
       if (response.status === 200) {
         localStorage.setItem("token", response.data.token);
         setAccessToken(response.data.token);
@@ -99,11 +98,11 @@ export default function SignIn() {
   return (
     <div className="flex flex-col lg:flex-row min-h-screen -mt-16 overflow-hidden">
       {/* Left side - Information Section */}
-      <div className="lg:w-1/2 bg-green-600 text-white p-8 flex-col justify-center hidden lg:flex">
+      <div className="lg:w-1/2 bg-green-600 dark:bg-green-800 text-white p-8 flex-col justify-center hidden lg:flex">
         <div className="space-y-8">
           <div>
             <h1 className="text-3xl font-bold mb-4">Welcome to Dhruva Setu</h1>
-            <p className="text-lg text-green-100 mb-8">
+            <p className="text-lg text-green-100 dark:text-green-200 mb-8">
               Join our community to access personalized resources and guidance
               tailored to your needs.
             </p>
@@ -111,10 +110,10 @@ export default function SignIn() {
 
           <div className="space-y-6">
             <div className="flex items-start space-x-4">
-              <AlertTriangle className="w-6 h-6 mt-1 text-green-200" />
+              <AlertTriangle className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
               <div>
                 <h3 className="font-semibold mb-1">Personalized Insights</h3>
-                <p className="text-green-100 text-sm">
+                <p className="text-green-100 dark:text-green-200 text-sm">
                   Receive tailored recommendations based on your profile and
                   interests.
                 </p>
@@ -122,30 +121,30 @@ export default function SignIn() {
             </div>
 
             <div className="flex items-start space-x-4">
-              <Shield className="w-6 h-6 mt-1 text-green-200" />
+              <Shield className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
               <div>
                 <h3 className="font-semibold mb-1">Secure Platform</h3>
-                <p className="text-green-100 text-sm">
+                <p className="text-green-100 dark:text-green-200 text-sm">
                   Enjoy a safe and secure environment for all your activities.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start space-x-4">
-              <Users className="w-6 h-6 mt-1 text-green-200" />
+              <Users className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
               <div>
                 <h3 className="font-semibold mb-1">Community Engagement</h3>
-                <p className="text-green-100 text-sm">
+                <p className="text-green-100 dark:text-green-200 text-sm">
                   Connect with like-minded individuals and grow together.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start space-x-4">
-              <Clock className="w-6 h-6 mt-1 text-green-200" />
+              <Clock className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
               <div>
                 <h3 className="font-semibold mb-1">24/7 Accessibility</h3>
-                <p className="text-green-100 text-sm">
+                <p className="text-green-100 dark:text-green-200 text-sm">
                   Access the platform anytime, anywhere with reliable support.
                 </p>
               </div>
@@ -153,29 +152,29 @@ export default function SignIn() {
           </div>
         </div>
 
-        <footer className="text-sm text-green-200 mt-8">
+        <footer className="text-sm text-green-200 dark:text-green-300 mt-8">
           © 2024 Our Platform
         </footer>
       </div>
 
       {/* Right side - Form Section */}
-      <div className="flex flex-col justify-center lg:w-1/2 bg-black/90 h-screen sm:px-6 lg:px-8">
+      <div className="flex flex-col justify-center lg:w-1/2 bg-white dark:bg-black/90 h-screen sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h1 className="text-center text-3xl font-bold text-green-600 mb-2">
+          <h1 className="text-center text-3xl font-bold text-green-600 dark:text-green-500 mb-2">
             Welcome Back
           </h1>
-          <h2 className="text-center text-sm text-green-600">
+          <h2 className="text-center text-sm text-green-600 dark:text-green-500">
             Sign in to access your account
           </h2>
         </div>
 
         <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="p-6 rounded-xl shadow-lg border border-green-500">
+          <div className="p-6 rounded-xl shadow-lg border border-green-500 dark:border-green-600 bg-white dark:bg-gray-800">
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label
                   htmlFor="username"
-                  className="block text-sm font-medium text-green-500 mb-1"
+                  className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1"
                 >
                   Username
                 </label>
@@ -187,14 +186,14 @@ export default function SignIn() {
                     required
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
+                    className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
                     placeholder="Enter your username"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-green-500 mb-1">
+                <label className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1">
                   Password
                 </label>
                 <div className="relative">
@@ -204,14 +203,14 @@ export default function SignIn() {
                     name="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-lg bg-green-100 border border-green-400 px-4 py-3 text-green-900 placeholder-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-200 transition-all duration-200"
+                    className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
                     placeholder="••••••••"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-3 flex items-center text-black hover:text-black/80 transition-all duration-200"
+                    className="absolute inset-y-0 right-3 flex items-center text-green-700 dark:text-green-400 hover:text-green-600 dark:hover:text-green-300 transition-all duration-200"
                   >
                     {showPassword ? "Hide" : "Show"}
                   </button>
@@ -219,7 +218,7 @@ export default function SignIn() {
               </div>
 
               {error && (
-                <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3">
+                <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 rounded-lg p-3">
                   {error}
                 </div>
               )}
@@ -228,7 +227,7 @@ export default function SignIn() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-green-300 border-t-transparent rounded-full animate-spin" />
@@ -239,12 +238,12 @@ export default function SignIn() {
               </div>
             </form>
             <div className="mt-6 text-center text-sm">
-              <span className="text-neutral-400">
+              <span className="text-gray-600 dark:text-gray-400">
                 Don&apos;t have an account?
               </span>{" "}
               <Link
                 href="/auth/signup"
-                className="text-green-600 hover:text-green-500 font-medium"
+                className="text-green-600 dark:text-green-500 hover:text-green-500 dark:hover:text-green-400 font-medium"
               >
                 Sign up
               </Link>

@@ -3,7 +3,6 @@
 import { useState, useCallback } from "react";
 import { LocationInput } from "./LocationInput";
 import crypto from "crypto";
-import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import axios from "axios";
 
@@ -55,8 +54,6 @@ export function ReportForm({ onComplete }: ReportFormProps) {
     longitude: null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: session } = useSession();
-  console.log(session?.user.id);
 
   const addLocationToImage = (
     base64Image: string,
@@ -267,13 +264,13 @@ export function ReportForm({ onComplete }: ReportFormProps) {
           }
           className={`p-6 rounded-2xl border-2 transition-all duration-200 ${
             formData.incidentType === "Emergency"
-              ? "bg-red-500/20 border-red-500 shadow-lg shadow-red-500/20"
-              : "bg-zinc-900/50 border-zinc-800 hover:bg-red-500/10 hover:border-red-500/50"
+              ? "bg-red-100 dark:bg-red-900/30 border-red-500 dark:border-red-700 shadow-lg shadow-red-500/20 dark:shadow-red-900/30"
+              : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-500/50 dark:hover:border-red-700/50"
           }`}
         >
           <div className="flex flex-col items-center space-y-2">
             <svg
-              className="w-8 h-8 text-red-500"
+              className="w-8 h-8 text-red-500 dark:text-red-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -285,8 +282,10 @@ export function ReportForm({ onComplete }: ReportFormProps) {
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
               />
             </svg>
-            <span className="font-medium text-red-500">Emergency</span>
-            <span className="text-xs text-zinc-400">
+            <span className="font-medium text-red-500 dark:text-red-400">
+              Emergency
+            </span>
+            <span className="text-xs text-gray-600 dark:text-gray-400">
               Immediate Response Required
             </span>
           </div>
@@ -299,13 +298,13 @@ export function ReportForm({ onComplete }: ReportFormProps) {
           }
           className={`p-6 rounded-2xl border-2 transition-all duration-200 ${
             formData.incidentType === "NonEmergency"
-              ? "bg-orange-500/20 border-orange-500 shadow-lg shadow-orange-500/20"
-              : "bg-zinc-900/50 border-zinc-800 hover:bg-orange-500/10 hover:border-orange-500/50"
+              ? "bg-orange-100 dark:bg-orange-900/30 border-orange-500 dark:border-orange-700 shadow-lg shadow-orange-500/20 dark:shadow-orange-900/30"
+              : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:border-orange-500/50 dark:hover:border-orange-700/50"
           }`}
         >
           <div className="flex flex-col items-center space-y-2">
             <svg
-              className="w-8 h-8 text-orange-500"
+              className="w-8 h-8 text-orange-500 dark:text-orange-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -317,12 +316,15 @@ export function ReportForm({ onComplete }: ReportFormProps) {
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <span className="font-medium text-orange-500">Non-Emergency</span>
-            <span className="text-xs text-zinc-400">General Report</span>
+            <span className="font-medium text-orange-500 dark:text-orange-400">
+              Non-Emergency
+            </span>
+            <span className="text-xs text-gray-600 dark:text-gray-400">
+              General Report
+            </span>
           </div>
         </button>
 
-        {/* New Low Priority Button */}
         <button
           type="button"
           onClick={() =>
@@ -330,13 +332,13 @@ export function ReportForm({ onComplete }: ReportFormProps) {
           }
           className={`p-6 rounded-2xl border-2 transition-all duration-200 ${
             formData.incidentType === "LowPriority"
-              ? "bg-blue-500/20 border-blue-500 shadow-lg shadow-blue-500/20"
-              : "bg-zinc-900/50 border-zinc-800 hover:bg-blue-500/10 hover:border-blue-500/50"
+              ? "bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-700 shadow-lg shadow-blue-500/20 dark:shadow-blue-900/30"
+              : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-500/50 dark:hover:border-blue-700/50"
           }`}
         >
           <div className="flex flex-col items-center space-y-2">
             <svg
-              className="w-8 h-8 text-blue-500"
+              className="w-8 h-8 text-blue-500 dark:text-blue-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -348,14 +350,15 @@ export function ReportForm({ onComplete }: ReportFormProps) {
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <span className="font-medium text-blue-500">Low Priority</span>
-            <span className="text-xs text-zinc-400">
+            <span className="font-medium text-blue-500 dark:text-blue-400">
+              Low Priority
+            </span>
+            <span className="text-xs text-gray-600 dark:text-gray-400">
               Additional Information
             </span>
           </div>
         </button>
 
-        {/* New Critical Button */}
         <button
           type="button"
           onClick={() =>
@@ -363,13 +366,13 @@ export function ReportForm({ onComplete }: ReportFormProps) {
           }
           className={`p-6 rounded-2xl border-2 transition-all duration-200 ${
             formData.incidentType === "Critical"
-              ? "bg-purple-500/20 border-purple-500 shadow-lg shadow-purple-500/20"
-              : "bg-zinc-900/50 border-zinc-800 hover:bg-purple-500/10 hover:border-purple-500/50"
+              ? "bg-purple-100 dark:bg-purple-900/30 border-purple-500 dark:border-purple-700 shadow-lg shadow-purple-500/20 dark:shadow-purple-900/30"
+              : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-500/50 dark:hover:border-purple-700/50"
           }`}
         >
           <div className="flex flex-col items-center space-y-2">
             <svg
-              className="w-8 h-8 text-purple-500"
+              className="w-8 h-8 text-purple-500 dark:text-purple-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -381,8 +384,12 @@ export function ReportForm({ onComplete }: ReportFormProps) {
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <span className="font-medium text-purple-500">Critical</span>
-            <span className="text-xs text-zinc-400">Urgent Attention</span>
+            <span className="font-medium text-purple-500 dark:text-purple-400">
+              Critical
+            </span>
+            <span className="text-xs text-gray-600 dark:text-gray-400">
+              Urgent Attention
+            </span>
           </div>
         </button>
       </div>
@@ -398,9 +405,9 @@ export function ReportForm({ onComplete }: ReportFormProps) {
         />
         <label
           htmlFor="image-upload"
-          className="block w-full p-8 border-2 border-dashed border-zinc-700 rounded-2xl 
-                   hover:border-sky-500/50 hover:bg-sky-500/5 transition-all duration-200
-                   cursor-pointer text-center"
+          className="block w-full p-8 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-2xl 
+                   hover:border-blue-500/50 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all duration-200
+                   cursor-pointer text-center bg-white dark:bg-gray-900"
         >
           {image ? (
             <div className="space-y-4">
@@ -411,12 +418,14 @@ export function ReportForm({ onComplete }: ReportFormProps) {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <p className="text-sm text-zinc-400">Click to change image</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Click to change image
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
               <svg
-                className="mx-auto h-12 w-12 text-zinc-500"
+                className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -428,7 +437,7 @@ export function ReportForm({ onComplete }: ReportFormProps) {
                   d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              <p className="text-sm text-zinc-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Drop an image here or click to upload
               </p>
             </div>
@@ -465,117 +474,126 @@ export function ReportForm({ onComplete }: ReportFormProps) {
         )}
       </div>
 
-      {/* Specific Report Type */}
-      <div>
-        <label className="block text-sm font-medium text-zinc-400 mb-2">
-          Incident Type
-        </label>
-        <select
-          value={formData.specificType}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, specificType: e.target.value }))
-          }
-          className="w-full rounded-xl bg-zinc-900/50 border border-zinc-800 px-4 py-3.5
-                   text-white transition-colors duration-200
-                   focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-          required
-        >
-          <option value="">Select type</option>
-          {REPORT_TYPES.map((type) => (
-            <option key={type} value={type}>
-              {type}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Location */}
-      <LocationInput
-        value={formData.location}
-        onChange={(value) =>
-          setFormData((prev) => ({ ...prev, location: value }))
-        }
-        onCoordinatesChange={(lat, lng) =>
-          setCoordinates({
-            latitude: lat,
-            longitude: lng,
-          })
-        }
-      />
-
-      {/* ContactInfo */}
-      <div>
-        <label className="block text-sm font-medium text-zinc-400 mb-2">
-          Contact Number
-        </label>
-        <input
-          type="text" // Changed to text to allow validation on phone number format
-          value={formData.contactInfo}
-          onChange={(e) => {
-            // Validate that the input is a number and its length is between 10 and 11 digits
-            const value = e.target.value;
-            if (/^\d*$/.test(value)) {
-              setFormData((prev) => ({ ...prev, contactInfo: value }));
+      {/* Form Fields */}
+      <div className="space-y-6">
+        {/* Incident Type Select */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Incident Type
+          </label>
+          <select
+            value={formData.specificType}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, specificType: e.target.value }))
             }
-          }}
-          className="w-full rounded-xl bg-zinc-900/50 border border-zinc-800 px-4 py-3.5
-              text-white transition-colors duration-200
-              focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-          required
-        />
-        {/* Error message for invalid contact number */}
-        {formData.contactInfo &&
-          (formData.contactInfo.length < 10 ||
-            formData.contactInfo.length >= 11) && (
-            <p className="text-red-500 text-xs mt-1">
-              Contact number must be exactly 10 digits.
-            </p>
-          )}
-      </div>
+            className="w-full rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-4 py-3.5
+                     text-gray-900 dark:text-gray-100 transition-colors duration-200
+                     focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            required
+          >
+            <option value="">Select type</option>
+            {REPORT_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      {/* Title */}
-      <div>
-        <label className="block text-sm font-medium text-zinc-400 mb-2">
-          Report Title
-        </label>
-        <input
-          type="text"
-          value={formData.title}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, title: e.target.value }))
-          }
-          className="w-full rounded-xl bg-zinc-900/50 border border-zinc-800 px-4 py-3.5
-                   text-white transition-colors duration-200
-                   focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-          required
-        />
-      </div>
+        {/* Location */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Location
+          </label>
+          <LocationInput
+            value={formData.location}
+            onChange={(value) =>
+              setFormData((prev) => ({ ...prev, location: value }))
+            }
+            onCoordinatesChange={(lat, lng) =>
+              setCoordinates({
+                latitude: lat,
+                longitude: lng,
+              })
+            }
+            className="w-full rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-4 py-3.5
+                     text-gray-900 dark:text-gray-100 transition-colors duration-200
+                     focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+          />
+        </div>
 
-      {/* Description */}
-      <div>
-        <label className="block text-sm font-medium text-zinc-400 mb-2">
-          Description
-        </label>
-        <textarea
-          value={formData.description}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, description: e.target.value }))
-          }
-          rows={4}
-          className="w-full rounded-xl bg-zinc-900/50 border border-zinc-800 px-4 py-3.5
-                   text-white transition-colors duration-200
-                   focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-          required
-        />
+        {/* Contact Info */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Contact Number
+          </label>
+          <input
+            type="text"
+            value={formData.contactInfo}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (/^\d*$/.test(value)) {
+                setFormData((prev) => ({ ...prev, contactInfo: value }));
+              }
+            }}
+            className="w-full rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-4 py-3.5
+                    text-gray-900 dark:text-gray-100 transition-colors duration-200
+                    focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            required
+          />
+          {formData.contactInfo &&
+            (formData.contactInfo.length < 10 ||
+              formData.contactInfo.length >= 11) && (
+              <p className="text-red-500 text-xs mt-1">
+                Contact number must be exactly 10 digits.
+              </p>
+            )}
+        </div>
+
+        {/* Title */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Report Title
+          </label>
+          <input
+            type="text"
+            value={formData.title}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, title: e.target.value }))
+            }
+            className="w-full rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-4 py-3.5
+                    text-gray-900 dark:text-gray-100 transition-colors duration-200
+                    focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            required
+          />
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Description
+          </label>
+          <textarea
+            value={formData.description}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, description: e.target.value }))
+            }
+            rows={4}
+            className="w-full min-h-24 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-4 py-3.5
+                    text-gray-900 dark:text-gray-100 transition-colors duration-200
+                    focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            required
+          />
+        </div>
       </div>
 
       {/* Submit Button */}
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full relative group overflow-hidden rounded-xl bg-gradient-to-br from-green-500 to-green-600 
+        className="w-full relative group overflow-hidden rounded-xl bg-gradient-to-br from-green-600 to-green-700 
                  px-4 py-3.5 text-sm font-medium text-white shadow-lg
-                 transition-all duration-200 hover:from-sky-400 hover:to-blue-500
+                 transition-all duration-200 hover:from-blue-600 hover:to-blue-700
                  disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <div className="relative flex items-center justify-center gap-2">

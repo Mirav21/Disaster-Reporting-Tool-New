@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-8b" });
 
     // Detect the language of the query
     const languageDetectionPrompt = `Identify the language of the following text. Respond with only 'English', 'Hindi', or 'Gujarati'.

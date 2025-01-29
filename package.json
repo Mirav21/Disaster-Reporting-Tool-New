@@ -40,6 +40,7 @@
     "mapbox-gl": "^3.8.0",
     "next": "^14.2.16",
     "next-auth": "^4.24.11",
+    "next-pwa": "^5.6.0",
     "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.16",
     "openai": "^4.77.0",
@@ -74,6 +75,7 @@
     "eslint-config-next": "14.2.16",
     "postcss": "^8",
     "prisma": "^6.2.1",
+    "serve": "^14.2.4",
     "tailwindcss": "^3.4.16",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"

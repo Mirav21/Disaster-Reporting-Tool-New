@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const { image } = await request.json();
     const base64Data = image.split(",")[1];
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // Add a validation prompt to check if the image is disaster-related
     const validationPrompt = `Determine if this image depicts a disaster scenario. Respond with ONLY 'YES' or 'NO'. 

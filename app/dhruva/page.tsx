@@ -9,25 +9,36 @@ import ReactMarkdown from "react-markdown";
 import DhruvaImage from "@/components/DhruvaImage";
 import { useRouter } from "next/navigation";
 
-// Message formatting component remains unchanged
 const FormattedMessage = ({ content }: { content: string }) => {
   return (
     <ReactMarkdown
       components={{
-        p: ({ children }) => <p className="mb-2">{children}</p>,
-        strong: ({ children }) => (
-          <strong className="font-bold">{children}</strong>
+        p: ({ children }) => (
+          <p className="mb-2 dark:text-zinc-100 text-zinc-700">{children}</p>
         ),
-        em: ({ children }) => <em className="italic">{children}</em>,
+        strong: ({ children }) => (
+          <strong className="font-bold dark:text-zinc-50 text-zinc-900">
+            {children}
+          </strong>
+        ),
+        em: ({ children }) => (
+          <em className="italic dark:text-zinc-100 text-zinc-700">
+            {children}
+          </em>
+        ),
         ul: ({ children }) => (
-          <ul className="list-disc ml-4 mb-2">{children}</ul>
+          <ul className="list-disc ml-4 mb-2 dark:text-zinc-100 text-zinc-700">
+            {children}
+          </ul>
         ),
         ol: ({ children }) => (
-          <ol className="list-decimal ml-4 mb-2">{children}</ol>
+          <ol className="list-decimal ml-4 mb-2 dark:text-zinc-100 text-zinc-700">
+            {children}
+          </ol>
         ),
         li: ({ children }) => <li className="mb-1">{children}</li>,
         code: ({ children }) => (
-          <code className="bg-zinc-700 px-1 py-0.5 rounded text-sm">
+          <code className="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-sm dark:text-zinc-100 text-zinc-700">
             {children}
           </code>
         ),
@@ -52,7 +63,6 @@ const DisasterGuardChat = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Initial welcome message
     setMessages([
       {
         type: "bot",
@@ -61,11 +71,10 @@ const DisasterGuardChat = () => {
       },
     ]);
 
-    // Calculate and set chat height
     const calculateHeight = () => {
       const vh = window.innerHeight;
-      const headerHeight = 56; // Typical mobile header height
-      const safeArea = 20; // Safe area padding
+      const headerHeight = 56;
+      const safeArea = 20;
       setChatHeight(`${vh - headerHeight - safeArea}px`);
     };
 
@@ -116,28 +125,28 @@ const DisasterGuardChat = () => {
 
   return (
     <div
-      className="w-full mt-1 bg-zinc-950 flex items-center justify-center fixed z-[100]" // Increased z-index
+      className="w-full min-h-[93vh] p-3 bg-white dark:bg-zinc-950 flex items-center justify-center fixed z-[100]"
       style={{ height: chatHeight }}
     >
-      <Card className="w-full h-full max-w-3xl bg-zinc-900 border-none shadow-2xl">
+      <Card className="w-full h-full max-w-3xl bg-zinc-50/95 dark:bg-zinc-900/95 backdrop-blur-sm border-zinc-200 dark:border-zinc-800/50 shadow-lg dark:shadow-2xl">
         <CardContent className="h-full p-4 flex flex-col">
-          <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-4">
+          <div className="flex items-center justify-between mb-4 border-b border-zinc-200 dark:border-zinc-800/80 pb-4">
             <div className="flex items-center gap-2">
-              <div className="h-10 w-10 rounded-xl flex items-center justify-center">
+              <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-zinc-100 dark:bg-zinc-800/50">
                 <DhruvaImage />
               </div>
               <div>
-                <h2 className="text-green-500 text-lg font-bold">
+                <h2 className="text-emerald-600 dark:text-emerald-400 text-lg font-bold">
                   Chat With Dhruva
                 </h2>
-                <p className="text-zinc-400 text-xs">
+                <p className="text-zinc-500 dark:text-zinc-400 text-xs">
                   24/7 Emergency Response Assistant
                 </p>
               </div>
             </div>
             <Button
               onClick={handleClear}
-              className="text-zinc-400 hover:text-red-500"
+              className="text-zinc-500 hover:text-red-500 dark:text-zinc-400 dark:hover:text-red-400 transition-colors"
               size="sm"
               variant="ghost"
             >
@@ -157,21 +166,21 @@ const DisasterGuardChat = () => {
                   <div
                     className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                       msg.type === "user"
-                        ? "bg-green-600"
-                        : "bg-zinc-800 border border-green-500"
+                        ? "bg-emerald-600 shadow-lg shadow-emerald-900/10 dark:shadow-emerald-900/20"
+                        : "bg-zinc-100 dark:bg-zinc-800/80 border border-emerald-500/20"
                     }`}
                   >
                     {msg.type === "user" ? (
-                      <User className="w-4 h-4 text-white" />
+                      <User className="w-4 h-4 text-white dark:text-emerald-50" />
                     ) : (
-                      <Bot className="w-4 h-4 text-green-400" />
+                      <Bot className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     )}
                   </div>
                   <div
                     className={`px-4 py-3 rounded-2xl max-w-[80%] shadow-lg ${
                       msg.type === "user"
-                        ? "bg-green-600 text-white rounded-tr-none"
-                        : "bg-zinc-800 text-green-50 rounded-tl-none border border-zinc-700"
+                        ? "bg-emerald-600 text-white dark:text-emerald-50 rounded-tr-none shadow-emerald-900/10 dark:shadow-emerald-900/20"
+                        : "bg-white dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-100 rounded-tl-none border border-zinc-200 dark:border-zinc-700/50 shadow-zinc-900/5 dark:shadow-zinc-900/20"
                     }`}
                   >
                     {msg.type === "user" ? (
@@ -184,14 +193,14 @@ const DisasterGuardChat = () => {
               ))}
               {loading && (
                 <div className="flex items-start gap-2">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-800 border border-green-500 flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-green-400" />
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800/80 border border-emerald-500/20 flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   </div>
-                  <div className="bg-zinc-800 text-green-50 px-4 py-3 rounded-2xl rounded-tl-none border border-zinc-700">
+                  <div className="bg-white dark:bg-zinc-800/80 text-emerald-600 dark:text-emerald-50 px-4 py-3 rounded-2xl rounded-tl-none border border-zinc-200 dark:border-zinc-700/50">
                     <div className="flex gap-2">
-                      <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" />
-                      <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce delay-150" />
-                      <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce delay-300" />
+                      <span className="w-2 h-2 bg-emerald-600 dark:bg-emerald-400 rounded-full animate-bounce" />
+                      <span className="w-2 h-2 bg-emerald-600 dark:bg-emerald-400 rounded-full animate-bounce delay-150" />
+                      <span className="w-2 h-2 bg-emerald-600 dark:bg-emerald-400 rounded-full animate-bounce delay-300" />
                     </div>
                   </div>
                 </div>
@@ -205,12 +214,12 @@ const DisasterGuardChat = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about emergency preparedness..."
-              className="flex-1 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400 focus-visible:ring-green-500 h-10"
+              className="flex-1 bg-white dark:bg-zinc-800/80 border-zinc-200 dark:border-zinc-700/50 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500/50 h-10"
             />
             <Button
               type="submit"
               disabled={loading}
-              className="bg-green-600 hover:bg-green-700 text-white h-10 px-4"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white h-10 px-4 shadow-lg shadow-emerald-900/10 dark:shadow-emerald-900/20"
             >
               <Send className="w-4 h-4" />
             </Button>

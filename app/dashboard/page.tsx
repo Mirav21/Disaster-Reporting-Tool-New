@@ -96,27 +96,27 @@ export default function Dashboard() {
     setReload(false);
   }, [reload]);
 
-  // useEffect(() => {
-  //   // const token = localStorage.getItem("token");
-  //   const username = localStorage.getItem("username");
-  //   if (username) {
-  //     // const decodeToken = jwtDecode<CustomJwtPayload>(token);
-  //     // const username = decodeToken?.sub;
-  //     //setUser(username);
-  //     if (
-  //       username === "admin" ||
-  //       username === "moderator" ||
-  //       username === "MODERATOR" ||
-  //       username === "ADMIN"
-  //     ) {
-  //       router.push("/dashboard");
-  //     } else if (username === "VENDOR" || username === "vendor") {
-  //       router.push("/vendor");
-  //     } else {
-  //       router.push("/");
-  //     }
-  //   }
-  // }, []);
+  useEffect(() => {
+    // const token = localStorage.getItem("token");
+    const username = localStorage.getItem("username");
+    if (username) {
+      // const decodeToken = jwtDecode<CustomJwtPayload>(token);
+      // const username = decodeToken?.sub;
+      //setUser(username);
+      if (
+        username === "admin" ||
+        username === "moderator" ||
+        username === "MODERATOR" ||
+        username === "ADMIN"
+      ) {
+        router.push("/dashboard");
+      } else if (username === "VENDOR" || username === "vendor") {
+        router.push("/vendor");
+      } else {
+        router.push("/");
+      }
+    }
+  }, []);
 
   const formatDate = (dateString: string): string => {
     try {

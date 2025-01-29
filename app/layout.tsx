@@ -1,14 +1,37 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { Providers } from "./providers";
 import { Toaster } from "react-hot-toast";
 import ChatBotUI from "@/components/ChatBotUI";
 
+// Add viewport export
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: "#000000",
+};
+
 export const metadata: Metadata = {
   title: "Safe Report - Crowdsourced Disaster Reporting",
   description:
     "Empowering communities to report and respond to disasters effectively.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Safe Report",
+  },
+  icons: {
+    icon: "/android-chrome-512x512.png",
+    shortcut: "/android-chrome-192x192.png",
+    apple: "/apple-touch-icon.png",
+    other: {
+      rel: "apple-touch-icon",
+      url: "/apple-touch-icon.png",
+    },
+  },
 };
 
 export default function RootLayout({

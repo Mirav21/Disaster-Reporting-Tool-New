@@ -77,7 +77,7 @@ export default function MobileMenu({
               return username === "admin" || username === "moderator" ? (
                 <Link
                   href="/dashboard"
-                  className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+                  className="text-md text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
                   onClick={onClose}
                 >
                   Dashboard
@@ -86,21 +86,21 @@ export default function MobileMenu({
             })()}
             <Link
               href="/submit-report"
-              className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+              className="text-md text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
               onClick={onClose}
             >
               Submit Report
             </Link>
             <Link
               href="/track-report"
-              className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+              className="text-md text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
               onClick={onClose}
             >
               Track Report
             </Link>
             <Link
               href="/howitworks"
-              className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+              className="text-md text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
               onClick={onClose}
             >
               How It Works
@@ -108,7 +108,7 @@ export default function MobileMenu({
 
             {/* Theme Options */}
             <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
-              <p className="text-sm font-medium text-zinc-900 dark:text-white mb-3">
+              <p className="text-md font-medium text-zinc-900 dark:text-white mb-3">
                 Theme
               </p>
               {themes.map((themeOption) => {
@@ -117,7 +117,7 @@ export default function MobileMenu({
                   <button
                     key={themeOption.name}
                     onClick={() => onThemeChange(themeOption.name)}
-                    className={`flex items-center w-full px-2 py-2 text-sm rounded-lg transition-colors ${
+                    className={`flex items-center w-full px-2 py-2 text-md rounded-lg transition-colors ${
                       theme === themeOption.name
                         ? "text-zinc-900 dark:text-white bg-zinc-100 dark:bg-zinc-800"
                         : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
@@ -138,17 +138,17 @@ export default function MobileMenu({
                     await signOut();
                     onClose();
                   }}
-                  className="text-sm text-left w-full px-2 py-2 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+                  className="text-md text-left w-full px-2 py-2 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
                 >
                   Sign Out
                 </button>
               ) : (
                 <Link
                   href="/auth/signin"
-                  className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+                  className="text-md text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
                   onClick={onClose}
                 >
-                  Login
+                  Login / SignUp
                 </Link>
               )}
             </div>

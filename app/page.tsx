@@ -8,7 +8,6 @@ import {
   Users,
   Activity,
   ArrowRight,
-  Phone,
   AlertTriangle,
   Check,
 } from "lucide-react";
@@ -81,7 +80,7 @@ export default function Home() {
     <main className="relative min-h-screen bg-white dark:bg-black text-zinc-900 dark:text-white overflow-hidden">
       {/* Enhanced gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-green-100/30 via-white to-green-50/20 dark:from-green-900/30 dark:via-black dark:to-green-700/20 opacity-70" />
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+      <div className="absolute inset-0 bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
       <div className="mx-auto max-w-6xl px-4 relative z-10">
         {/* Enhanced Hero Section */}
@@ -113,7 +112,7 @@ export default function Home() {
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
             </Link>
-            <Link href="/how-it-works">
+            <Link href="/howitworks">
               <button className="flex h-12 items-center justify-center gap-2 rounded-xl bg-zinc-100 dark:bg-white/5 px-8 text-sm font-medium text-zinc-900 dark:text-white ring-1 ring-inset ring-zinc-900/10 dark:ring-white/10 transition-all hover:bg-zinc-200 dark:hover:bg-white/10">
                 How it Works
               </button>
@@ -121,10 +120,10 @@ export default function Home() {
           </div>
 
           {/* Emergency Contact */}
-          <div className="mt-12 inline-flex items-center gap-2 rounded-full bg-red-50 dark:bg-red-500/10 px-4 py-2 text-red-600 dark:text-red-400 border border-red-500/30">
+          {/* <div className="mt-12 inline-flex items-center gap-2 rounded-full bg-red-50 dark:bg-red-500/10 px-4 py-2 text-red-600 dark:text-red-400 border border-red-500/30">
             <Phone className="h-4 w-4" />
             <span>Emergency? Call 112 for immediate assistance</span>
-          </div>
+          </div> */}
         </section>
 
         {/* Enhanced Features Section */}
@@ -221,17 +220,17 @@ export default function Home() {
           <h2 className="text-4xl font-bold mb-6 text-zinc-900 dark:text-white">
             Join Our Mission
           </h2>
-          <p className="max-w-2xl mx-auto text-zinc-600 dark:text-green-200 mb-10">
+          <p className="max-w-2xl mx-auto text-zinc-600 dark:text-green-200">
             Become a critical part of our disaster response network. Your
             commitment can save lives and help communities rebuild.
           </p>
 
-          <Link href="/volunteer">
+          {/* <Link href="/volunteer">
             <button className="group relative inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-green-600 dark:bg-white px-8 text-sm font-medium text-white dark:text-green-900 transition-all hover:bg-green-500 dark:hover:bg-green-100">
               Become a Volunteer
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </button>
-          </Link>
+          </Link> */}
         </section>
 
         {/* Trust Badge */}

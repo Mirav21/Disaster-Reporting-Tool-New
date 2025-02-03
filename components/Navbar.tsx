@@ -6,7 +6,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import DhruvaImage from "./DhruvaImage";
-import { Sun, Moon, Monitor } from "lucide-react";
+import { Sun, Moon, Monitor, LogIn } from "lucide-react";
 
 interface ThemeSwitcherProps {
   currentTheme: string;
@@ -187,7 +187,7 @@ export default function Navbar() {
                 <div className="h-12 w-12 rounded-xl flex items-center justify-center">
                   <DhruvaImage />
                 </div>
-                <span className="text-lg font-semibold text-zinc-900 dark:text-white">
+                <span className="text-2xl font-semibold text-zinc-900 dark:text-white">
                   DhruvaSetu
                 </span>
               </Link>
@@ -197,19 +197,19 @@ export default function Navbar() {
             <div className="hidden md:flex items-center space-x-6">
               <Link
                 href="/submit-report"
-                className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                className="text-md text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors"
               >
                 Submit Report
               </Link>
               <Link
                 href="/track-report"
-                className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                className="text-md text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors"
               >
                 Track Report
               </Link>
               <Link
                 href="/howitworks"
-                className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                className="text-md text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors"
               >
                 How It Works
               </Link>
@@ -217,10 +217,18 @@ export default function Navbar() {
 
             {/* Right Section: Emergency Button, Theme Switcher, Profile */}
             <div className="flex items-center space-x-4">
-              <button className="group hidden md:flex lg:flex h-11 items-center gap-2 rounded-full bg-white/10 pl-4 pr-5 text-sm font-medium text-red-500 ring-1 ring-inset ring-red-500/20 transition-all hover:bg-red-500/20">
+              {/* <button className="group hidden md:flex lg:flex h-11 items-center gap-2 rounded-full bg-white/10 pl-4 pr-5 text-sm font-medium text-red-500 ring-1 ring-inset ring-red-500/20 transition-all hover:bg-red-500/20">
                 <span className="h-1.5 w-1.5 rounded-full bg-white/70 animate-pulse" />
                 Emergency: 112
-              </button>
+              </button> */}
+
+              <Link
+                href="/auth/signin"
+                className="relative p-2 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white flex items-center justify-center transition-all duration-300 focus:ring-2 focus:ring-white/20"
+                title="Login"
+              >
+                <LogIn />
+              </Link>
 
               {/* Theme Switcher */}
               <div className="hidden md:block">
@@ -238,6 +246,7 @@ export default function Navbar() {
                 <button
                   onClick={handleProfileToggle}
                   className="h-10 w-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                  title="Profile"
                 >
                   <svg
                     className="h-5 w-5 text-zinc-600 dark:text-zinc-400"
@@ -260,13 +269,13 @@ export default function Navbar() {
                       <>
                         <Link
                           href="/auth/signin"
-                          className="block px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                          className="block px-4 py-2 text-md text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                         >
                           Login
                         </Link>
                         <Link
                           href="/auth/signup"
-                          className="block px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                          className="block px-4 py-2 text-md text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                         >
                           Sign Up
                         </Link>

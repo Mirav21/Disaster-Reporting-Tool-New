@@ -29,7 +29,7 @@ export default function Home() {
     {
       title: "Nationwide Network",
       description:
-        "Collaborative platform connecting communities, volunteers, and emergency services.",
+        "Collaborative platform connecting communities and emergency services.",
       icon: <Globe className="h-6 w-6" />,
     },
   ];
@@ -56,9 +56,9 @@ export default function Home() {
     "Natural Disasters",
     "Infrastructure Damage",
     "Public Safety Threats",
-    "Medical Emergencies",
     "Environmental Hazards",
-    "Resource Shortages",
+    "Severe Weather Events",
+    "Geological Hazards",
   ];
 
   const testimonials = [

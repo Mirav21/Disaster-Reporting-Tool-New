@@ -6,7 +6,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import DhruvaImage from "./DhruvaImage";
-import { Sun, Moon, Monitor, LogIn } from "lucide-react";
+import { Sun, Moon, Monitor, LogIn, LogOut } from "lucide-react";
 
 interface ThemeSwitcherProps {
   currentTheme: string;
@@ -222,13 +222,24 @@ export default function Navbar() {
                 Emergency: 112
               </button> */}
 
-              <Link
-                href="/auth/signin"
-                className="relative p-2 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white flex items-center justify-center transition-all duration-300 focus:ring-2 focus:ring-white/20"
-                title="Login"
-              >
-                <LogIn />
-              </Link>
+              {typeof window !== "undefined" &&
+              !localStorage.getItem("token") ? (
+                <Link
+                  href="/auth/signin"
+                  className="h-10 w-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                  title="Login"
+                >
+                  <LogIn />
+                </Link>
+              ) : (
+                <button
+                  onClick={signOut}
+                  className="h-10 w-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                  title="Logout"
+                >
+                  <LogOut />
+                </button>
+              )}
 
               {/* Theme Switcher */}
               <div className="hidden md:block">

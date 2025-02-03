@@ -1,336 +1,374 @@
 "use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { AlertTriangle, Shield, Users, Clock, AlertCircle } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { LocationInput } from "@/components/submit-report/LocationInput";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  AlertCircle,
+  Phone,
+  MapPin,
+  User,
+  ArrowLeft,
+  Shield,
+  Users,
+  Bell,
+  ChevronRight,
+} from "lucide-react";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
+import OTPInput from "../../../components/OtpInput";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
-interface CustomJwtPayload {
-  sub: string;
-  role: string;
-}
-
-export default function SignUp() {
-  const router = useRouter();
+const SignUp = () => {
+  const [otp, setOtp] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [step, setStep] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     username: "",
-    email: "",
-    password: "",
-    phone: "",
     location: "",
     latitude: null as number | null,
     longitude: null as number | null,
-    confirmPassword: "",
+    phoneNumber: "",
   });
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
+
+  const router = useRouter();
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedToken = localStorage.getItem("token");
-      setAccessToken(storedToken);
-    }
+    setOtp(Array(6).fill(""));
+    setStep(1);
   }, []);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const decodeToken = jwtDecode<CustomJwtPayload>(token);
-      const username = decodeToken?.sub;
-      if (
-        username === "admin" ||
-        username === "moderator" ||
-        username === "MODERATOR" ||
-        username === "ADMIN"
-      ) {
-        router.push("/dashboard");
-      } else if (username === "VENDOR" || username === "vendor") {
-        router.push("/vendor");
-      } else {
-        router.push("/");
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (accessToken) {
-      try {
-        const decodeToken = jwtDecode<CustomJwtPayload>(accessToken);
-        const role = decodeToken.role;
-
-        if (role === "USER") {
-          router.push("/");
-        } else if (role === "ADMIN") {
-          router.push("/dashboard");
-        } else if (role === "MODERATOR") {
-          router.push("/moderator-dashboard");
-        }
-      } catch (error) {
-        console.error("Error decoding token:", error);
-        localStorage.removeItem("token");
-        setAccessToken(null);
-      }
-    }
-  }, [accessToken, router]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePhoneSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+    try {
+      if (phoneNumber.length !== 10 || !/^\d+$/.test(phoneNumber)) {
+        setError("Please enter a valid 10-digit phone number");
+        return;
+      }
+
+      const formattedPhoneNumber = `+91${phoneNumber}`;
+      const encodedPhoneNumber = encodeURIComponent(formattedPhoneNumber);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/sendOtp?phoneNumber=${encodedPhoneNumber}`
+      );
+
+      if (response.status === 200) {
+        toast.success("OTP sent successfully");
+        setStep(2);
+      } else {
+        setError(
+          response.data.message || "Failed to send OTP. Please try again."
+        );
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+    } finally {
       setIsLoading(false);
-      return;
     }
+  };
+
+  interface FormData {
+    phoneNumber: string;
+    [key: string]: any;
+  }
+
+  const handleOtpVerify = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ): Promise<void> => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
     try {
+      const otpValue = otp.join("");
+      if (otpValue.length !== 6 || !/^\d+$/.test(otpValue)) {
+        setError("Please enter a valid 6-digit OTP");
+        return;
+      }
+
+      const formattedPhoneNumber = `+91${phoneNumber}`;
+      const encodedPhoneNumber = encodeURIComponent(formattedPhoneNumber);
+      const response = await axios.post<{ status: number }>(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/verifyOtp?phoneNumber=${encodedPhoneNumber}&otp=${otpValue}`
+      );
+
+      if (response.status === 200) {
+        setFormData((prev) => ({ ...prev, phoneNumber }));
+        toast.success("OTP verified successfully");
+        setStep(3);
+      }
+    } catch (err) {
+      setError("Invalid OTP. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFinalSubmit = async (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    try {
+      if (!formData.username.trim()) {
+        setError("Username is required");
+        return;
+      }
+
+      if (!formData.location.trim()) {
+        setError("Location is required");
+        return;
+      }
+
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/register`,
         formData
       );
 
       if (response.status === 200) {
-        router.push("/auth/signin");
-      } else {
-        setError("Unexpected error occurred");
+        toast.success("Registration successful");
+        router.push("/");
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const status = error.response?.status;
-
-        if (status === 409) {
-          setError(error?.response?.data);
-        } else {
-          setError("Failed to create an account. Please try again later");
-        }
-      } else {
-        setError("An unexpected error occurred.");
-      }
+    } catch (err) {
+      setError("Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
+  interface FeatureCardProps {
+    icon: React.ComponentType<{ className?: string }>;
+    title: string;
+    description: string;
+  }
 
-  return (
-    <div className="flex top-0 min-h-screen overflow-hidden">
-      {/* Left side - Information Section */}
-      <div className="hidden lg:flex lg:w-1/2 bg-green-600 dark:bg-green-800 text-white p-8 flex-col justify-center">
-        <div className="space-y-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-4">
-              Disaster Management Platform
-            </h1>
-            <p className="text-lg text-green-100 dark:text-green-200 mb-8">
-              Join our platform to contribute to disaster preparedness and
-              response efforts
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            <div className="flex items-start space-x-4">
-              <AlertTriangle className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
-              <div>
-                <h3 className="font-semibold mb-1">Early Warning Systems</h3>
-                <p className="text-green-100 dark:text-green-200 text-sm">
-                  Get real-time alerts about potential disasters in your area
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <Shield className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
-              <div>
-                <h3 className="font-semibold mb-1">Resource Management</h3>
-                <p className="text-green-100 dark:text-green-200 text-sm">
-                  Track and manage emergency resources efficiently
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <Users className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
-              <div>
-                <h3 className="font-semibold mb-1">Community Coordination</h3>
-                <p className="text-green-100 dark:text-green-200 text-sm">
-                  Connect with local response teams effectively
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <Clock className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
-              <div>
-                <h3 className="font-semibold mb-1">24/7 Support</h3>
-                <p className="text-green-100 dark:text-green-200 text-sm">
-                  Access round-the-clock emergency response coordination
-                </p>
-              </div>
-            </div>
-          </div>
+  const FeatureCard = ({
+    icon: Icon,
+    title,
+    description,
+  }: FeatureCardProps) => (
+    <div className="transform hover:translate-x-1 transition-transform duration-200">
+      <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/90 dark:bg-black/90 border border-green-100 dark:border-green-900/50 hover:border-green-500">
+        <div className="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-500/20 flex items-center justify-center">
+          <Icon className="w-5 h-5 text-green-600 dark:text-green-400" />
         </div>
-
-        <footer className="text-sm text-green-200 dark:text-green-300 mt-8">
-          © 2024 Disaster Management Platform
-        </footer>
-      </div>
-
-      {/* Right side - Form Section */}
-      <div className="lg:w-1/2 w-full p-8 lg:p-12 bg-white dark:bg-black/90 flex justify-center items-center">
-        <form className="w-full max-w-2xl space-y-6" onSubmit={handleSubmit}>
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-green-600 dark:text-green-500 mb-2">
-              Create Account
-            </h2>
-            <p className="text-green-600/90 dark:text-green-500/90">
-              Join our emergency response network
-            </p>
-          </div>
-
-          {/* Two-column layout for form fields */}
-          <div>
-            <label className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1">
-              Full Name
-            </label>
-            <input
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
-              placeholder="John Doe"
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Email field */}
-            <div>
-              <label className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1">
-                Email Address
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
-                placeholder="you@example.com"
-                required
-              />
-            </div>
-
-            {/* Phone field */}
-            <div>
-              <label className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
-                placeholder="+1 (555) 000-0000"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Location input - full width */}
-          <div className="w-full">
-            <label className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1">
-              Location
-            </label>
-            <LocationInput
-              value={formData.location}
-              onChange={(location) =>
-                setFormData((prev) => ({ ...prev, location }))
-              }
-              onCoordinatesChange={(lat, lng) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  latitude: lat,
-                  longitude: lng,
-                }))
-              }
-              className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 
-             px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 
-             focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 
-             hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
-            />
-          </div>
-
-          {/* Password fields - two columns */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1">
-                Password
-              </label>
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
-                  placeholder="••••••••"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-3 flex items-center text-green-700 dark:text-green-400 hover:text-green-600 dark:hover:text-green-300 transition-all duration-200"
-                >
-                  {showPassword ? "Hide" : "Show"}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Error message */}
-          {error && (
-            <div className="bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-800 rounded-lg p-3 text-red-600 dark:text-red-400 text-sm">
-              <AlertCircle className="inline-block mr-2 h-4 w-4" /> {error}
-            </div>
-          )}
-
-          {/* Submit button */}
-          <button
-            type="submit"
-            className="w-full py-4 rounded-lg text-md bg-green-600 dark:bg-green-700 text-white hover:bg-green-700 dark:hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 mt-8"
-            disabled={isLoading}
-          >
-            {isLoading ? "Creating account..." : "Create Account"}
-          </button>
-        </form>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold text-gray-800 dark:text-green-400">
+            {title}
+          </h3>
+          <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+            {description}
+          </p>
+        </div>
       </div>
     </div>
   );
-}
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-white to-green-50 dark:from-black dark:to-black/95 flex items-center justify-center p-2 sm:p-4">
+      <div className="w-full max-w-5xl grid md:grid-cols-5 gap-4 md:gap-8">
+        {/* Left side - Features */}
+        <div className="hidden md:flex md:col-span-2 flex-col justify-center space-y-4 p-4">
+          <div className="space-y-3">
+            <h1 className="text-3xl font-bold text-green-600 dark:text-green-400">
+              Welcome to DhruvaSetu
+            </h1>
+            <div className="h-1 w-16 bg-green-500 rounded-full"></div>
+            <p className="text-base text-gray-600 dark:text-gray-300">
+              Join India's trusted platform for disaster reporting and safety.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <FeatureCard
+              icon={Bell}
+              title="Real-time Alerts"
+              description="Instant emergency notifications"
+            />
+            <FeatureCard
+              icon={Users}
+              title="Community Network"
+              description="Connect with local safety members"
+            />
+            <FeatureCard
+              icon={Shield}
+              title="Verified Reports"
+              description="Community-verified incidents"
+            />
+          </div>
+        </div>
+
+        {/* Right side - Form */}
+        <Card className="md:col-span-3 w-full bg-white/95 dark:bg-black/90 shadow-lg border-0">
+          <CardHeader className="space-y-2 p-4">
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400 text-center">
+              {step === 1
+                ? "Get Started"
+                : step === 2
+                ? "Verify Number"
+                : "Complete Profile"}
+            </CardTitle>
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+              {step === 1
+                ? "Join our safety-conscious community"
+                : step === 2
+                ? "Enter the verification code"
+                : "Set up your profile"}
+            </p>
+          </CardHeader>
+
+          <CardContent className="p-4">
+            {step === 1 && (
+              <form onSubmit={handlePhoneSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                    Phone Number
+                  </label>
+                  <div className="flex rounded-lg border-2 border-green-400 dark:border-green-500/50 overflow-hidden">
+                    <span className="px-3 py-2.5 bg-green-50 dark:bg-green-500/20 text-green-800 dark:text-green-400 text-sm font-medium border-r-2 border-green-400 flex items-center">
+                      <Phone className="w-4 h-4 mr-1" />
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="flex-1 px-3 py-2.5 bg-transparent text-base focus:outline-none"
+                      placeholder="Enter 10-digit number"
+                      maxLength={10}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-2.5 px-4 text-sm font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 rounded-lg flex items-center justify-center space-x-2"
+                >
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span>Continue</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
+
+            {step === 2 && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="w-12 h-12 rounded-full bg-green-50 dark:bg-green-500/20 flex items-center justify-center mx-auto mb-3">
+                    <Phone className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Enter verification code sent to
+                  </p>
+                  <p className="text-base font-medium text-gray-800 dark:text-green-400">
+                    +91 {phoneNumber}
+                  </p>
+                </div>
+
+                <OTPInput
+                  otp={otp}
+                  setOtp={setOtp}
+                  isLoading={isLoading}
+                  onSubmit={handleOtpVerify}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="w-full py-2.5 px-4 text-sm text-green-600 dark:text-green-400 border border-green-200 dark:border-green-500/30 rounded-lg hover:bg-green-50 dark:hover:bg-green-500/10 flex items-center justify-center space-x-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Change Number</span>
+                </button>
+              </div>
+            )}
+
+            {step === 3 && (
+              <form onSubmit={handleFinalSubmit} className="space-y-4">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Username
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+                      <input
+                        type="text"
+                        value={formData.username}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            username: e.target.value,
+                          }))
+                        }
+                        className="w-full pl-10 pr-3 py-2.5 rounded-lg border-2 border-green-400 dark:border-green-500/50 bg-transparent text-base focus:outline-none"
+                        placeholder="Choose a username"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Location
+                    </label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+                      <LocationInput
+                        value={formData.location}
+                        onChange={(location) =>
+                          setFormData((prev) => ({ ...prev, location }))
+                        }
+                        onCoordinatesChange={(lat, lng) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            latitude: lat,
+                            longitude: lng,
+                          }))
+                        }
+                        className="w-full pl-10 pr-3 py-2.5 rounded-lg border-2 border-green-400 dark:border-green-500/50 bg-transparent text-base focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-2.5 px-4 text-sm font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 rounded-lg flex items-center justify-center space-x-2"
+                >
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span>Complete Registration</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
+
+            {error && (
+              <div className="mt-4 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg flex items-center space-x-2 text-red-700 dark:text-red-400">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default SignUp;

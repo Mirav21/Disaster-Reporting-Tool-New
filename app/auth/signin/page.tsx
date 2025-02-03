@@ -4,7 +4,6 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { AlertTriangle, Shield, Users, Clock } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 
 interface CustomJwtPayload {
@@ -14,12 +13,11 @@ interface CustomJwtPayload {
 
 export default function SignIn() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -30,34 +28,33 @@ export default function SignIn() {
 
   useEffect(() => {
     if (accessToken) {
-      const decodeToken = jwtDecode<CustomJwtPayload>(accessToken);
-      const username = decodeToken?.sub;
-      if (
-        username === "admin" ||
-        username === "moderator" ||
-        username === "MODERATOR" ||
-        username === "ADMIN"
-      ) {
+      if (role === "admin" || role === "moderator") {
         router.push("/dashboard");
-      } else if (username === "VENDOR" || username === "vendor") {
+      } else if (role === "vendor") {
         router.push("/vendor");
       } else {
         router.push("/");
       }
     }
-  }, []);
+  }, [accessToken]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      setError("Please enter a valid 10-digit phone number");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/login`,
         {
-          username,
-          password,
+          phoneNumber: `${phoneNumber}`,
         }
       );
       if (response.status === 200) {
@@ -65,21 +62,18 @@ export default function SignIn() {
         setAccessToken(response.data.token);
         const token = response.data.token;
         if (token) {
-          const decodedToken = jwtDecode(token);
-          if (decodedToken?.sub) {
-            localStorage.setItem("username", decodedToken.sub);
+          const decodedToken = jwtDecode<CustomJwtPayload>(token);
+          if (decodedToken?.role) {
+            const Role = decodedToken.role.toLowerCase();
+            setRole(Role);
           }
         }
 
-        if (localStorage.getItem("username")?.toLowerCase() === "admin") {
+        console.log(role);
+
+        if (role === "admin" || role === "moderator") {
           router.push("/dashboard");
-        } else if (
-          localStorage.getItem("username")?.toLowerCase() === "moderator"
-        ) {
-          router.push("/dashboard");
-        } else if (
-          localStorage.getItem("username")?.toLowerCase() === "vendor"
-        ) {
+        } else if (role === "vendor") {
           router.push("/vendor");
         } else {
           router.push("/");
@@ -87,167 +81,81 @@ export default function SignIn() {
       }
     } catch (error) {
       console.error(error);
-      setError(
-        "You are not authorized to access this platform or Invalid Username or Password"
-      );
+      setError("Invalid phone number or unauthorized access.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen -mt-16 overflow-hidden">
-      {/* Left side - Information Section */}
-      <div className="lg:w-1/2 bg-green-600 dark:bg-green-800 text-white p-8 flex-col justify-center hidden lg:flex">
-        <div className="space-y-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-4">Welcome to Dhruva Setu</h1>
-            <p className="text-lg text-green-100 dark:text-green-200 mb-8">
-              Join our community to access personalized resources and guidance
-              tailored to your needs.
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            <div className="flex items-start space-x-4">
-              <AlertTriangle className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
-              <div>
-                <h3 className="font-semibold mb-1">Personalized Insights</h3>
-                <p className="text-green-100 dark:text-green-200 text-sm">
-                  Receive tailored recommendations based on your profile and
-                  interests.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <Shield className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
-              <div>
-                <h3 className="font-semibold mb-1">Secure Platform</h3>
-                <p className="text-green-100 dark:text-green-200 text-sm">
-                  Enjoy a safe and secure environment for all your activities.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <Users className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
-              <div>
-                <h3 className="font-semibold mb-1">Community Engagement</h3>
-                <p className="text-green-100 dark:text-green-200 text-sm">
-                  Connect with like-minded individuals and grow together.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <Clock className="w-6 h-6 mt-1 text-green-200 dark:text-green-300" />
-              <div>
-                <h3 className="font-semibold mb-1">24/7 Accessibility</h3>
-                <p className="text-green-100 dark:text-green-200 text-sm">
-                  Access the platform anytime, anywhere with reliable support.
-                </p>
-              </div>
-            </div>
+    <div className="flex justify-center items-center min-h-[92.5vh] bg-white dark:bg-black/90 px-4">
+      <div className="w-full max-w-md bg-white dark:bg-gray-900 shadow-lg rounded-xl transform transition-all">
+        {/* Header Section */}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold text-green-600 dark:text-green-500 tracking-tight">
+              Welcome to DhruvaSetu
+            </h1>
+            <h2 className="text-base text-green-600/80 dark:text-green-500/80">
+              Sign in with your phone number
+            </h2>
           </div>
         </div>
 
-        <footer className="text-sm text-green-200 dark:text-green-300 mt-8">
-          © 2024 Our Platform
-        </footer>
-      </div>
-
-      {/* Right side - Form Section */}
-      <div className="flex flex-col justify-center lg:w-1/2 bg-white dark:bg-black/90 h-screen sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h1 className="text-center text-3xl font-bold text-green-600 dark:text-green-500 mb-2">
-            Welcome Back
-          </h1>
-          <h2 className="text-center text-sm text-green-600 dark:text-green-500">
-            Sign in to access your account
-          </h2>
-        </div>
-
-        <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="p-6 rounded-xl shadow-lg border border-green-500 dark:border-green-600 bg-white dark:bg-gray-800">
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              <div>
-                <label
-                  htmlFor="username"
-                  className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1"
-                >
-                  Username
-                </label>
-                <div className="mt-1">
-                  <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
-                    placeholder="Enter your username"
-                  />
-                </div>
+        {/* Form Section */}
+        <div className="p-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <label className="block text-base font-medium text-green-700 dark:text-green-400">
+                Phone Number
+              </label>
+              <div className="flex items-center border-2 border-green-400 dark:border-green-600 rounded-lg overflow-hidden transition-all focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500">
+                <span className="px-4 py-3 bg-green-100 dark:bg-green-700 text-green-900 dark:text-green-100 font-medium text-base border-r-2 border-green-400 dark:border-green-600">
+                  🇮🇳 +91
+                </span>
+                <input
+                  type="tel"
+                  required
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="flex-1 px-4 py-3 bg-transparent text-green-900 dark:text-green-100 text-base focus:outline-none placeholder-green-500/60 dark:placeholder-green-400/60 w-full"
+                  placeholder="Enter your 10-digit phone number"
+                  maxLength={10}
+                />
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-green-700 dark:text-green-400 mb-1">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-lg bg-green-50 dark:bg-gray-700 border border-green-400 dark:border-green-600 px-4 py-3 text-green-900 dark:text-green-100 placeholder-green-500 dark:placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-100 dark:hover:bg-gray-600 transition-all duration-200"
-                    placeholder="••••••••"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-3 flex items-center text-green-700 dark:text-green-400 hover:text-green-600 dark:hover:text-green-300 transition-all duration-200"
-                  >
-                    {showPassword ? "Hide" : "Show"}
-                  </button>
-                </div>
-              </div>
-
-              {error && (
-                <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 rounded-lg p-3">
+            {error && (
+              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/30 border-2 border-red-200 dark:border-red-800">
+                <p className="text-red-600 dark:text-red-400 text-sm text-center">
                   {error}
-                </div>
-              )}
-
-              <div>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-green-300 border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    "Sign in"
-                  )}
-                </button>
+                </p>
               </div>
-            </form>
-            <div className="mt-6 text-center text-sm">
-              <span className="text-gray-600 dark:text-gray-400">
-                Don&apos;t have an account?
-              </span>{" "}
+            )}
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 px-4 text-base font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+              ) : (
+                "Sign in"
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Don&apos;t have an account?{" "}
               <Link
                 href="/auth/signup"
-                className="text-green-600 dark:text-green-500 hover:text-green-500 dark:hover:text-green-400 font-medium"
+                className="text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 font-medium transition-colors"
               >
                 Sign up
               </Link>
-            </div>
+            </p>
           </div>
         </div>
       </div>

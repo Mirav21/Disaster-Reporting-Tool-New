@@ -29,7 +29,7 @@ export default function HowItWorks() {
             </div>
 
             <h1 className="mt-8 bg-gradient-to-b from-white to-white/80 text-black/90 bg-clip-text text-5xl font-bold tracking-tight dark:text-transparent">
-              How SafeReport Works
+              How DhruvaSetu Works
               <span className="block text-2xl mt-4 bg-gradient-to-r from-green-400 to-green-500 bg-clip-text text-transparent dark:bg-gradient-to-r dark:from-green-400 dark:to-green-500">
                 Your Safety is Our Priority
               </span>

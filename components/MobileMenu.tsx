@@ -1,7 +1,8 @@
-import axios from "axios";
+"use client";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Sun, Moon, Monitor } from "lucide-react";
+import axios from "axios";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -10,12 +11,7 @@ interface MobileMenuProps {
   onThemeChange: (theme: string) => void;
 }
 
-export default function MobileMenu({
-  isOpen,
-  onClose,
-  theme,
-  onThemeChange,
-}: MobileMenuProps) {
+export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const router = useRouter();
 
   if (!isOpen) return null;
@@ -31,12 +27,6 @@ export default function MobileMenu({
     }
     router.push("/auth/signin");
   };
-
-  const themes = [
-    { name: "light", icon: Sun, label: "Light Mode" },
-    { name: "dark", icon: Moon, label: "Dark Mode" },
-    { name: "system", icon: Monitor, label: "System Mode" },
-  ];
 
   return (
     <div className="fixed inset-0 z-50 md:hidden">
@@ -106,52 +96,25 @@ export default function MobileMenu({
               How It Works
             </Link>
 
-            {/* Theme Options */}
-            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
-              <p className="text-md font-medium text-zinc-900 dark:text-white mb-3">
-                Theme
-              </p>
-              {themes.map((themeOption) => {
-                const Icon = themeOption.icon;
-                return (
-                  <button
-                    key={themeOption.name}
-                    onClick={() => onThemeChange(themeOption.name)}
-                    className={`flex items-center w-full px-2 py-2 text-md rounded-lg transition-colors ${
-                      theme === themeOption.name
-                        ? "text-zinc-900 dark:text-white bg-zinc-100 dark:bg-zinc-800"
-                        : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                    }`}
-                  >
-                    <Icon className="h-5 w-5 mr-3" />
-                    {themeOption.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Authentication */}
-            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
-              {localStorage.getItem("token") ? (
-                <button
-                  onClick={async () => {
-                    await signOut();
-                    onClose();
-                  }}
-                  className="text-md text-left w-full px-2 py-2 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
-                >
-                  Sign Out
-                </button>
-              ) : (
-                <Link
-                  href="/auth/signin"
-                  className="text-md text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
-                  onClick={onClose}
-                >
-                  Login / SignUp
-                </Link>
-              )}
-            </div>
+            {localStorage.getItem("token") ? (
+              <button
+                onClick={async () => {
+                  await signOut();
+                  onClose();
+                }}
+                className="text-md text-left w-full text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <Link
+                href="/auth/signin"
+                className="text-md text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+                onClick={onClose}
+              >
+                Login / SignUp
+              </Link>
+            )}
           </nav>
         </div>
       </div>

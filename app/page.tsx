@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 
 export default function Home() {
-
   const features = [
     {
       title: "Real-Time Data Sharing",
@@ -85,13 +84,13 @@ export default function Home() {
 
       <div className="mx-auto max-w-6xl px-4 relative z-10">
         {/* Enhanced Hero Section */}
-        <section className="pt-32 text-center">
-          <div className="inline-flex items-center gap-2 mb-6 rounded-full border border-green-500/30 bg-green-50 dark:bg-green-500/10 px-4 py-2 text-sm text-green-800 dark:text-white animate-pulse">
+        <section className="pt-14 md:pt-2 lg:pt-3 text-center">
+          <div className="inline-flex items-center gap-2 mt-5 mb-4 rounded-full border border-green-500/30 bg-green-50 dark:bg-green-500/10 px-4 py-2 text-sm text-green-800 dark:text-white animate-pulse">
             <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
             24/7 Emergency Response Network
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
             <span className="block text-zinc-900 dark:text-white">
               Empower Communities
             </span>
@@ -100,42 +99,45 @@ export default function Home() {
             </span>
           </h1>
 
-          <p className="max-w-2xl mx-auto text-lg text-zinc-600 dark:text-green-100 mb-10">
+          <p className="max-w-2xl mx-auto text-lg text-zinc-600 dark:text-green-100 mb-5">
             Our platform bridges the gap between those experiencing disasters
             and those who can help. By providing anonymous, real-time reporting,
             we enable swift and effective emergency responses.
           </p>
 
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href="/submit-report">
-              <button className="group relative flex h-12 items-center justify-center gap-2 rounded-xl bg-green-600 px-8 text-sm font-medium text-white transition-all hover:bg-green-500">
-                Make Anonymous Report
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </button>
-            </Link>
-            <Link href="/howitworks">
-              <button className="flex h-12 items-center justify-center gap-2 rounded-xl bg-zinc-100 dark:bg-white/5 px-8 text-sm font-medium text-zinc-900 dark:text-white ring-1 ring-inset ring-zinc-900/10 dark:ring-white/10 transition-all hover:bg-zinc-200 dark:hover:bg-white/10">
-                How it Works
-              </button>
-            </Link>
+          <div className="flex flex-col sm:flex-col items-center justify-center gap-4">
+            <div className="">
+              <Link href="/submit-report">
+                <button className="group relative flex h-12 items-center justify-center gap-2 rounded-xl bg-green-600 px-20 md:text-md lg:text-md sm:text-lg text-white transition-all hover:bg-green-500">
+                  Submit Report 🚨
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </button>
+              </Link>
+            </div>
+            <div className="flex flex-row gap-2">
+              <Link href="/howitworks">
+                <button className="flex h-12 items-center justify-center gap-2 rounded-xl bg-zinc-100 dark:bg-white/5 px-8 md:text-sm lg:text-sm sm:text-lg text-zinc-900 dark:text-white ring-1 ring-inset ring-zinc-900/10 dark:ring-white/10 transition-all hover:bg-zinc-200 dark:hover:bg-white/10">
+                  How it Works
+                </button>
+              </Link>
+              <Link href="/auth/signin">
+                <button className="flex h-12 items-center justify-center gap-2 rounded-xl bg-zinc-100 dark:bg-white/5 px-8 md:text-sm lg:text-sm sm:text-lg text-zinc-900 dark:text-white ring-1 ring-inset ring-zinc-900/10 dark:ring-white/10 transition-all hover:bg-zinc-200 dark:hover:bg-white/10">
+                  Login
+                </button>
+              </Link>
+            </div>
           </div>
-
-          {/* Emergency Contact */}
-          {/* <div className="mt-12 inline-flex items-center gap-2 rounded-full bg-red-50 dark:bg-red-500/10 px-4 py-2 text-red-600 dark:text-red-400 border border-red-500/30">
-            <Phone className="h-4 w-4" />
-            <span>Emergency? Call 112 for immediate assistance</span>
-          </div> */}
         </section>
 
         {/* Enhanced Features Section */}
-        <section className="mt-24">
+        <section className="mt-10">
           <div className="grid md:grid-cols-3 gap-6">
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="group bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-2xl p-6 hover:bg-green-100 dark:hover:bg-green-500/20 transition-all cursor-pointer"
+                className="group bg-green-100 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-2xl p-6 hover:bg-green-100 dark:hover:bg-green-500/20 transition-all cursor-pointer"
               >
-                <div className="bg-green-100 dark:bg-green-500/20 rounded-xl p-3 mb-4 inline-block group-hover:bg-green-200 dark:group-hover:bg-green-500/30 transition-all">
+                <div className="bg-green-100 dark:bg-green-500/20 rounded-xl md:pd-3 lg:pd-3 md:mb-4 lg:mb-4 inline-block group-hover:bg-green-200 dark:group-hover:bg-green-500/30 transition-all">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-semibold mb-3 text-zinc-900 dark:text-green-100">
@@ -179,11 +181,11 @@ export default function Home() {
             emergency support ecosystem.
           </p>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 m-8 md:m-0 lg:m-0 gap-6">
             {impactStats.map((stat, index) => (
               <div
                 key={index}
-                className="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-2xl p-8 flex flex-col items-center hover:transform hover:scale-105 transition-all"
+                className="bg-green-100 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-2xl p-3 md:p-8 lg:p-8 flex flex-col items-center hover:transform hover:scale-105 transition-all"
               >
                 {stat.icon}
                 <h3 className="text-4xl font-bold mt-4 bg-gradient-to-r from-green-600 to-teal-600 dark:from-green-400 dark:to-teal-500 bg-clip-text text-transparent">
@@ -203,7 +205,7 @@ export default function Home() {
             {testimonials.map((testimonial, index) => (
               <div
                 key={index}
-                className="bg-zinc-50 dark:bg-white/5 rounded-2xl p-8 border border-zinc-200 dark:border-white/10"
+                className="bg-zinc-100 dark:bg-white/5 rounded-2xl p-8 border border-zinc-200 dark:border-white/10"
               >
                 <p className="text-lg text-zinc-700 dark:text-green-100 mb-4">
                   &quot;{testimonial.quote}&quot;
@@ -225,17 +227,10 @@ export default function Home() {
             Become a critical part of our disaster response network. Your
             commitment can save lives and help communities rebuild.
           </p>
-
-          {/* <Link href="/volunteer">
-            <button className="group relative inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-green-600 dark:bg-white px-8 text-sm font-medium text-white dark:text-green-900 transition-all hover:bg-green-500 dark:hover:bg-green-100">
-              Become a Volunteer
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </button>
-          </Link> */}
         </section>
 
         {/* Trust Badge */}
-        <div className="mt-40 mb-20 flex justify-center">
+        <div className="mt-24 mb-20 flex justify-center">
           <div className="inline-flex items-center gap-3 rounded-full bg-zinc-100 dark:bg-zinc-900 px-5 py-2 text-sm text-zinc-600 dark:text-zinc-400">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             Trusted by Law Enforcement Nationwide

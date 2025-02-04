@@ -35,7 +35,7 @@ export default function SubmitReport() {
         <div className="absolute inset-0 h-full bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.04),transparent_70%)] dark:bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.06),transparent_70%)]" />
       </div>
 
-      <main className="relative px-6 pt-16">
+      <main className="relative px-0 md:px-6 lg:px-6 pt-16">
         <div className="mx-auto max-w-3xl">
           <div className="flex flex-col items-center text-center">
             <div className="inline-flex items-center gap-2 mb-5 rounded-full border border-green-500/30 bg-green-500/10 dark:border-green-400/30 dark:bg-green-400/10 px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
@@ -55,7 +55,7 @@ export default function SubmitReport() {
               Secure & Anonymous Disaster Reporting
             </div>
 
-            <h1 className="mt-4 bg-gradient-to-b from-gray-900 to-gray-900/80 dark:from-white dark:to-white/80 bg-clip-text text-5xl font-bold tracking-tight text-transparent">
+            <h1 className="mt-4 bg-gradient-to-b from-gray-900 to-gray-900/80 dark:from-white dark:to-white/80 bg-clip-text text-4xl md:text-5xl lg:text-5xl  font-bold tracking-tight text-transparent">
               Submit Report
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-gray-600 dark:text-zinc-400">
@@ -64,7 +64,7 @@ export default function SubmitReport() {
             </p>
           </div>
 
-          <div className="mt-8 dark:bg-black/90 rounded-3xl border border-gray-400 dark:border-gray-700 shadow-lg md:p-6 lg:p-6 mb-10">
+          <div className="mt-8 dark:bg-black/90 rounded-3xl md:p-6 lg:p-6 mb-10">
             <ReportLayout />
           </div>
         </div>

@@ -70,11 +70,6 @@ interface CustomJwtPayload {
   role: string;
 }
 
-// interface CustomJwtPayload {
-//   sub: string;
-//   role: string;
-// }
-
 export default function Dashboard() {
   const router = useRouter();
   const [reports, setReports] = useState<DisasterReport[]>([]);
@@ -113,29 +108,6 @@ export default function Dashboard() {
       }
     }
   }, [accessToken]);
-
-  // useEffect(() => {
-
-  //   setAccessToken(localStorage.getItem("token") || "");
-  //   if (accessToken) {
-  //     const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
-  //     if (decodedToken) {
-  //       const Role = decodedToken.role.toLowerCase();
-  //       setRole(Role);
-  //     }
-  //   }
-  //   console.log(role)
-
-  //   if (accessToken) {
-  //     if (role === "admin" || role === "moderator") {
-  //       router.push("/dashboard");
-  //     } else if (role === "vendor") {
-  //       router.push("/vendor");
-  //     } else {
-  //       router.push("/");
-  //     }
-  //   }
-  // }, [accessToken]);
 
   const formatDate = (dateString: string): string => {
     try {
@@ -222,8 +194,11 @@ export default function Dashboard() {
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/logout`,
       { token: token }
     );
+
     if (response.status === 200) {
+      const Theme = localStorage.getItem("theme");
       localStorage.clear();
+      localStorage.setItem("theme", Theme as string);
       setIsSidebarOpen(false);
     }
     router.push("/auth/signin");

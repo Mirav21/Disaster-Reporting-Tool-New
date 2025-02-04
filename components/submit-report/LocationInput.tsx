@@ -128,10 +128,33 @@ export function LocationInput({
   const updateLocation = async (newCoordinates: [number, number]) => {
     setCoordinates(newCoordinates);
     onCoordinatesChange?.(newCoordinates[1], newCoordinates[0]);
-    onChange(
-      `${newCoordinates[1].toFixed(6)}, ${newCoordinates[0].toFixed(6)}`
-    );
-    fetchAddress(newCoordinates[1], newCoordinates[0]);
+
+    try {
+      // Fetch address first
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${newCoordinates[0]},${newCoordinates[1]}.json?access_token=${mapboxgl.accessToken}&types=address,place`
+      );
+      const data = await response.json();
+
+      let newAddress = "Unable to fetch address";
+      if (data.features && data.features.length > 0) {
+        const addressFeature =
+          data.features.find((f: GeocodingFeature) =>
+            f.place_type.includes("address")
+          ) || data.features[0];
+        newAddress = addressFeature.place_name;
+      }
+
+      setAddress(newAddress);
+      onChange(newAddress); // Update the input value with the actual address
+    } catch (error) {
+      console.error("Error fetching address:", error);
+      const fallbackValue = `${newCoordinates[1].toFixed(
+        6
+      )}, ${newCoordinates[0].toFixed(6)}`;
+      setAddress("Unable to fetch address");
+      onChange(fallbackValue); // Use coordinates as fallback
+    }
 
     if (mapRef.current) {
       mapRef.current.flyTo({
@@ -145,26 +168,26 @@ export function LocationInput({
     }
   };
 
-  const fetchAddress = async (latitude: number, longitude: number) => {
-    try {
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxgl.accessToken}&types=address,place`
-      );
-      const data = await response.json();
-      if (data.features && data.features.length > 0) {
-        const addressFeature =
-          data.features.find((f: GeocodingFeature) =>
-            f.place_type.includes("address")
-          ) || data.features[0];
-        setAddress(addressFeature.place_name);
-      } else {
-        setAddress("Unable to fetch address");
-      }
-    } catch (error) {
-      console.error("Error fetching address:", error);
-      setAddress("Unable to fetch address");
-    }
-  };
+  // const fetchAddress = async (latitude: number, longitude: number) => {
+  //   try {
+  //     const response = await fetch(
+  //       `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxgl.accessToken}&types=address,place`
+  //     );
+  //     const data = await response.json();
+  //     if (data.features && data.features.length > 0) {
+  //       const addressFeature =
+  //         data.features.find((f: GeocodingFeature) =>
+  //           f.place_type.includes("address")
+  //         ) || data.features[0];
+  //       setAddress(addressFeature.place_name);
+  //     } else {
+  //       setAddress("Unable to fetch address");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching address:", error);
+  //     setAddress("Unable to fetch address");
+  //   }
+  // };
 
   useEffect(() => {
     return () => {
@@ -285,6 +308,7 @@ export function LocationInput({
           //            text-gray-900 dark:text-gray-100 transition-colors duration-200
           //            focus:outline-none focus:ring-2 focus:ring-blue-500/40"
           className={className}
+          disabled
         />
         <button
           type="button"

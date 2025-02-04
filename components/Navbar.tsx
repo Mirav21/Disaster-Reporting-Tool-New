@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import MobileMenu from "./MobileMenu";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { jwtDecode } from "jwt-decode";
 import DhruvaImage from "./DhruvaImage";
 import { Sun, Moon, Monitor, LogIn, LogOut } from "lucide-react";
 
@@ -53,76 +52,70 @@ export default function Navbar() {
   const profileRef = useRef<HTMLDivElement>(null);
   const [session, setSession] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [theme, setTheme] = useState("system");
+  const [theme, setTheme] = useState<string>("system");
   const [isClient, setIsClient] = useState(false);
+
+  const [role] = useState<string | null>(null);
 
   useEffect(() => {
     setIsClient(true);
-    if (typeof window !== "undefined") {
-      setTheme(localStorage.getItem("theme") || "system");
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      if (theme === "system") {
-        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-          .matches
-          ? "dark"
-          : "light";
-        document.documentElement.classList.toggle(
-          "dark",
-          systemTheme === "dark"
-        );
-      } else {
-        document.documentElement.classList.toggle("dark", theme === "dark");
-      }
-      localStorage.setItem("theme", theme);
-    }
-  }, [theme]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedTheme = localStorage.getItem("theme") || "system";
-      setTheme(storedTheme);
-
-      if (storedTheme === "system") {
-        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-          .matches
-          ? "dark"
-          : "light";
-        document.documentElement.classList.toggle(
-          "dark",
-          systemTheme === "dark"
-        );
-      } else {
-        document.documentElement.classList.toggle(
-          "dark",
-          storedTheme === "dark"
-        );
+    const savedTheme = window.localStorage.getItem("theme");
+    if (savedTheme) {
+      setTheme(savedTheme);
+      if (savedTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else if (savedTheme === "light") {
+        document.documentElement.classList.remove("dark");
+      } else if (savedTheme === "system") {
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
       }
     }
   }, []);
 
+  // Handle theme changes
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
-      setSession(token);
-      setIsAuthenticated(!!token);
-    }
-  }, []);
+    if (!isClient) return;
 
+    // Save theme to localStorage whenever it changes
+    localStorage.setItem("theme", theme);
+
+    // Apply theme
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else if (theme === "light") {
+      document.documentElement.classList.remove("dark");
+    } else if (theme === "system") {
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    }
+  }, [theme, isClient]);
+
+  // Handle system theme changes
   useEffect(() => {
+    if (!isClient) return;
+
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
     const handleChange = () => {
       if (theme === "system") {
-        document.documentElement.classList.toggle("dark", mediaQuery.matches);
+        if (mediaQuery.matches) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
       }
     };
 
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [theme]);
+  }, [theme, isClient]);
 
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme);
@@ -134,6 +127,7 @@ export default function Navbar() {
         const storedToken = localStorage.getItem("token");
         if (storedToken && storedToken !== session) {
           setSession(storedToken);
+          setIsAuthenticated(true);
         } else if (!storedToken && session !== null) {
           setSession(null);
         }
@@ -173,22 +167,35 @@ export default function Navbar() {
     setIsProfileOpen(!isProfileOpen);
   };
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const decodedToken = jwtDecode(token);
-      if (decodedToken?.sub) {
-        localStorage.setItem("username", decodedToken.sub);
-      }
-    }
-  }, []);
+  // useEffect(() => {
+  //   setAccessToken(localStorage.getItem("token") || "");
+  //   if (accessToken) {
+  //     const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
+  //     if (decodedToken) {
+  //       const Role = decodedToken.role.toLowerCase();
+  //       setRole(Role);
+  //     }
+  //   }
+  //   console.log(role);
+
+  //   if (accessToken) {
+  //     if (role === "admin" || role === "moderator") {
+  //       router.push("/dashboard");
+  //     } else if (role === "vendor") {
+  //       router.push("/vendor");
+  //     } else {
+  //       router.push("/");
+  //     }
+  //   }
+  // }, [accessToken]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token && session === null) {
+    if (token) {
       setSession(token);
+      setIsAuthenticated(true);
     }
-  }, [session]);
+  }, [session, isAuthenticated]);
 
   const signOut = async () => {
     try {
@@ -198,9 +205,12 @@ export default function Navbar() {
         { token: session }
       );
       if (response.status === 200) {
+        const Theme = localStorage.getItem("theme");
         localStorage.clear();
+        localStorage.setItem("theme", Theme as string);
         setSession(null);
         setIsMobileMenuOpen(false);
+        setIsAuthenticated(false);
         router.push("/auth/signin");
       }
     } catch (error) {
@@ -275,7 +285,7 @@ export default function Navbar() {
               )}
 
               {/* Theme Switcher */}
-              <div className="hidden md:block">
+              <div className="block">
                 {isClient && (
                   <ThemeSwitcher
                     currentTheme={theme}
@@ -329,11 +339,7 @@ export default function Navbar() {
                     ) : (
                       <>
                         {(() => {
-                          const username = localStorage
-                            .getItem("username")
-                            ?.toLowerCase();
-                          return username === "admin" ||
-                            username === "moderator" ? (
+                          return role === "admin" || role === "moderator" ? (
                             <Link
                               href="/dashboard"
                               className="block px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -343,10 +349,7 @@ export default function Navbar() {
                           ) : null;
                         })()}
                         {(() => {
-                          const username = localStorage
-                            .getItem("username")
-                            ?.toLowerCase();
-                          return username === "vendor" ? (
+                          return role === "vendor" ? (
                             <Link
                               href="/vendor"
                               className="block px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"

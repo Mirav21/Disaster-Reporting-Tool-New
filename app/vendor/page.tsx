@@ -19,6 +19,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 // import { jwtDecode } from "jwt-decode";
 
 // interface CustomJwtPayload {
@@ -64,6 +65,11 @@ interface Report {
   };
 }
 
+interface CustomJwtPayload {
+  sub: string;
+  role: string;
+}
+
 export default function RescueTeamDashboard() {
   const router = useRouter();
   const [reports, setReports] = useState<Report[]>([]);
@@ -74,6 +80,8 @@ export default function RescueTeamDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  // const [role, setRole] = useState<string | null>(null);
 
   // Create refs for form inputs
   const affectedPeopleRef = useRef<HTMLInputElement>(null);
@@ -87,27 +95,24 @@ export default function RescueTeamDashboard() {
   }, []);
 
   // Add authentication check
-  useEffect(() => {
-    // const token = localStorage.getItem("token");
-    const username = localStorage.getItem("username");
-    if (username) {
-      // const decodeToken = jwtDecode<CustomJwtPayload>(token);
-      // const username = decodeToken?.sub;
-      //setUser(username);
-      if (
-        username === "admin" ||
-        username === "moderator" ||
-        username === "MODERATOR" ||
-        username === "ADMIN"
-      ) {
-        router.push("/dashboard");
-      } else if (username === "VENDOR" || username === "vendor") {
-        router.push("/vendor");
-      } else {
-        router.push("/");
+   useEffect(() => {
+      
+      setAccessToken(localStorage.getItem("token") || "");
+      if (accessToken) {
+        const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
+        if (decodedToken?.role) {
+          const Role = decodedToken.role.toLowerCase();
+          // setRole(Role);
+          if (Role === "admin" || Role === "moderator") {
+            router.push("/dashboard");
+          } else if (Role === "vendor") {
+            router.push("/vendor");
+          } else {
+            router.push("/");
+          }
+        }
       }
-    }
-  }, []);
+    }, [accessToken]);
 
   const fetchReports = async () => {
     setIsLoading(true);

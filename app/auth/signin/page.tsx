@@ -17,7 +17,7 @@ export default function SignIn() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [role, setRole] = useState<string | null>(null);
+  // const [role, setRole] = useState<string | null>("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -28,12 +28,19 @@ export default function SignIn() {
 
   useEffect(() => {
     if (accessToken) {
-      if (role === "admin" || role === "moderator") {
-        router.push("/dashboard");
-      } else if (role === "vendor") {
-        router.push("/vendor");
-      } else {
-        router.push("/");
+      const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
+      console.log("Decoded Token:", decodedToken);
+      if (decodedToken) {
+        const role = decodedToken.role.toLowerCase();
+        console.log("User Role:", role);
+
+        if (role === "moderator") {
+          router.push("/dashboard");
+        } else if (role === "vendor") {
+          router.push("/vendor");
+        } else {
+          router.push("/");
+        }
       }
     }
   }, [accessToken]);
@@ -50,34 +57,40 @@ export default function SignIn() {
       return;
     }
 
+    const formattedPhoneNumber = `+91${phoneNumber}`;
+    console.log(formattedPhoneNumber);
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/login`,
         {
-          phoneNumber: `${phoneNumber}`,
+          phoneNumber: formattedPhoneNumber,
         }
       );
       if (response.status === 200) {
-        localStorage.setItem("token", response.data.token);
-        setAccessToken(response.data.token);
         const token = response.data.token;
-        if (token) {
+        console.log("Token before decoding:", token);
+        localStorage.setItem("token", token);
+        setAccessToken(token);
+
+        setTimeout(() => {
+          console.log(
+            "Checking token after setting:",
+            localStorage.getItem("token")
+          );
           const decodedToken = jwtDecode<CustomJwtPayload>(token);
-          if (decodedToken?.role) {
-            const Role = decodedToken.role.toLowerCase();
-            setRole(Role);
+          console.log("Decoded Token:", decodedToken);
+          if (decodedToken) {
+            const role = decodedToken.role.toLowerCase();
+            console.log("Redirecting to:", role);
+            if (role === "admin" || role === "moderator") {
+              router.push("/dashboard");
+            } else if (role === "vendor") {
+              router.push("/vendor");
+            } else {
+              router.push("/");
+            }
           }
-        }
-
-        console.log(role);
-
-        if (role === "admin" || role === "moderator") {
-          router.push("/dashboard");
-        } else if (role === "vendor") {
-          router.push("/vendor");
-        } else {
-          router.push("/");
-        }
+        }, 1000);
       }
     } catch (error) {
       console.error(error);

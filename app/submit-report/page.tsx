@@ -64,7 +64,7 @@ export default function SubmitReport() {
             </p>
           </div>
 
-          <div className="mt-8 dark:bg-zinc-900/50 rounded-2xl border border-gray-200/50 dark:border-white/5 md:p-6 lg:p-6 mb-10">
+          <div className="mt-8 dark:bg-black/90 rounded-3xl border border-gray-400 dark:border-gray-700 shadow-lg md:p-6 lg:p-6 mb-10">
             <ReportLayout />
           </div>
         </div>

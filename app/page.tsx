@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 export default function Home() {
+
   const features = [
     {
       title: "Real-Time Data Sharing",

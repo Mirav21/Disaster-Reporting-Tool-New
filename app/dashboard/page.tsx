@@ -27,6 +27,7 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { jwtDecode } from "jwt-decode";
 // import { jwtDecode } from "jwt-decode";
 
 // Define the new interface based on the API response
@@ -64,6 +65,11 @@ interface Team {
   status: string;
 }
 
+interface CustomJwtPayload {
+  sub: string;
+  role: string;
+}
+
 // interface CustomJwtPayload {
 //   sub: string;
 //   role: string;
@@ -82,7 +88,8 @@ export default function Dashboard() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showSOSModal, setShowSOSModal] = useState(false);
   const [sosRadius, setSOSRadius] = useState(5);
-
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [sosMessage] = useState(textareaRef.current?.value || "");
 
@@ -97,26 +104,38 @@ export default function Dashboard() {
   }, [reload]);
 
   useEffect(() => {
-    // const token = localStorage.getItem("token");
-    const username = localStorage.getItem("username");
-    if (username) {
-      // const decodeToken = jwtDecode<CustomJwtPayload>(token);
-      // const username = decodeToken?.sub;
-      //setUser(username);
-      if (
-        username === "admin" ||
-        username === "moderator" ||
-        username === "MODERATOR" ||
-        username === "ADMIN"
-      ) {
-        router.push("/dashboard");
-      } else if (username === "VENDOR" || username === "vendor") {
-        router.push("/vendor");
-      } else {
-        router.push("/");
+      setAccessToken(localStorage.getItem("token") || "");
+      if (accessToken) {
+        const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
+        if (decodedToken) {
+          const Role = decodedToken.role.toLowerCase();
+          setRole(Role);
+        }
       }
-    }
-  }, []);
+    }, [accessToken]);
+
+  // useEffect(() => {
+    
+  //   setAccessToken(localStorage.getItem("token") || "");
+  //   if (accessToken) {
+  //     const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
+  //     if (decodedToken) {
+  //       const Role = decodedToken.role.toLowerCase();
+  //       setRole(Role);
+  //     }
+  //   }
+  //   console.log(role)
+
+  //   if (accessToken) {
+  //     if (role === "admin" || role === "moderator") {
+  //       router.push("/dashboard");
+  //     } else if (role === "vendor") {
+  //       router.push("/vendor");
+  //     } else {
+  //       router.push("/");
+  //     }
+  //   }
+  // }, [accessToken]);
 
   const formatDate = (dateString: string): string => {
     try {
@@ -457,7 +476,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-[92.5vh] bg-gradient-to-br from-black via-neutral-950 to-neutral-900 text-white flex-1 flex-col md:flex-row lg:flex-row">
+    <div className="min-h-screen bg-gradient-to-br from-black via-neutral-950 to-neutral-900 text-white flex-1 flex-col md:flex-row lg:flex-row">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 border-b border-neutral-800 bg-neutral-900/50">
         <div className="p-2 hover:bg-neutral-800 rounded-lg"></div>
@@ -646,7 +665,7 @@ export default function Dashboard() {
               )}
             </div>
 
-            {localStorage.getItem("username")?.toLowerCase() === "admin" && (
+            {role === "admin" && (
               <>
                 <div className="flex justify-center items-center">
                   <h1 className="text-gray-900 dark:text-neutral-100 text-2xl mt-20">
@@ -1030,8 +1049,7 @@ export default function Dashboard() {
                           {selectedReport.reviewReport === null &&
                             selectedReport.status === "PENDING" &&
                             ["admin", "moderator"].includes(
-                              (localStorage
-                                .getItem("username")
+                              (role
                                 ?.toLowerCase() as "admin" | "moderator") ||
                                 "guest"
                             ) && (

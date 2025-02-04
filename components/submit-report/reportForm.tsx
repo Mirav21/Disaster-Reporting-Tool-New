@@ -262,10 +262,10 @@ export function ReportForm({ onComplete }: ReportFormProps) {
           onClick={() =>
             setFormData((prev) => ({ ...prev, incidentType: "Emergency" }))
           }
-          className={`p-6 rounded-2xl border-2 transition-all duration-200 ${
+          className={`p-6 rounded-2xl border-2 transition-all duration-200 transform hover:scale-105 ${
             formData.incidentType === "Emergency"
               ? "bg-red-100 dark:bg-red-900/30 border-red-500 dark:border-red-700 shadow-lg shadow-red-500/20 dark:shadow-red-900/30"
-              : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-500/50 dark:hover:border-red-700/50"
+              : "bg-white dark:bg-red-900/20 border-gray-200 dark:border-red-700/50 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-500/50 dark:hover:border-red-700/50"
           }`}
         >
           <div className="flex flex-col items-center space-y-2">
@@ -285,7 +285,7 @@ export function ReportForm({ onComplete }: ReportFormProps) {
             <span className="font-medium text-red-500 dark:text-red-400">
               Emergency
             </span>
-            <span className="text-xs text-gray-600 dark:text-gray-400">
+            <span className="text-xs text-gray-600 dark:text-white">
               Immediate Response Required
             </span>
           </div>
@@ -296,10 +296,10 @@ export function ReportForm({ onComplete }: ReportFormProps) {
           onClick={() =>
             setFormData((prev) => ({ ...prev, incidentType: "NonEmergency" }))
           }
-          className={`p-6 rounded-2xl border-2 transition-all duration-200 ${
+          className={`p-6 rounded-2xl border-2 transition-all duration-200 transform hover:scale-105 ${
             formData.incidentType === "NonEmergency"
               ? "bg-orange-100 dark:bg-orange-900/30 border-orange-500 dark:border-orange-700 shadow-lg shadow-orange-500/20 dark:shadow-orange-900/30"
-              : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:border-orange-500/50 dark:hover:border-orange-700/50"
+              : "bg-white dark:bg-orange-900/20 border-gray-200 dark:border-orange-700/50 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:border-orange-500/50 dark:hover:border-orange-700/50"
           }`}
         >
           <div className="flex flex-col items-center space-y-2">
@@ -319,7 +319,7 @@ export function ReportForm({ onComplete }: ReportFormProps) {
             <span className="font-medium text-orange-500 dark:text-orange-400">
               Non-Emergency
             </span>
-            <span className="text-xs text-gray-600 dark:text-gray-400">
+            <span className="text-xs text-gray-600 dark:text-white">
               General Report
             </span>
           </div>
@@ -330,10 +330,10 @@ export function ReportForm({ onComplete }: ReportFormProps) {
           onClick={() =>
             setFormData((prev) => ({ ...prev, incidentType: "LowPriority" }))
           }
-          className={`p-6 rounded-2xl border-2 transition-all duration-200 ${
+          className={`p-6 rounded-2xl border-2 transition-all duration-200 transform hover:scale-105 ${
             formData.incidentType === "LowPriority"
               ? "bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-700 shadow-lg shadow-blue-500/20 dark:shadow-blue-900/30"
-              : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-500/50 dark:hover:border-blue-700/50"
+              : "bg-white dark:bg-blue-900/20 border-gray-200 dark:border-blue-700/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-500/50 dark:hover:border-blue-700/50"
           }`}
         >
           <div className="flex flex-col items-center space-y-2">
@@ -353,7 +353,7 @@ export function ReportForm({ onComplete }: ReportFormProps) {
             <span className="font-medium text-blue-500 dark:text-blue-400">
               Low Priority
             </span>
-            <span className="text-xs text-gray-600 dark:text-gray-400">
+            <span className="text-xs text-gray-600 dark:text-white">
               Additional Information
             </span>
           </div>
@@ -364,10 +364,10 @@ export function ReportForm({ onComplete }: ReportFormProps) {
           onClick={() =>
             setFormData((prev) => ({ ...prev, incidentType: "Critical" }))
           }
-          className={`p-6 rounded-2xl border-2 transition-all duration-200 ${
+          className={`p-6 rounded-2xl border-2 transition-all duration-200 transform hover:scale-105 ${
             formData.incidentType === "Critical"
               ? "bg-purple-100 dark:bg-purple-900/30 border-purple-500 dark:border-purple-700 shadow-lg shadow-purple-500/20 dark:shadow-purple-900/30"
-              : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-500/50 dark:hover:border-purple-700/50"
+              : "bg-white dark:bg-purple-900/20 border-gray-200 dark:border-purple-700/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-500/50 dark:hover:border-purple-700/50"
           }`}
         >
           <div className="flex flex-col items-center space-y-2">
@@ -387,7 +387,7 @@ export function ReportForm({ onComplete }: ReportFormProps) {
             <span className="font-medium text-purple-500 dark:text-purple-400">
               Critical
             </span>
-            <span className="text-xs text-gray-600 dark:text-gray-400">
+            <span className="text-xs text-gray-600 dark:text-white">
               Urgent Attention
             </span>
           </div>

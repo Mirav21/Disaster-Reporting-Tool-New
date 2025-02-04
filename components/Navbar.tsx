@@ -52,9 +52,12 @@ export default function Navbar() {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const [session, setSession] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [theme, setTheme] = useState("system");
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     if (typeof window !== "undefined") {
       setTheme(localStorage.getItem("theme") || "system");
     }
@@ -77,6 +80,37 @@ export default function Navbar() {
       localStorage.setItem("theme", theme);
     }
   }, [theme]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedTheme = localStorage.getItem("theme") || "system";
+      setTheme(storedTheme);
+
+      if (storedTheme === "system") {
+        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+          .matches
+          ? "dark"
+          : "light";
+        document.documentElement.classList.toggle(
+          "dark",
+          systemTheme === "dark"
+        );
+      } else {
+        document.documentElement.classList.toggle(
+          "dark",
+          storedTheme === "dark"
+        );
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      setSession(token);
+      setIsAuthenticated(!!token);
+    }
+  }, []);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -222,8 +256,7 @@ export default function Navbar() {
                 Emergency: 112
               </button> */}
 
-              {typeof window !== "undefined" &&
-              !localStorage.getItem("token") ? (
+              {isClient && !isAuthenticated ? (
                 <Link
                   href="/auth/signin"
                   className="h-10 w-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
@@ -243,10 +276,12 @@ export default function Navbar() {
 
               {/* Theme Switcher */}
               <div className="hidden md:block">
-                <ThemeSwitcher
-                  currentTheme={theme}
-                  onThemeChange={handleThemeChange}
-                />
+                {isClient && (
+                  <ThemeSwitcher
+                    currentTheme={theme}
+                    onThemeChange={handleThemeChange}
+                  />
+                )}
               </div>
 
               {/* Profile Button and Dropdown */}

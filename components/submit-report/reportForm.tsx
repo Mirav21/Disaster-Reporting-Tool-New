@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, SetStateAction } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { LocationInput } from "./LocationInput";
 import crypto from "crypto";
 import toast from "react-hot-toast";

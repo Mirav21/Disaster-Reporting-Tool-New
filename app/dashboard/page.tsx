@@ -104,18 +104,18 @@ export default function Dashboard() {
   }, [reload]);
 
   useEffect(() => {
-      setAccessToken(localStorage.getItem("token") || "");
-      if (accessToken) {
-        const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
-        if (decodedToken) {
-          const Role = decodedToken.role.toLowerCase();
-          setRole(Role);
-        }
+    setAccessToken(localStorage.getItem("token") || "");
+    if (accessToken) {
+      const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
+      if (decodedToken) {
+        const Role = decodedToken.role.toLowerCase();
+        setRole(Role);
       }
-    }, [accessToken]);
+    }
+  }, [accessToken]);
 
   // useEffect(() => {
-    
+
   //   setAccessToken(localStorage.getItem("token") || "");
   //   if (accessToken) {
   //     const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
@@ -461,6 +461,7 @@ export default function Dashboard() {
         </div>
       </div>
     );
+  //
 
   if (isLoading) {
     return (
@@ -1049,8 +1050,7 @@ export default function Dashboard() {
                           {selectedReport.reviewReport === null &&
                             selectedReport.status === "PENDING" &&
                             ["admin", "moderator"].includes(
-                              (role
-                                ?.toLowerCase() as "admin" | "moderator") ||
+                              (role?.toLowerCase() as "admin" | "moderator") ||
                                 "guest"
                             ) && (
                               <button

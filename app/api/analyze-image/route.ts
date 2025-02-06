@@ -199,13 +199,13 @@
 //     await client.end();
 //   }
 // }
-
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Client } from "pg";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-type ReportType = "Wildfire" | "Earthquake" | "Hurricane" | "Flood" | "Tornado" | "Tsunami" | "Landslide"
+type ReportType = "Wildfire" | "Earthquake" | "Hurricane" | "Flood" | "Tornado" | "Tsunami" | "Landslide";
+
 function getTypePrefix(disasterType: keyof typeof prefixMap) {
   const prefixMap = {
     Wildfire: "WF",
@@ -236,8 +236,23 @@ async function generateReportNumber(client: Client, disasterType: "Wildfire" | "
 
 export async function POST(request: Request) {
   const client = new Client({ connectionString: process.env.DATABASE_URL });
-  await client.connect();
+  
+  // Test DB connection before processing
   try {
+    await client.connect();
+    
+    // Check if the 'disaster_report' table exists
+    const res = await client.query(
+      "SELECT * FROM information_schema.tables WHERE table_name = 'disaster_report';"
+    );
+    if (res.rows.length === 0) {
+      console.error("Error: 'disaster_report' table does not exist in the database");
+      return NextResponse.json({ error: "'disaster_report' table does not exist in the database" }, { status: 500 });
+    }
+
+    console.log("'disaster_report' table exists in the database");
+
+    // Now proceed with the rest of your code for image processing and disaster report generation
     const { image } = await request.json();
     const base64Data = image.split(",")[1];
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -255,7 +270,7 @@ export async function POST(request: Request) {
     }
 
     const reportType = text.match(/TYPE:\s*(.+)/)?.[1]?.trim() || "";
-    const allowedTypes: ReportType[] = ["Wildfire", "Earthquake", "Hurricane", "Flood", "Tornado", "Tsunami", "Landslide"] ;
+    const allowedTypes: ReportType[] = ["Wildfire", "Earthquake", "Hurricane", "Flood", "Tornado", "Tsunami", "Landslide"];
     if (!allowedTypes.includes(reportType as ReportType)) {
       throw new Error(`Invalid disaster type: ${reportType}`);
     }

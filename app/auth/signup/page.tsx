@@ -1,13 +1,11 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { LocationInput } from "@/components/submit-report/LocationInput";
-// import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   AlertCircle,
   Phone,
   MapPin,
   User,
-  ArrowLeft,
   Shield,
   Users,
   Bell,
@@ -17,8 +15,15 @@ import {
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { jwtDecode } from "jwt-decode";
+import OTPInput from "@/components/OtpInput";
 
-const SignUp = () => {
+interface CustomJwtPayload {
+  sub: string;
+  role: string;
+}
+
+export default function SignUp() {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [phoneNumber, setPhoneNumber] = useState<string>("");
@@ -33,19 +38,29 @@ const SignUp = () => {
   });
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   otpRefs.current = Array(6).fill(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
 
-  const [isMobile, setIsMobile] = useState<boolean>(false);
+  useEffect(() => {
+    const accessToken = localStorage.getItem("token");
+    if (accessToken) {
+      const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
+      if (decodedToken) {
+        const role = decodedToken.role.toLowerCase();
+
+        if (role === "moderator") {
+          router.push("/dashboard");
+        } else if (role === "admin") {
+          router.push("/vendor");
+        } else if (role === "vendor") {
+          router.push("/vendor");
+        } else {
+          router.push("/");
+        }
+      }
+    }
+  }, [accessToken]);
 
   // Hydration-safe mobile check
-  useEffect(() => {
-    const checkMobile = (): void => {
-      setIsMobile(window.innerWidth < 640);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
   const router = useRouter();
 
   useEffect(() => {
@@ -85,11 +100,6 @@ const SignUp = () => {
     }
   };
 
-  // interface FormData {
-  //   phoneNumber: string;
-  //   [key: string]: any;
-  // }
-
   const handleOtpVerify = async (
     e: React.MouseEvent<HTMLButtonElement>
   ): Promise<void> => {
@@ -123,52 +133,51 @@ const SignUp = () => {
     }
   };
 
-  const handleOtpChange = (index: number, value: string): void => {
-    if (!/^\d*$/.test(value)) return;
+  const handleSignIn = async (phoneNumber: string) => {
+    setIsLoading(true);
+    setError("");
 
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-
-    // Auto-focus next input
-    if (value !== "" && index < 5) {
-      otpRefs.current[index + 1]?.focus();
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      setError("Please enter a valid 10-digit phone number");
+      setIsLoading(false);
+      return;
     }
-  };
 
-  const handleKeyDown = (
-    index: number,
-    e: React.KeyboardEvent<HTMLInputElement>
-  ): void => {
-    if (e.key === "Backspace") {
-      if (otp[index] === "" && index > 0) {
-        const newOtp = [...otp];
-        newOtp[index - 1] = "";
-        setOtp(newOtp);
-        otpRefs.current[index - 1]?.focus();
+    const formattedPhoneNumber = `+91${phoneNumber}`;
+    console.log(formattedPhoneNumber);
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/login`,
+        {
+          phoneNumber: formattedPhoneNumber,
+        }
+      );
+      if (response.status === 200) {
+        const token = response.data.token;
+        localStorage.setItem("token", token);
+        setAccessToken(token);
+
+        setTimeout(() => {
+          const decodedToken = jwtDecode<CustomJwtPayload>(token);
+          if (decodedToken) {
+            const role = decodedToken.role.toLowerCase();
+            console.log("Redirecting to:", role);
+            if (role === "admin" || role === "moderator") {
+              router.push("/dashboard");
+            } else if (role === "vendor") {
+              router.push("/vendor");
+            } else {
+              router.push("/");
+            }
+          }
+        }, 1000);
       }
-    } else if (e.key === "ArrowLeft" && index > 0) {
-      otpRefs.current[index - 1]?.focus();
-    } else if (e.key === "ArrowRight" && index < 5) {
-      otpRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>): void => {
-    e.preventDefault();
-    const pastedData = e.clipboardData
-      .getData("text")
-      .slice(0, 6)
-      .replace(/\D/g, "");
-
-    const newOtp = [...otp];
-    pastedData.split("").forEach((char, index) => {
-      if (index < 6) newOtp[index] = char;
-    });
-    setOtp(newOtp);
-
-    if (newOtp[5]) {
-      otpRefs.current[5]?.focus();
+    } catch (error) {
+      console.error(error);
+      setError("Invalid phone number or unauthorized access.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -195,10 +204,11 @@ const SignUp = () => {
 
       if (response.status === 200) {
         toast.success("Registration successful");
-        router.push("/");
+        await handleSignIn(phoneNumber);
+        // router.push("/");
       }
     } catch (err) {
-      console.error(err)
+      console.error(err);
       setError("Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
@@ -226,34 +236,6 @@ const SignUp = () => {
       <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-green-100/50 dark:bg-green-900/10 rounded-full blur-3xl"></div>
     </div>
   );
-
-  // interface FeatureCardProps {
-  //   icon: React.ComponentType<{ className?: string }>;
-  //   title: string;
-  //   description: string;
-  // }
-
-  // const FeatureCard = ({
-  //   icon: Icon,
-  //   title,
-  //   description,
-  // }: FeatureCardProps) => (
-  //   <div className="transform hover:translate-x-1 transition-transform duration-200">
-  //     <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/90 dark:bg-black/90 border border-green-100 dark:border-green-900/50 hover:border-green-500">
-  //       <div className="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-500/20 flex items-center justify-center">
-  //         <Icon className="w-5 h-5 text-green-600 dark:text-green-400" />
-  //       </div>
-  //       <div className="flex-1 min-w-0">
-  //         <h3 className="text-sm font-semibold text-gray-800 dark:text-green-400">
-  //           {title}
-  //         </h3>
-  //         <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
-  //           {description}
-  //         </p>
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
 
   return (
     <div className="relative min-h-screen bg-white dark:bg-black flex items-center justify-center p-4 overflow-hidden">
@@ -365,78 +347,84 @@ const SignUp = () => {
             )}
 
             {step === 2 && (
-              <div className="space-y-6">
-                <div className="text-center mb-6">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-green-50 dark:bg-green-500/20 flex items-center justify-center mb-4">
-                    <Phone className="w-8 h-8 text-green-600 dark:text-green-400" />
-                  </div>
-                  <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
-                    Verify Your Number
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Enter the 6-digit code sent to
-                    <span className="font-semibold text-green-600 ml-1">
-                      +91 {phoneNumber}
-                    </span>
-                  </p>
-                </div>
+              //     <div className="space-y-6 flex flex-col items-center px-4">
+              //       <div className="text-center mb-6">
+              //         <div className="mx-auto w-16 h-16 rounded-full bg-green-50 dark:bg-green-500/20 flex items-center justify-center mb-4">
+              //           <Phone className="w-8 h-8 text-green-600 dark:text-green-400" />
+              //         </div>
+              //         <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
+              //           Verify Your Number
+              //         </h2>
+              //         <p className="text-gray-600 dark:text-gray-300">
+              //           Enter the 6-digit code sent to
+              //           <span className="font-semibold text-green-600 ml-1">
+              //             +91 {phoneNumber}
+              //           </span>
+              //         </p>
+              //       </div>
 
-                <div
-                  className="flex justify-center gap-3"
-                  onPaste={handlePaste}
-                >
-                  {otp.map((digit, index) => (
-                    <input
-                      key={index}
-                      ref={(el) => {
-                        otpRefs.current[index] = el;
-                      }}
-                      type={isMobile ? "number" : "text"}
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleOtpChange(index, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(index, e)}
-                      className="w-12 h-16 text-center text-2xl font-semibold 
-                        border-2 border-green-400/50 dark:border-green-500/30 rounded-xl 
-                        bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 
-                        focus:outline-none focus:ring-2 focus:ring-green-500 
-                        transition-all duration-200 shadow-sm
-                        disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={isLoading}
-                      autoComplete="one-time-code"
-                    />
-                  ))}
-                </div>
+              //       <div
+              //         className="flex justify-center gap-2 w-full max-w-md"
+              //         onPaste={handlePaste}
+              //       >
+              //         {otp.map((digit, index) => (
+              //           <input
+              //             key={index}
+              //             ref={(el) => {
+              //               otpRefs.current[index] = el;
+              //             }}
+              //             type={isMobile ? "number" : "text"}
+              //             inputMode="numeric"
+              //             maxLength={1}
+              //             value={digit}
+              //             onChange={(e) => handleOtpChange(index, e.target.value)}
+              //             onKeyDown={(e) => handleKeyDown(index, e)}
+              //             className="w-10 h-14 text-center text-2xl font-semibold
+              //   border-2 border-green-400/50 dark:border-green-500/30 rounded-xl
+              //   bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100
+              //   focus:outline-none focus:ring-2 focus:ring-green-500
+              //   transition-all duration-200 shadow-sm
+              //   disabled:opacity-50 disabled:cursor-not-allowed"
+              //             disabled={isLoading}
+              //             autoComplete="one-time-code"
+              //           />
+              //         ))}
+              //       </div>
 
-                <div className="space-y-4">
-                  <button
-                    onClick={handleOtpVerify}
-                    disabled={isLoading || otp.join("").length !== 6}
-                    className="w-full py-3.5 bg-gradient-to-r from-green-600 to-emerald-600 
-                      text-white rounded-lg hover:opacity-90 transition-all 
-                      disabled:opacity-50 shadow-lg flex items-center justify-center"
-                  >
-                    {isLoading ? (
-                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      "Verify OTP"
-                    )}
-                  </button>
+              //       <div className="space-y-4 w-full max-w-sm">
+              //         <button
+              //           onClick={handleOtpVerify}
+              //           disabled={isLoading || otp.join("").length !== 6}
+              //           className="w-full py-3.5 bg-gradient-to-r from-green-600 to-emerald-600
+              // text-white rounded-lg hover:opacity-90 transition-all
+              // disabled:opacity-50 shadow-lg flex items-center justify-center"
+              //         >
+              //           {isLoading ? (
+              //             <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              //           ) : (
+              //             "Verify OTP"
+              //           )}
+              //         </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    className="w-full py-3 text-green-600 dark:text-green-400 
-                      border border-green-200 dark:border-green-500/30 
-                      rounded-lg hover:bg-green-50 dark:hover:bg-green-500/10 
-                      flex items-center justify-center space-x-2"
-                  >
-                    <ArrowLeft className="w-5 h-5" />
-                    <span>Change Number</span>
-                  </button>
-                </div>
-              </div>
+              //         <button
+              //           type="button"
+              //           onClick={() => setStep(1)}
+              //           className="w-full py-3 text-green-600 dark:text-green-400
+              // border border-green-200 dark:border-green-500/30
+              // rounded-lg hover:bg-green-50 dark:hover:bg-green-500/10
+              // flex items-center justify-center space-x-2"
+              //         >
+              //           <ArrowLeft className="w-5 h-5" />
+              //           <span>Change Number</span>
+              //         </button>
+              //       </div>
+              //     </div>
+              <OTPInput
+                otp={otp}
+                setOtp={setOtp}
+                isLoading={isLoading}
+                onSubmit={handleOtpVerify}
+              />
             )}
 
             {step === 3 && (
@@ -534,6 +522,4 @@ const SignUp = () => {
       </div>
     </div>
   );
-};
-
-export default SignUp;
+}

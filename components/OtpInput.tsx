@@ -19,7 +19,6 @@ const OTPInput: React.FC<OTPInputProps> = ({
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
-  // Only run client-side code after mounting
   useEffect(() => {
     setMounted(true);
     const checkMobile = (): void => {
@@ -30,7 +29,6 @@ const OTPInput: React.FC<OTPInputProps> = ({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Don't render the component until after mounting
   if (!mounted) {
     return (
       <div className="space-y-6">
@@ -57,14 +55,26 @@ const OTPInput: React.FC<OTPInputProps> = ({
   }
 
   const handleOtpChange = (index: number, value: string): void => {
-    if (!/^\d*$/.test(value)) return;
+    // Remove any non-digit characters
+    const cleanValue = value.replace(/\D/g, "");
 
+    // If the input is empty, just update the current field
+    if (cleanValue === "") {
+      const newOtp = [...otp];
+      newOtp[index] = "";
+      setOtp(newOtp);
+      return;
+    }
+
+    // Create a new OTP array
     const newOtp = [...otp];
-    newOtp[index] = value;
+
+    // Only update the current field with the last digit entered
+    newOtp[index] = cleanValue.slice(-1);
     setOtp(newOtp);
 
-    // Auto-focus next input
-    if (value !== "" && index < 5) {
+    // Move to next field if not the last field
+    if (index < 5) {
       otpRefs.current[index + 1]?.focus();
     }
   };
@@ -128,7 +138,6 @@ const OTPInput: React.FC<OTPInputProps> = ({
             }}
             type={isMobile ? "number" : "text"}
             inputMode="numeric"
-            maxLength={1}
             value={digit}
             onChange={(e) => handleOtpChange(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}

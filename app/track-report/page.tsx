@@ -1,6 +1,9 @@
 "use client";
 
-import { ReportTracker } from "@/components/submit-report/ReportTracker";
+import EnhancedReports from "@/components/submit-report/ReportTracker";
+// import { ReportTracker } from "@/components/submit-report/ReportTracker";
+// import { EnhancedReports} from "@/components/submit-report/ReportTracker";
+
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -20,7 +23,7 @@ export default function TrackReportPage() {
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-white dark:bg-black/90">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
         <div className="w-full max-w-5xl">
-          <ReportTracker />
+          <EnhancedReports />
         </div>
       </div>
     </div>

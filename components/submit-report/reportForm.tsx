@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { LocationInput } from "./LocationInput";
 import crypto from "crypto";
 import toast from "react-hot-toast";
@@ -16,16 +16,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-const REPORT_TYPES = [
-  "Earthquake",
-  "Hurricane",
-  "Flood",
-  "Wildfire",
-  "Tornado",
-  "Tsunami",
-  "Landslide",
-] as const;
 
 type ReportType = "NonEmergency" | "LowPriority" | "Emergency" | "Critical";
 
@@ -76,6 +66,22 @@ export function ReportForm({ onComplete }: ReportFormProps) {
   const [showDescriptionModal, setShowDescriptionModal] = useState(false);
   const [tempDescription, setTempDescription] = useState("");
   const [showQuestionDialog, setShowQuestionDialog] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Assume this gets called when AI generates the description
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decodedToken = jwtDecode<CustomJwtPayload>(token);
+      if (decodedToken) {
+        formData.contactInfo = decodedToken.phoneNumber;
+      }
+    }
+  }, [formData]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [formData]);
 
   // Function to handle description confirmation
   const handleKeepDescription = () => {
@@ -88,19 +94,6 @@ export function ReportForm({ onComplete }: ReportFormProps) {
     setFormData((prev) => ({ ...prev, description: "" }));
     setShowDescriptionModal(false);
   };
-
-  // Assume this gets called when AI generates the description
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const decodedToken = jwtDecode<CustomJwtPayload>(token);
-      console.log("Decoded Token:", decodedToken);
-      if (decodedToken) {
-        console.log("User Phone:", decodedToken.phoneNumber);
-        formData.contactInfo = decodedToken.phoneNumber;
-      }
-    }
-  }, []);
 
   const addLocationToImage = (
     base64Image: string,
@@ -191,6 +184,13 @@ export function ReportForm({ onComplete }: ReportFormProps) {
       });
 
       const data = await response.json();
+
+      if (data.error) {
+        toast.error(data.error);
+        setIsAnalyzing(false);
+        return;
+      }
+
       const analyzedImage = await addLocationToImage(
         base64 as string,
         formData.location
@@ -213,6 +213,7 @@ export function ReportForm({ onComplete }: ReportFormProps) {
       toast.error("Failed to analyze image");
     } finally {
       setIsAnalyzing(false);
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -263,8 +264,6 @@ export function ReportForm({ onComplete }: ReportFormProps) {
         }
       );
 
-      console.log(response);
-
       if (response.status !== 201) {
         throw new Error(response.data.error || "Failed to submit report");
       }
@@ -299,14 +298,29 @@ export function ReportForm({ onComplete }: ReportFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Location Input - Always shown first */}
-      <div>
+
+      <div className="text-left">
+        {" "}
+        {/* Added text-left container */}
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-left">
+          Contact Number (Auto-filled)
+        </label>
+        <input
+          type="text"
+          value={formData.contactInfo}
+          readOnly
+          className="w-full rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-4 py-3.5
+    text-gray-900 dark:text-gray-100 cursor-not-allowed"
+        />
+      </div>
+
+      <div className="text-left">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Location *
         </label>
         <LocationInput
           value={formData.location}
           onChange={(value) => {
-            console.log("Location Value:", value);
             setFormData((prev) => ({ ...prev, location: value }));
           }}
           onCoordinatesChange={(lat, lng) =>
@@ -318,145 +332,244 @@ export function ReportForm({ onComplete }: ReportFormProps) {
         />
       </div>
 
-      {/* Severity Selection - Shown after location is valid */}
       {isLocationValid && formData.contactInfo && (
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            type="button"
-            onClick={() =>
-              setFormData((prev) => ({ ...prev, incidentType: "Emergency" }))
-            }
-            className={`p-6 rounded-2xl border-2 transition-all duration-200 transform hover:scale-105 ${
-              formData.incidentType === "Emergency"
-                ? "bg-red-100 dark:bg-red-900/30 border-red-500 dark:border-red-700 shadow-lg shadow-red-500/20 dark:shadow-red-900/30"
-                : "bg-white dark:bg-red-900/20 border-gray-200 dark:border-red-700/50 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-500/50 dark:hover:border-red-700/50"
-            }`}
-          >
-            <div className="flex flex-col items-center space-y-2">
-              <svg
-                className="w-8 h-8 text-red-500 dark:text-red-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <span className="font-medium text-red-500 dark:text-red-400">
-                Emergency
-              </span>
-              <span className="text-xs text-gray-600 dark:text-white">
-                Immediate Response Required
-              </span>
-            </div>
-          </button>
+        <>
+          {/* Add instruction text for both mobile and desktop */}
+          <p className="mb-4 text-gray-700 dark:text-gray-300 font-medium text-center">
+            Please select the severity level of the incident
+          </p>
 
-          <button
-            type="button"
-            onClick={() =>
-              setFormData((prev) => ({ ...prev, incidentType: "NonEmergency" }))
-            }
-            className={`p-6 rounded-2xl border-2 transition-all duration-200 transform hover:scale-105 ${
-              formData.incidentType === "NonEmergency"
-                ? "bg-orange-100 dark:bg-orange-900/30 border-orange-500 dark:border-orange-700 shadow-lg shadow-orange-500/20 dark:shadow-orange-900/30"
-                : "bg-white dark:bg-orange-900/20 border-gray-200 dark:border-orange-700/50 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:border-orange-500/50 dark:hover:border-orange-700/50"
-            }`}
-          >
-            <div className="flex flex-col items-center space-y-2">
-              <svg
-                className="w-8 h-8 text-orange-500 dark:text-orange-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className="font-medium text-orange-500 dark:text-orange-400">
-                Non-Emergency
-              </span>
-              <span className="text-xs text-gray-600 dark:text-white">
-                General Report
-              </span>
-            </div>
-          </button>
+          {/* Dropdown for mobile - keeping it simple */}
+          <div className="md:hidden w-full">
+            <select
+              value={formData.incidentType || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  incidentType: e.target.value as ReportType,
+                }))
+              }
+              className="w-full p-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 
+          bg-white dark:bg-gray-800 
+          text-gray-900 dark:text-white"
+            >
+              <option value="">Select Severity Type</option>
+              <option value="Emergency">
+                Emergency (Earthquake, Tsunami, Flood...)
+              </option>
+              <option value="NonEmergency">
+                Non-Emergency (Drought, Heatwave...)
+              </option>
+              <option value="LowPriority">
+                Low Priority (Light Rain, Wind...)
+              </option>
+              <option value="Critical">
+                Critical (Cyclone, Thunderstorm...)
+              </option>
+            </select>
+          </div>
 
-          <button
-            type="button"
-            onClick={() =>
-              setFormData((prev) => ({ ...prev, incidentType: "LowPriority" }))
-            }
-            className={`p-6 rounded-2xl border-2 transition-all duration-200 transform hover:scale-105 ${
-              formData.incidentType === "LowPriority"
-                ? "bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-700 shadow-lg shadow-blue-500/20 dark:shadow-blue-900/30"
-                : "bg-white dark:bg-blue-900/20 border-gray-200 dark:border-blue-700/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-500/50 dark:hover:border-blue-700/50"
-            }`}
-          >
-            <div className="flex flex-col items-center space-y-2">
-              <svg
-                className="w-8 h-8 text-blue-500 dark:text-blue-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className="font-medium text-blue-500 dark:text-blue-400">
-                Low Priority
-              </span>
-              <span className="text-xs text-gray-600 dark:text-white">
-                Additional Information
-              </span>
-            </div>
-          </button>
+          {/* Enhanced grid for larger screens */}
+          <div className="hidden md:grid grid-cols-2 gap-4">
+            {/* Emergency Button - Unchanged */}
+            <button
+              type="button"
+              onClick={() =>
+                setFormData((prev) => ({ ...prev, incidentType: "Emergency" }))
+              }
+              className={`relative p-6 rounded-2xl border-2 transition-all duration-200 transform hover:scale-105 ${
+                formData.incidentType === "Emergency"
+                  ? "bg-red-100 dark:bg-red-900/30 border-red-500 dark:border-red-700 shadow-lg shadow-red-500/20 dark:shadow-red-900/30"
+                  : "bg-white dark:bg-red-900/20 border-gray-200 dark:border-red-700/50 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-500/50 dark:hover:border-red-700/50"
+              }`}
+            >
+              {formData.incidentType === "Emergency" && (
+                <div className="absolute top-2 right-2">
+                  <span className="flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+                </div>
+              )}
+              <div className="flex flex-col items-center space-y-2">
+                <div className="bg-red-100 dark:bg-red-900/50 p-2 rounded-full">
+                  <svg
+                    className="w-8 h-8 text-red-500 dark:text-red-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                </div>
+                <span className="font-medium text-red-500 dark:text-red-400 text-lg">
+                  Emergency
+                </span>
+                <span className="text-sm text-gray-600 dark:text-gray-300 text-center">
+                  Immediate Response Required
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                  (Earthquake, Tsunami, Flood, Tornado, Wildfire...)
+                </span>
+              </div>
+            </button>
 
-          <button
-            type="button"
-            onClick={() =>
-              setFormData((prev) => ({ ...prev, incidentType: "Critical" }))
-            }
-            className={`p-6 rounded-2xl border-2 transition-all duration-200 transform hover:scale-105 ${
-              formData.incidentType === "Critical"
-                ? "bg-purple-100 dark:bg-purple-900/30 border-purple-500 dark:border-purple-700 shadow-lg shadow-purple-500/20 dark:shadow-purple-900/30"
-                : "bg-white dark:bg-purple-900/20 border-gray-200 dark:border-purple-700/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-500/50 dark:hover:border-purple-700/50"
-            }`}
-          >
-            <div className="flex flex-col items-center space-y-2">
-              <svg
-                className="w-8 h-8 text-purple-500 dark:text-purple-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className="font-medium text-purple-500 dark:text-purple-400">
-                Critical
-              </span>
-              <span className="text-xs text-gray-600 dark:text-white">
-                Urgent Attention
-              </span>
-            </div>
-          </button>
-        </div>
+            {/* Non-Emergency Button - Unchanged */}
+            <button
+              type="button"
+              onClick={() =>
+                setFormData((prev) => ({
+                  ...prev,
+                  incidentType: "NonEmergency",
+                }))
+              }
+              className={`relative p-6 rounded-2xl border-2 transition-all duration-200 transform hover:scale-105 ${
+                formData.incidentType === "NonEmergency"
+                  ? "bg-orange-100 dark:bg-orange-900/30 border-orange-500 dark:border-orange-700 shadow-lg shadow-orange-500/20 dark:shadow-orange-900/30"
+                  : "bg-white dark:bg-orange-900/20 border-gray-200 dark:border-orange-700/50 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:border-orange-500/50 dark:hover:border-orange-700/50"
+              }`}
+            >
+              {formData.incidentType === "NonEmergency" && (
+                <div className="absolute top-2 right-2">
+                  <span className="flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
+                  </span>
+                </div>
+              )}
+              <div className="flex flex-col items-center space-y-2">
+                <div className="bg-orange-100 dark:bg-orange-900/50 p-2 rounded-full">
+                  <svg
+                    className="w-8 h-8 text-orange-500 dark:text-orange-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <span className="font-medium text-orange-500 dark:text-orange-400 text-lg">
+                  Non-Emergency
+                </span>
+                <span className="text-sm text-gray-600 dark:text-gray-300 text-center">
+                  Moderate Urgency
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                  (Drought, Heatwave, Heavy Rain...)
+                </span>
+              </div>
+            </button>
+
+            {/* Low Priority Button - Updated */}
+            <button
+              type="button"
+              onClick={() =>
+                setFormData((prev) => ({
+                  ...prev,
+                  incidentType: "LowPriority",
+                }))
+              }
+              className={`relative p-6 rounded-2xl border-2 transition-all duration-200 transform hover:scale-105 ${
+                formData.incidentType === "LowPriority"
+                  ? "bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-700 shadow-lg shadow-blue-500/20 dark:shadow-blue-900/30"
+                  : "bg-white dark:bg-blue-900/20 border-gray-200 dark:border-blue-700/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-500/50 dark:hover:border-blue-700/50"
+              }`}
+            >
+              {formData.incidentType === "LowPriority" && (
+                <div className="absolute top-2 right-2">
+                  <span className="flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                  </span>
+                </div>
+              )}
+              <div className="flex flex-col items-center space-y-2">
+                <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-full">
+                  <svg
+                    className="w-8 h-8 text-blue-500 dark:text-blue-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <span className="font-medium text-blue-500 dark:text-blue-400 text-lg">
+                  Low Priority
+                </span>
+                <span className="text-sm text-gray-600 dark:text-gray-300 text-center">
+                  Routine Monitoring
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                  (Light Rain, Heavy Wind...)
+                </span>
+              </div>
+            </button>
+
+            {/* Critical Button - Updated */}
+            <button
+              type="button"
+              onClick={() =>
+                setFormData((prev) => ({ ...prev, incidentType: "Critical" }))
+              }
+              className={`relative p-6 rounded-2xl border-2 transition-all duration-200 transform hover:scale-105 ${
+                formData.incidentType === "Critical"
+                  ? "bg-purple-100 dark:bg-purple-900/30 border-purple-500 dark:border-purple-700 shadow-lg shadow-purple-500/20 dark:shadow-purple-900/30"
+                  : "bg-white dark:bg-purple-900/20 border-gray-200 dark:border-purple-700/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-500/50 dark:hover:border-purple-700/50"
+              }`}
+            >
+              {formData.incidentType === "Critical" && (
+                <div className="absolute top-2 right-2">
+                  <span className="flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-500"></span>
+                  </span>
+                </div>
+              )}
+              <div className="flex flex-col items-center space-y-2">
+                <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-full">
+                  <svg
+                    className="w-8 h-8 text-purple-500 dark:text-purple-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <span className="font-medium text-purple-500 dark:text-purple-400 text-lg">
+                  Critical
+                </span>
+                <span className="text-sm text-gray-600 dark:text-gray-300 text-center">
+                  Urgent Action Required
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                  (Cyclone, Thunderstorm, Landslide, Pandemic...)
+                </span>
+              </div>
+            </button>
+          </div>
+        </>
       )}
 
       {/* Image Upload - Shown after severity is selected */}
@@ -545,45 +658,13 @@ export function ReportForm({ onComplete }: ReportFormProps) {
       <>
         {image && (
           <div className="space-y-6">
-            {question && (
-              <AlertDialog
-                open={showQuestionDialog}
-                onOpenChange={setShowQuestionDialog}
-              >
-                <AlertDialogContent className="max-w-md">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Confirm Image</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      <div className="mt-4">
-                        <p className="text-gray-700 dark:text-gray-300">
-                          {question}
-                        </p>
-                      </div>
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter className="space-x-4">
-                    <AlertDialogCancel
-                      onClick={() => handleQuestionResponse(false)}
-                    >
-                      No
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => handleQuestionResponse(true)}
-                    >
-                      Yes
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-
             {showFields && (
               <>
-                <div>
+                <div className="text-left">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Incident Type
                   </label>
-                  <select
+                  <input
                     value={formData.specificType}
                     onChange={(e) =>
                       setFormData((prev) => ({
@@ -595,17 +676,11 @@ export function ReportForm({ onComplete }: ReportFormProps) {
                          text-gray-900 dark:text-gray-100 transition-colors duration-200
                          focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                     required
-                  >
-                    <option value="">Select type</option>
-                    {REPORT_TYPES.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
+                    disabled
+                  ></input>
                 </div>
 
-                <div>
+                <div className="text-left">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Report Title
                   </label>
@@ -622,10 +697,11 @@ export function ReportForm({ onComplete }: ReportFormProps) {
                         text-gray-900 dark:text-gray-100 transition-colors duration-200
                         focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                     required
+                    disabled
                   />
                 </div>
 
-                <div>
+                <div className="text-left">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Description
                   </label>
@@ -643,19 +719,6 @@ export function ReportForm({ onComplete }: ReportFormProps) {
                         focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                     required
                     placeholder="Please provide detailed information about the incident..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Contact Number (Auto-filled)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.contactInfo}
-                    readOnly
-                    className="w-full rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-4 py-3.5
-                        text-gray-900 dark:text-gray-100 cursor-not-allowed"
                   />
                 </div>
 
@@ -775,6 +838,7 @@ export function ReportForm({ onComplete }: ReportFormProps) {
           </AlertDialogContent>
         </AlertDialog>
       </>
+      <div ref={bottomRef} />
     </form>
   );
 }

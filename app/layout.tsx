@@ -41,6 +41,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <meta property="og:title" content="My Awesome Page" />
+        <meta
+          property="og:description"
+          content="This is alert for disater happened."
+        />
+        <meta property="og:url" content="https://dhruvasetu.vercel.app" />
+        <meta property="og:type" content="website" />
+      </head>
       <body>
         <Providers>
           <div className="relative min-h-screen bg-black selection:bg-sky-500/20">

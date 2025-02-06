@@ -5,11 +5,18 @@ import MobileMenu from "./MobileMenu";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import DhruvaImage from "./DhruvaImage";
-import { Sun, Moon, Monitor, LogIn, LogOut } from "lucide-react";
+import { Sun, Moon, Monitor } from "lucide-react";
+import { jwtDecode } from "jwt-decode";
 
 interface ThemeSwitcherProps {
   currentTheme: string;
   onThemeChange: (theme: string) => void;
+}
+
+interface CustomJwtPayload {
+  exp: number;
+  sub: string;
+  role: string;
 }
 
 const ThemeSwitcher = ({ currentTheme, onThemeChange }: ThemeSwitcherProps) => {
@@ -55,10 +62,34 @@ export default function Navbar() {
   const [theme, setTheme] = useState<string>("system");
   const [isClient, setIsClient] = useState(false);
 
-  const [role] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+
+  // Use useEffect to check for the token on the client side after the component mounts
+  useEffect(() => {
+    // This ensures that the code runs only on the client side after hydration
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
-    setIsClient(true);
+    const getRole = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        const decodedToken = jwtDecode<CustomJwtPayload>(token);
+        if (decodedToken) {
+          const role = decodedToken.role.toLowerCase();
+          setRole(role);
+        }
+      } else {
+        setRole(null);
+      }
+    };
+
+    const intervalId = setInterval(getRole, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
     const savedTheme = window.localStorage.getItem("theme");
     if (savedTheme) {
       setTheme(savedTheme);
@@ -117,6 +148,17 @@ export default function Navbar() {
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [theme, isClient]);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decodedToken = jwtDecode<CustomJwtPayload>(token);
+      if (decodedToken) {
+        const role = decodedToken.role.toLowerCase();
+        setRole(role);
+      }
+    }
+  }, []);
+
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme);
   };
@@ -167,28 +209,6 @@ export default function Navbar() {
     setIsProfileOpen(!isProfileOpen);
   };
 
-  // useEffect(() => {
-  //   setAccessToken(localStorage.getItem("token") || "");
-  //   if (accessToken) {
-  //     const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
-  //     if (decodedToken) {
-  //       const Role = decodedToken.role.toLowerCase();
-  //       setRole(Role);
-  //     }
-  //   }
-  //   console.log(role);
-
-  //   if (accessToken) {
-  //     if (role === "admin" || role === "moderator") {
-  //       router.push("/dashboard");
-  //     } else if (role === "vendor") {
-  //       router.push("/vendor");
-  //     } else {
-  //       router.push("/");
-  //     }
-  //   }
-  // }, [accessToken]);
-
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -214,11 +234,36 @@ export default function Navbar() {
         router.push("/auth/signin");
       }
     } catch (error) {
-      console.error("Error signing out:", error);
+      console.log("Error signing out:", error);
     } finally {
       setIsSigningOut(false);
     }
   };
+
+  const isTokenExpired = (accessToken: string) => {
+    try {
+      const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
+      const currentTime = Date.now() / 1000;
+      return decodedToken.exp < currentTime;
+    } catch (error) {
+      console.error(error);
+      return true;
+    }
+  };
+
+  useEffect(() => {
+    const checkToken = async () => {
+      if (session) {
+        if (isTokenExpired(session)) {
+          await signOut();
+        }
+      }
+    };
+
+    const intervalId = setInterval(checkToken, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   return (
     <>
@@ -231,7 +276,7 @@ export default function Navbar() {
                 <div className="h-12 w-12 rounded-xl flex items-center justify-center">
                   <DhruvaImage />
                 </div>
-                <span className="text-2xl font-semibold text-zinc-900 dark:text-white">
+                <span className="hidden md:block lg:block md:text-2xl lg:text-2xl font-semibold text-zinc-900 dark:text-white">
                   DhruvaSetu
                 </span>
               </Link>
@@ -260,29 +305,37 @@ export default function Navbar() {
             </div>
 
             {/* Right Section: Emergency Button, Theme Switcher, Profile */}
-            <div className="flex items-center space-x-4">
-              {/* <button className="group hidden md:flex lg:flex h-11 items-center gap-2 rounded-full bg-white/10 pl-4 pr-5 text-sm font-medium text-red-500 ring-1 ring-inset ring-red-500/20 transition-all hover:bg-red-500/20">
-                <span className="h-1.5 w-1.5 rounded-full bg-white/70 animate-pulse" />
-                Emergency: 112
-              </button> */}
-
-              {isClient && !isAuthenticated ? (
-                <Link
-                  href="/auth/signin"
-                  className="h-10 w-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-                  title="Login"
-                >
-                  <LogIn />
-                </Link>
-              ) : (
-                <button
-                  onClick={signOut}
-                  className="h-10 w-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-                  title="Logout"
-                >
-                  <LogOut />
-                </button>
-              )}
+            <div className="flex items-center space-x-4 md:space-x-4 lg:space-x-4">
+              <div className="flex items-center space-x-3 md:space-x-4 lg:space-x-4">
+                {isClient && (
+                  <div className="flex items-center space-x-3 md:space-x-1 lg:space-x-1">
+                    {role === null ? (
+                      <>
+                        <Link
+                          href="/auth/signin"
+                          className="h-10 rounded-full flex items-center text-lg justify-center hover:text-gray-400 transition-colors"
+                          title="Login"
+                        >
+                          Login
+                        </Link>
+                        <span className="hidden md:block lg:block text-3xl text-gray-500">
+                          /
+                        </span>{" "}
+                        {/* Slash separator */}
+                        <Link
+                          href="/auth/signup"
+                          className="h-10 rounded-full hidden md:flex lg:flex items-center text-lg justify-center hover:text-gray-400 transition-colors"
+                          title="Sign Up"
+                        >
+                          Sign Up
+                        </Link>
+                      </>
+                    ) : (
+                      <span>Welcome!</span>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* Theme Switcher */}
               <div className="block">
@@ -295,88 +348,90 @@ export default function Navbar() {
               </div>
 
               {/* Profile Button and Dropdown */}
-              <div
-                ref={profileRef}
-                className="md:relative lg:relative hidden md:block"
-              >
-                <button
-                  onClick={handleProfileToggle}
-                  className="h-10 w-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-                  title="Profile"
+              {role && (
+                <div
+                  ref={profileRef}
+                  className="md:relative lg:relative hidden md:block"
                 >
-                  <svg
-                    className="h-5 w-5 text-zinc-600 dark:text-zinc-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                  <button
+                    onClick={handleProfileToggle}
+                    className="h-10 w-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                    title="Profile"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                </button>
+                    <svg
+                      className="h-5 w-5 text-zinc-600 dark:text-zinc-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  </button>
 
-                {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-md bg-white dark:bg-zinc-900 py-1 shadow-lg ring-1 ring-black ring-opacity-5">
-                    {!localStorage.getItem("token") ? (
-                      <>
-                        <Link
-                          href="/auth/signin"
-                          className="block px-4 py-2 text-md text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                        >
-                          Login
-                        </Link>
-                        <Link
-                          href="/auth/signup"
-                          className="block px-4 py-2 text-md text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                        >
-                          Sign Up
-                        </Link>
-                      </>
-                    ) : (
-                      <>
-                        {(() => {
-                          return role === "admin" || role === "moderator" ? (
-                            <Link
-                              href="/dashboard"
-                              className="block px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                            >
-                              Dashboard
-                            </Link>
-                          ) : null;
-                        })()}
-                        {(() => {
-                          return role === "vendor" ? (
-                            <Link
-                              href="/vendor"
-                              className="block px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                            >
-                              Dashboard
-                            </Link>
-                          ) : null;
-                        })()}
-                        <button
-                          onClick={signOut}
-                          disabled={isSigningOut}
-                          className="block w-full text-left px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed items-center space-x-2"
-                        >
-                          <span className="flex items-center justify-between w-full">
-                            <span>
-                              {isSigningOut ? "Signing Out..." : "Sign Out"}
+                  {isProfileOpen && (
+                    <div className="absolute right-0 mt-2 w-48 rounded-md bg-white dark:bg-zinc-900 py-1 shadow-lg ring-1 ring-black ring-opacity-5">
+                      {!localStorage.getItem("token") ? (
+                        <>
+                          <Link
+                            href="/auth/signin"
+                            className="block px-4 py-2 text-md text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                          >
+                            Login
+                          </Link>
+                          <Link
+                            href="/auth/signup"
+                            className="block px-4 py-2 text-md text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                          >
+                            Sign Up
+                          </Link>
+                        </>
+                      ) : (
+                        <>
+                          {(() => {
+                            return role === "admin" || role === "moderator" ? (
+                              <Link
+                                href="/dashboard"
+                                className="block px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                              >
+                                Dashboard
+                              </Link>
+                            ) : null;
+                          })()}
+                          {(() => {
+                            return role === "vendor" ? (
+                              <Link
+                                href="/vendor"
+                                className="block px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                              >
+                                Dashboard
+                              </Link>
+                            ) : null;
+                          })()}
+                          <button
+                            onClick={signOut}
+                            disabled={isSigningOut}
+                            className="block w-full text-left px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed items-center space-x-2"
+                          >
+                            <span className="flex items-center justify-between w-full">
+                              <span>
+                                {isSigningOut ? "Signing Out..." : "Sign Out"}
+                              </span>
+                              {isSigningOut && (
+                                <div className="w-4 h-4 border-2 border-zinc-400 dark:bg-zinc-400 border-t-transparent rounded-full animate-spin ml-2" />
+                              )}
                             </span>
-                            {isSigningOut && (
-                              <div className="w-4 h-4 border-2 border-zinc-400 dark:bg-zinc-400 border-t-transparent rounded-full animate-spin ml-2" />
-                            )}
-                          </span>
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Mobile Menu Button */}
               <button

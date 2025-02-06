@@ -15,17 +15,12 @@ import {
   Shell,
   Save,
   RefreshCw,
+  InfoIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-// import { jwtDecode } from "jwt-decode";
-
-// interface CustomJwtPayload {
-//   sub: string;
-//   role: string;
-// }
 
 type DisasterStats = {
   rescueTeamsDeployed: string;
@@ -81,7 +76,6 @@ export default function RescueTeamDashboard() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  // const [role, setRole] = useState<string | null>(null);
 
   // Create refs for form inputs
   const affectedPeopleRef = useRef<HTMLInputElement>(null);
@@ -94,25 +88,22 @@ export default function RescueTeamDashboard() {
     fetchReports();
   }, []);
 
-  // Add authentication check
-   useEffect(() => {
-      
-      setAccessToken(localStorage.getItem("token") || "");
-      if (accessToken) {
-        const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
-        if (decodedToken?.role) {
-          const Role = decodedToken.role.toLowerCase();
-          // setRole(Role);
-          if (Role === "admin" || Role === "moderator") {
-            router.push("/dashboard");
-          } else if (Role === "vendor") {
-            router.push("/vendor");
-          } else {
-            router.push("/");
-          }
+  useEffect(() => {
+    setAccessToken(localStorage.getItem("token") || "");
+    if (accessToken) {
+      const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
+      if (decodedToken?.role) {
+        const Role = decodedToken.role.toLowerCase();
+        if (Role === "admin" || Role === "moderator") {
+          router.push("/dashboard");
+        } else if (Role === "vendor") {
+          router.push("/vendor");
+        } else {
+          router.push("/");
         }
       }
-    }, [accessToken]);
+    }
+  }, [accessToken]);
 
   const fetchReports = async () => {
     setIsLoading(true);
@@ -122,19 +113,18 @@ export default function RescueTeamDashboard() {
       );
       const data = await response.json();
 
-      const statusOrder = ["PENDING", "IN_PROGRESS", "COMPLETED"];
-      const sortedData = data.sort((a: Report, b: Report) => {
-        const statusA = statusOrder.indexOf(a.status);
-        const statusB = statusOrder.indexOf(b.status);
+      // Filter reports to only show assigned team and IN_PROGRESS status
+      const filteredData = data.filter(
+        (report: Report) =>
+          report.teamAssign !== null && report.status === "IN_PROGRESS"
+      );
 
-        if (statusA !== statusB) {
-          return statusA - statusB;
-        }
-
-        return (
+      // Sort by creation date (newest first)
+      const sortedData = filteredData.sort(
+        (a: Report, b: Report) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-      });
+      );
+
       setReports(sortedData);
     } catch (error) {
       console.error("Error fetching reports:", error);
@@ -555,66 +545,70 @@ export default function RescueTeamDashboard() {
                 </p>
               </div>
 
-              {editingStats ? (
-                <div className="space-y-6">
-                  <div className="bg-blue-500/10 rounded-xl p-4 border border-blue-500/20">
-                    <h4 className="text-blue-400 text-sm mb-4">
-                      Enter Disaster Statistics
-                    </h4>
-                    <div className="grid grid-cols-1 gap-4">
-                      <StatInput
-                        label="Affected People"
-                        defaultValue={editingStats.affectedPeople}
-                        inputRef={affectedPeopleRef}
-                        type="number"
-                      />
-                      <StatInput
-                        label="People Rescued"
-                        defaultValue={editingStats.numberOfPeopleRescued}
-                        inputRef={peopleRescuedRef}
-                        type="number"
-                      />
-                      <StatInput
-                        label="Casualties"
-                        defaultValue={editingStats.casualties}
-                        inputRef={casualtiesRef}
-                        type="number"
-                      />
-                      <StatInput
-                        label="Evacuation Centres"
-                        defaultValue={editingStats.evacuationCentres}
-                        inputRef={evacuationCentresRef}
-                        type="number"
-                      />
-                      <StatInput
-                        label="Detailed Description"
-                        defaultValue={editingStats.detailedDescription}
-                        inputRef={detailedDescriptionRef}
-                        type="text"
-                      />
+              {editingStats &&
+              !selectedReport.reviewReport &&
+              selectedReport.teamAssign ? (
+                <>
+                  <div className="space-y-6">
+                    <div className="bg-blue-500/10 rounded-xl p-4 border border-blue-500/20">
+                      <h4 className="text-blue-400 text-sm mb-4">
+                        Enter Disaster Statistics
+                      </h4>
+                      <div className="grid grid-cols-1 gap-4">
+                        <StatInput
+                          label="Affected People"
+                          defaultValue={editingStats.affectedPeople}
+                          inputRef={affectedPeopleRef}
+                          type="number"
+                        />
+                        <StatInput
+                          label="People Rescued"
+                          defaultValue={editingStats.numberOfPeopleRescued}
+                          inputRef={peopleRescuedRef}
+                          type="number"
+                        />
+                        <StatInput
+                          label="Casualties"
+                          defaultValue={editingStats.casualties}
+                          inputRef={casualtiesRef}
+                          type="number"
+                        />
+                        <StatInput
+                          label="Evacuation Centres"
+                          defaultValue={editingStats.evacuationCentres}
+                          inputRef={evacuationCentresRef}
+                          type="number"
+                        />
+                        <StatInput
+                          label="Detailed Description"
+                          defaultValue={editingStats.detailedDescription}
+                          inputRef={detailedDescriptionRef}
+                          type="text"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <button
-                    onClick={submitResponse}
-                    disabled={isSaving}
-                    className="w-full px-4 py-3 bg-green-500 hover:bg-green-600 disabled:bg-blue-500/50 rounded-lg text-white flex items-center justify-center gap-2"
-                  >
-                    {isSaving ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                        Saving Response...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4" />
-                        Submit Response
-                      </>
-                    )}
-                  </button>
-                </div>
+                    <button
+                      onClick={submitResponse}
+                      disabled={isSaving}
+                      className="w-full px-4 py-3 bg-green-500 hover:bg-green-600 disabled:bg-blue-500/50 rounded-lg text-white flex items-center justify-center gap-2"
+                    >
+                      {isSaving ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          Saving Response...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4" />
+                          Submit Response
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </>
               ) : (
-                !editingStats &&
+                editingStats &&
                 selectedReport.reviewReport && (
                   <>
                     <div className="grid grid-cols-2 gap-4">
@@ -654,6 +648,18 @@ export default function RescueTeamDashboard() {
                     </div>
 
                     <div className="bg-neutral-200 dark:bg-neutral-700/50 backdrop-blur-sm rounded-xl p-4">
+                      <div className="flex items-center gap-2">
+                        <InfoIcon className="w-4 h-4 text-emerald-400" />
+                        <h4 className="text-neutral-600 dark:text-neutral-400 text-sm">
+                          Review Description
+                        </h4>
+                      </div>
+                      <p className="text-md mt-1 text-black dark:text-white">
+                        {selectedReport.reviewReport.detailedDescription}
+                      </p>
+                    </div>
+
+                    <div className="bg-neutral-200 dark:bg-neutral-700/50 backdrop-blur-sm rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-4">
                         <Shell className="w-4 h-4 text-neutral-400" />
                         <h4 className="text-neutral-600 dark:text-neutral-400 text-sm">
@@ -663,19 +669,11 @@ export default function RescueTeamDashboard() {
                       <div className="space-y-2">
                         <p className="text-sm">
                           <span className="text-neutral-600 dark:text-neutral-400">
-                            Team Name:
+                            Assigned Team Name:
                           </span>{" "}
                           <span className="text-black dark:text-white">
                             {selectedReport.teamAssign?.teamName ||
                               "Not Assigned"}
-                          </span>
-                        </p>
-                        <p className="text-sm">
-                          <span className="text-neutral-600 dark:text-neutral-400">
-                            Team Status:
-                          </span>{" "}
-                          <span className="text-black dark:text-white">
-                            {selectedReport.teamAssign?.status || "Pending"}
                           </span>
                         </p>
                         <p className="text-sm">

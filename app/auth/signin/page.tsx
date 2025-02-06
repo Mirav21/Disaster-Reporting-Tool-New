@@ -219,6 +219,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { jwtDecode } from "jwt-decode";
+import { Phone, ArrowRight, Loader2 } from "lucide-react";
 
 interface CustomJwtPayload {
   sub: string;
@@ -231,24 +232,13 @@ export default function SignIn() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  // const [role, setRole] = useState<string | null>("");
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedToken = localStorage.getItem("token");
-      setAccessToken(storedToken);
-    }
-  }, []);
 
   useEffect(() => {
     if (accessToken) {
       const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
-      console.log("Decoded Token:", decodedToken);
       if (decodedToken) {
         const role = decodedToken.role.toLowerCase();
-        console.log("User Role:", role);
-
-        if (role === "moderator") {
+        if (role === "moderator" || role === "admin") {
           router.push("/dashboard");
         } else if (role === "vendor") {
           router.push("/vendor");
@@ -257,7 +247,14 @@ export default function SignIn() {
         }
       }
     }
-  }, [accessToken]);
+  }, [accessToken, router]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedToken = localStorage.getItem("token");
+      setAccessToken(storedToken);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -272,7 +269,6 @@ export default function SignIn() {
     }
 
     const formattedPhoneNumber = `+91${phoneNumber}`;
-    console.log(formattedPhoneNumber);
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/userlogin/login`,
@@ -282,29 +278,20 @@ export default function SignIn() {
       );
       if (response.status === 200) {
         const token = response.data.token;
-        console.log("Token before decoding:", token);
         localStorage.setItem("token", token);
         setAccessToken(token);
 
-        setTimeout(() => {
-          console.log(
-            "Checking token after setting:",
-            localStorage.getItem("token")
-          );
-          const decodedToken = jwtDecode<CustomJwtPayload>(token);
-          console.log("Decoded Token:", decodedToken);
-          if (decodedToken) {
-            const role = decodedToken.role.toLowerCase();
-            console.log("Redirecting to:", role);
-            if (role === "admin" || role === "moderator") {
-              router.push("/dashboard");
-            } else if (role === "vendor") {
-              router.push("/vendor");
-            } else {
-              router.push("/");
-            }
+        const decodedToken = jwtDecode<CustomJwtPayload>(token);
+        if (decodedToken) {
+          const role = decodedToken.role.toLowerCase();
+          if (role === "admin" || role === "moderator") {
+            router.push("/dashboard");
+          } else if (role === "vendor") {
+            router.push("/vendor");
+          } else {
+            router.push("/");
           }
-        }, 1000);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -315,75 +302,115 @@ export default function SignIn() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-[92.5vh] bg-white dark:bg-black/90 px-4">
-      <div className="w-full max-w-md bg-white dark:bg-gray-900 shadow-lg rounded-xl transform transition-all">
-        {/* Header Section */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold text-green-600 dark:text-green-500 tracking-tight">
-              Welcome to DhruvaSetu
-            </h1>
-            <h2 className="text-base text-green-600/80 dark:text-green-500/80">
-              Sign in with your phone number
-            </h2>
-          </div>
-        </div>
-
-        {/* Form Section */}
-        <div className="p-6">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-2">
-              <label className="block text-base font-medium text-green-700 dark:text-green-400">
-                Phone Number
-              </label>
-              <div className="flex items-center border-2 border-green-400 dark:border-green-600 rounded-lg overflow-hidden transition-all focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500">
-                <span className="px-4 py-3 bg-green-100 dark:bg-green-700 text-green-900 dark:text-green-100 font-medium text-base border-r-2 border-green-400 dark:border-green-600">
-                  🇮🇳 +91
-                </span>
-                <input
-                  type="tel"
-                  required
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="flex-1 px-4 py-3 bg-transparent text-green-900 dark:text-green-100 text-base focus:outline-none placeholder-green-500/60 dark:placeholder-green-400/60 w-full"
-                  placeholder="Enter your 10-digit phone number"
-                  maxLength={10}
-                />
+    <div className="flex min-h-screen bg-gradient-to-b from-green-50 to-white dark:from-gray-950 dark:to-black">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md space-y-8 relative">
+          {/* Logo/Brand Section */}
+          <div className="text-center space-y-6">
+            <div className="inline-block p-3 rounded-full bg-green-100 dark:bg-green-900/30">
+              <div className="w-16 h-16 rounded-full bg-green-600 dark:bg-green-500 flex items-center justify-center">
+                <Phone className="w-8 h-8 text-white" />
               </div>
             </div>
-
-            {error && (
-              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/30 border-2 border-red-200 dark:border-red-800">
-                <p className="text-red-600 dark:text-red-400 text-sm text-center">
-                  {error}
-                </p>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3 px-4 text-base font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
-              ) : (
-                "Sign in"
-              )}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/auth/signup"
-                className="text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 font-medium transition-colors"
-              >
-                Sign up
-              </Link>
-            </p>
+            <div>
+              <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
+                DhruvaSetu
+              </h1>
+              <p className="mt-3 text-lg text-gray-600 dark:text-gray-400">
+                India`&apos;`s Trusted Crowdsourcing Platform
+              </p>
+            </div>
           </div>
+
+          {/* Form Section */}
+          <div className="mt-8 bg-white dark:bg-black/90 py-8 px-4 shadow-xl rounded-xl sm:px-10 ring-1 ring-black dark:ring-white/40">
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Phone Number
+                </label>
+                <div className="mt-2 relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                    <span className="text-gray-500 dark:text-gray-400">
+                      🇮🇳 +91
+                    </span>
+                  </div>
+                  <input
+                    type="tel"
+                    required
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="block w-full pl-20 pr-4 py-3 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-600 dark:focus:ring-green-500 rounded-lg bg-white dark:bg-gray-900 transition-all duration-200"
+                    placeholder="Enter your phone number"
+                    maxLength={10}
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800">
+                  <p className="text-sm text-red-600 dark:text-red-400 text-center">
+                    {error}
+                  </p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="flex w-full justify-center items-center gap-2 py-3 px-4 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 rounded-lg shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    Continue with Phone
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="mt-6">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300 dark:border-gray-700" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white dark:bg-black text-gray-500 dark:text-white">
+                    New to DhruvaSetu?
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-6 text-center">
+                <Link
+                  href="/auth/signup"
+                  className="text-sm font-medium text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 transition-colors"
+                >
+                  Create an account
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            By continuing, you agree to our{" "}
+            <Link
+              href="/terms"
+              className="font-medium text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400"
+            >
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link
+              href="/privacy"
+              className="font-medium text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400"
+            >
+              Privacy Policy
+            </Link>
+          </p>
         </div>
       </div>
     </div>

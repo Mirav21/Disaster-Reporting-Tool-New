@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ShieldCheck,
@@ -11,6 +12,8 @@ import {
   AlertTriangle,
   Check,
 } from "lucide-react";
+// import EmergencyHelplines from "@/components/EmergencyHelplines";
+import EmergencySection from "@/components/EmergencyHelplines";
 
 export default function Home() {
   const features = [
@@ -76,6 +79,15 @@ export default function Home() {
     },
   ];
 
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedToken = localStorage.getItem("token");
+      setAccessToken(storedToken);
+    }
+  }, []);
+
   return (
     <main className="relative min-h-screen bg-white dark:bg-black text-zinc-900 dark:text-white overflow-hidden">
       {/* Enhanced gradient background */}
@@ -120,11 +132,13 @@ export default function Home() {
                   How it Works
                 </button>
               </Link>
-              <Link href="/auth/signin">
-                <button className="flex h-12 items-center justify-center gap-2 rounded-xl bg-zinc-100 dark:bg-white/5 px-8 md:text-sm lg:text-sm sm:text-lg text-zinc-900 dark:text-white ring-1 ring-inset ring-zinc-900/10 dark:ring-white/10 transition-all hover:bg-zinc-200 dark:hover:bg-white/10">
-                  Login
-                </button>
-              </Link>
+              {!accessToken && (
+                <Link href="/auth/signin">
+                  <button className="flex h-12 items-center justify-center gap-2 rounded-xl bg-zinc-100 dark:bg-white/5 px-8 md:text-sm lg:text-sm sm:text-lg text-zinc-900 dark:text-white ring-1 ring-inset ring-zinc-900/10 dark:ring-white/10 transition-all hover:bg-zinc-200 dark:hover:bg-white/10">
+                    Login
+                  </button>
+                </Link>
+              )}
             </div>
           </div>
         </section>
@@ -170,6 +184,8 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        <EmergencySection />
 
         {/* Enhanced Impact Stats */}
         <section className="mt-24 text-center">

@@ -64,6 +64,16 @@ export function LocationInput({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const watchId = useRef<number | null>(null);
 
+  useEffect(() => {
+    getLocation();
+
+    return () => {
+      if (watchId.current !== null) {
+        navigator.geolocation.clearWatch(watchId.current);
+      }
+    };
+  }, []);
+
   const getLocation = async () => {
     setIsGettingLocation(true);
     setLocationError(null);
@@ -168,27 +178,6 @@ export function LocationInput({
     }
   };
 
-  // const fetchAddress = async (latitude: number, longitude: number) => {
-  //   try {
-  //     const response = await fetch(
-  //       `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxgl.accessToken}&types=address,place`
-  //     );
-  //     const data = await response.json();
-  //     if (data.features && data.features.length > 0) {
-  //       const addressFeature =
-  //         data.features.find((f: GeocodingFeature) =>
-  //           f.place_type.includes("address")
-  //         ) || data.features[0];
-  //       setAddress(addressFeature.place_name);
-  //     } else {
-  //       setAddress("Unable to fetch address");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching address:", error);
-  //     setAddress("Unable to fetch address");
-  //   }
-  // };
-
   useEffect(() => {
     return () => {
       if (watchId.current !== null) {
@@ -287,9 +276,6 @@ export function LocationInput({
 
   return (
     <div className="space-y-2">
-      {/* <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Location
-      </label> */}
       <div className="relative" ref={inputRef}>
         <input
           type="text"
@@ -304,12 +290,10 @@ export function LocationInput({
           required
           onFocus={() => setShowSuggestions(true)}
           placeholder="Enter location or use map"
-          // className="w-full rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-4 py-3.5
-          //            text-gray-900 dark:text-gray-100 transition-colors duration-200
-          //            focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-          className={className}
-          disabled
+          className={`w-full truncate pr-12 ${className}`}
+          readOnly
         />
+
         <button
           type="button"
           onClick={getLocation}

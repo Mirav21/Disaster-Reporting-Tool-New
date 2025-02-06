@@ -1112,8 +1112,8 @@ export function ReportForm({ onComplete }: ReportFormProps) {
       {isLocationValid && formData.contactInfo && (
         <>
           {/* Add instruction text for both mobile and desktop */}
-          <p className="mb-4 text-gray-700 dark:text-gray-300 font-medium text-center">
-            Please select the severity level of the incident
+          <p className="mb-4 text-lg text-black bg-green-400 rounded-sm font-medium text-center">
+            Please select the severity level of the incident below ↓
           </p>
 
           {/* Dropdown for mobile - keeping it simple */}

@@ -145,7 +145,7 @@ function getTypePrefix(disasterType: ReportType) {
 }
 ;
 
-const client = createClient({ connectionString: process.env.DATABASE_URL });
+const client = createClient({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 
 async function generateReportNumber(disasterType: ReportType) {
   console.log("Connecting to DB...");

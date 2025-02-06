@@ -1,9 +1,6 @@
 "use client";
 
 import EnhancedReports from "@/components/submit-report/ReportTracker";
-// import { ReportTracker } from "@/components/submit-report/ReportTracker";
-// import { EnhancedReports} from "@/components/submit-report/ReportTracker";
-
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 

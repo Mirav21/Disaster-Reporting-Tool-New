@@ -68,11 +68,9 @@ const OTPInput: React.FC<OTPInputProps> = ({
 
     // Create a new OTP array
     const newOtp = [...otp];
-
     // Only update the current field with the last digit entered
     newOtp[index] = cleanValue.slice(-1);
     setOtp(newOtp);
-
     // Move to next field if not the last field
     if (index < 5) {
       otpRefs.current[index + 1]?.focus();
@@ -142,11 +140,11 @@ const OTPInput: React.FC<OTPInputProps> = ({
             onChange={(e) => handleOtpChange(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
             className="w-10 h-12 sm:w-14 sm:h-16 text-center text-lg sm:text-xl font-semibold 
-                     border-2 border-green-400 dark:border-green-500 rounded-xl 
-                     bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
-                     focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 
-                     transition-all duration-200 shadow-sm
-                     disabled:opacity-50 disabled:cursor-not-allowed"
+            border-2 border-green-400 dark:border-green-500 rounded-xl 
+            bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
+            focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 
+            transition-all duration-200 shadow-sm
+            disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading}
             autoComplete="one-time-code"
           />
@@ -157,10 +155,10 @@ const OTPInput: React.FC<OTPInputProps> = ({
         onClick={onSubmit}
         disabled={isLoading || otp.join("").length !== 6}
         className="w-full py-3.5 px-4 bg-gradient-to-r from-green-600 to-emerald-600 
-                   hover:from-green-700 hover:to-emerald-700 dark:from-green-500 
-                   dark:to-emerald-500 dark:hover:from-green-600 dark:hover:to-emerald-600 
-                   text-white font-medium rounded-xl transition-all duration-200 
-                   disabled:opacity-50 shadow-lg hover:shadow-xl"
+          hover:from-green-700 hover:to-emerald-700 dark:from-green-500 
+          dark:to-emerald-500 dark:hover:from-green-600 dark:hover:to-emerald-600 
+          text-white font-medium rounded-xl transition-all duration-200 
+          disabled:opacity-50 shadow-lg hover:shadow-xl"
       >
         {isLoading ? (
           <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />

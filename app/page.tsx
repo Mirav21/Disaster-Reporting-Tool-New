@@ -13,7 +13,7 @@ import {
   Check,
 } from "lucide-react";
 // import EmergencyHelplines from "@/components/EmergencyHelplines";
-import EmergencySection from "@/components/EmergencyHelplines";
+import EmergencySection from "@/components/EmergencyHeadlines";
 
 export default function Home() {
   const features = [
@@ -142,7 +142,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
         {/* Enhanced Features Section */}
         <section className="mt-10">
           <div className="grid md:grid-cols-3 gap-6">

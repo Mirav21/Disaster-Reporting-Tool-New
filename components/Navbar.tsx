@@ -5,8 +5,14 @@ import MobileMenu from "./MobileMenu";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import DhruvaImage from "./DhruvaImage";
+
 import { Sun, Moon, Monitor } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
+
+interface ThemeSwitcherProps {
+  currentTheme: string;
+  onThemeChange: (theme: string) => void;
+}
 
 interface ThemeSwitcherProps {
   currentTheme: string;
@@ -61,10 +67,8 @@ export default function Navbar() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [theme, setTheme] = useState<string>("system");
   const [isClient, setIsClient] = useState(false);
-
   const [role, setRole] = useState<string | null>(null);
 
-  // Use useEffect to check for the token on the client side after the component mounts
   useEffect(() => {
     // This ensures that the code runs only on the client side after hydration
     setIsClient(true);
@@ -281,7 +285,6 @@ export default function Navbar() {
                 </span>
               </Link>
             </div>
-
             {/* Main Navigation */}
             <div className="hidden md:flex items-center space-x-6">
               <Link
@@ -303,8 +306,6 @@ export default function Navbar() {
                 How It Works
               </Link>
             </div>
-
-            {/* Right Section: Emergency Button, Theme Switcher, Profile */}
             <div className="flex items-center space-x-4 md:space-x-4 lg:space-x-4">
               <div className="flex items-center space-x-3 md:space-x-4 lg:space-x-4">
                 {isClient && (

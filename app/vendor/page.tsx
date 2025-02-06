@@ -77,7 +77,6 @@ export default function RescueTeamDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
 
-  // Create refs for form inputs
   const affectedPeopleRef = useRef<HTMLInputElement>(null);
   const peopleRescuedRef = useRef<HTMLInputElement>(null);
   const casualtiesRef = useRef<HTMLInputElement>(null);
@@ -118,8 +117,6 @@ export default function RescueTeamDashboard() {
         (report: Report) =>
           report.teamAssign !== null && report.status === "IN_PROGRESS"
       );
-
-      // Sort by creation date (newest first)
       const sortedData = filteredData.sort(
         (a: Report, b: Report) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -287,7 +284,6 @@ export default function RescueTeamDashboard() {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-white text-white flex flex-col md:flex-row dark:bg-gradient-to-br dark:from-neutral-900 dark:via-neutral-950 dark:to-black dark:text-white">
       {/* Mobile Header */}
@@ -544,7 +540,6 @@ export default function RescueTeamDashboard() {
                   {selectedReport.description}
                 </p>
               </div>
-
               {editingStats &&
               !selectedReport.reviewReport &&
               selectedReport.teamAssign ? (
@@ -587,7 +582,6 @@ export default function RescueTeamDashboard() {
                         />
                       </div>
                     </div>
-
                     <button
                       onClick={submitResponse}
                       disabled={isSaving}

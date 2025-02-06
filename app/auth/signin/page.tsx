@@ -212,6 +212,7 @@
 //     </div>
 //   );
 // }
+
 "use client";
 
 import axios from "axios";
@@ -236,6 +237,7 @@ export default function SignIn() {
   useEffect(() => {
     if (accessToken) {
       const decodedToken = jwtDecode<CustomJwtPayload>(accessToken);
+      console.log("Decoded Token:", decodedToken);
       if (decodedToken) {
         const role = decodedToken.role.toLowerCase();
         if (role === "moderator" || role === "admin") {
@@ -280,7 +282,6 @@ export default function SignIn() {
         const token = response.data.token;
         localStorage.setItem("token", token);
         setAccessToken(token);
-
         const decodedToken = jwtDecode<CustomJwtPayload>(token);
         if (decodedToken) {
           const role = decodedToken.role.toLowerCase();
@@ -360,6 +361,7 @@ export default function SignIn() {
                 disabled={isLoading}
                 className="flex w-full justify-center items-center gap-2 py-3 px-4 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 rounded-lg shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800"
               >
+                {" "}
                 {isLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (

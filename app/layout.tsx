@@ -42,7 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta property="og:title" content="My Awesome Page" />
+        <meta property="og:title" content="DhruvaSetu" />
         <meta
           property="og:description"
           content="This is alert for disater happened."

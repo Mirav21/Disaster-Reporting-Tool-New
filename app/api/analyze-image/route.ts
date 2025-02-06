@@ -123,41 +123,54 @@
 
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { Client } from "pg";
+// import { db } from "@vercel/postgres";
 
+import { createClient } from "@vercel/postgres"
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-type ReportType = "Wildfire" | "Earthquake" | "Hurricane" | "Flood" | "Tornado" | "Tsunami" | "Landslide"
-function getTypePrefix(disasterType: keyof typeof prefixMap) {
-  const prefixMap = {
-    Wildfire: "WF",
-    Earthquake: "EQ",
-    Hurricane: "HR",
-    Flood: "FL",
-    Tornado: "TR",
-    Tsunami: "TS",
-    Landslide: "LS",
-  };
+
+type ReportType = "Wildfire" | "Earthquake" | "Hurricane" | "Flood" | "Tornado" | "Tsunami" | "Landslide";
+
+const prefixMap: Record<ReportType, string> = {
+  Wildfire: "WF",
+  Earthquake: "EQ",
+  Hurricane: "HR",
+  Flood: "FL",
+  Tornado: "TR",
+  Tsunami: "TS",
+  Landslide: "LS",
+};
+
+function getTypePrefix(disasterType: ReportType) {
   return prefixMap[disasterType] || "OT";
 }
+;
 
-async function generateReportNumber(client: Client, disasterType: "Wildfire" | "Earthquake" | "Hurricane" | "Flood" | "Tornado" | "Tsunami" | "Landslide") {
-  const typePrefix = getTypePrefix(disasterType);
+const client = createClient({ connectionString: process.env.DATABASE_URL });
+
+async function generateReportNumber(disasterType: ReportType) {
+  console.log("Connecting to DB...");
   try {
-    const result = await client.query(
-      "SELECT COUNT(*) FROM disaster_report WHERE disaster_type = $1",
-      [disasterType]
-    );
-    const count = parseInt(result.rows[0].count) + 1;
-    return `${typePrefix}_${count.toString().padStart(2, "0")}`;
+    await client.connect();
+    console.log("Connected to DB!");
+
+    console.log(`Fetching count for ${disasterType}`);
+    const result = await client.sql`SELECT COUNT(*) FROM disaster_report WHERE disaster_type = ${disasterType}`;
+
+    const count = parseInt(result.rows[0]?.count || "0") + 1;
+    console.log(`Generated count: ${count}`);
+
+    return `${getTypePrefix(disasterType)}_${count.toString().padStart(2, "0")}`;
   } catch (error) {
-    console.error("Error generating report number:", error);
+    console.error("Error in generateReportNumber:", error);
     throw error;
+  } finally {
+    await client.end();
+    console.log("DB connection closed.");
   }
 }
 
+
 export async function POST(request: Request) {
-  const client = new Client({ connectionString: process.env.DATABASE_URL });
-  await client.connect();
   try {
     const { image } = await request.json();
     const base64Data = image.split(",")[1];
@@ -169,6 +182,7 @@ export async function POST(request: Request) {
       prompt,
       { inlineData: { data: base64Data, mimeType: "image/jpeg" } },
     ]);
+    console.log("Image analysis result:", result);
 
     const text = await result.response.text();
     if (text.trim().startsWith("NO")) {
@@ -176,11 +190,13 @@ export async function POST(request: Request) {
     }
 
     const reportType = text.match(/TYPE:\s*(.+)/)?.[1]?.trim() || "";
-    const allowedTypes: ReportType[] = ["Wildfire", "Earthquake", "Hurricane", "Flood", "Tornado", "Tsunami", "Landslide"] ;
+    const allowedTypes: ReportType[] = ["Wildfire", "Earthquake", "Hurricane", "Flood", "Tornado", "Tsunami", "Landslide"];
+    
     if (!allowedTypes.includes(reportType as ReportType)) {
       throw new Error(`Invalid disaster type: ${reportType}`);
     }
-    const reportTitle = await generateReportNumber(client, reportType as typeof allowedTypes[number]);
+
+    const reportTitle = await generateReportNumber(reportType as ReportType);
 
     return NextResponse.json({
       title: reportTitle,
@@ -191,7 +207,6 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Image analysis error:", error);
     return NextResponse.json({ error: "Failed to analyze image" }, { status: 500 });
-  } finally {
-    await client.end();
   }
 }
+

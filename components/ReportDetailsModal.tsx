@@ -397,6 +397,7 @@ const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
           <div className="flex items-center justify-center mt-5 gap-4">
             <FacebookShareButton
               url={url}
+              hashtag={`${title} - ${text}` || ""}
               className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold border-2 py-2 px-4 rounded-lg transition-all duration-300"
             >
               <FacebookIcon className="w-8 h-8" />

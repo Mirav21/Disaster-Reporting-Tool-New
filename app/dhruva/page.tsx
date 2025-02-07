@@ -229,8 +229,8 @@ const DisasterGuardChat: React.FC = () => {
   const initSpeechRecognition = () => {
     if ("webkitSpeechRecognition" in window) {
       recognitionRef.current = new window.webkitSpeechRecognition();
-      recognitionRef.current.continuous = true; // Keep listening until stopped
-      recognitionRef.current.interimResults = true; // Capture partial results
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = LANGUAGE_CONFIG[language].code;
 
       recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
@@ -246,16 +246,28 @@ const DisasterGuardChat: React.FC = () => {
           }
         }
 
-        setInput(finalTranscript || interimTranscript); // Show live updates
+        setInput(finalTranscript || interimTranscript);
 
         if (finalTranscript) {
-          handleSubmit(finalTranscript); // Submit only the final transcript
+          // Stop recognition before handling submit
+          recognitionRef.current?.stop();
           setIsListening(false);
+
+          // Clear the recognition reference to ensure clean state
+          setTimeout(() => {
+            handleSubmit(finalTranscript.trim());
+          }, 100);
         }
       };
 
       recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error("Speech recognition error:", event.error);
+        recognitionRef.current?.stop();
+        setIsListening(false);
+      };
+
+      // Add onend handler to ensure state is cleaned up
+      recognitionRef.current.onend = () => {
         setIsListening(false);
       };
     }
@@ -270,8 +282,13 @@ const DisasterGuardChat: React.FC = () => {
       recognitionRef.current?.stop();
       setIsListening(false);
     } else {
-      recognitionRef.current?.start();
-      setIsListening(true);
+      try {
+        recognitionRef.current?.start();
+        setIsListening(true);
+      } catch (error) {
+        console.error("Failed to start speech recognition:", error);
+        setIsListening(false);
+      }
     }
   };
 

@@ -128,7 +128,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient } from "@vercel/postgres"
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-type ReportType = "Wildfire" | "Earthquake" | "Hurricane" | "Flood" | "Tornado" | "Tsunami" | "Landslide";
+type ReportType = "Wildfire" | "Earthquake" | "Hurricane" | "Flood" | "Tornado" | "Tsunami" | "Landslide" | "Drought" | "Heatwave" | "LightRain" | "HeavyRain" | "HeavyWind" | "Other";
 
 const prefixMap: Record<ReportType, string> = {
   Wildfire: "WF",
@@ -138,7 +138,14 @@ const prefixMap: Record<ReportType, string> = {
   Tornado: "TR",
   Tsunami: "TS",
   Landslide: "LS",
+  Drought: "DR",
+  Heatwave: "HW",
+  HeavyRain: "HRN",
+  LightRain: "LRN",
+  HeavyWind: "HWN",
+  Other: "OT",
 };
+
 
 function getTypePrefix(disasterType: ReportType) {
   return prefixMap[disasterType] || "OT";
@@ -176,8 +183,11 @@ export async function POST(request: Request) {
     const base64Data = image.split(",")[1];
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-8b" });
 
-    const prompt = `Determine if this image depicts a disaster scenario. Respond with ONLY 'YES' or 'NO'. Then, if it does, analyze this emergency situation image and respond in this exact format without any asterisks or bullet points\nTYPE: Choose one (Earthquake, Hurricane, Flood, Wildfire, Tornado, Tsunami, Landslide & other)\nDESCRIPTION: Write a clear, concise description\nQUESTION: Do you want to confirm the disaster type as {print the type of disaster}?`;
-    
+    const prompt = `Determine if this image depicts a disaster scenario. Respond with ONLY 'YES' or 'NO'. Then, if it does, analyze this emergency situation image and respond in this exact format without any asterisks or bullet points
+    TYPE: Choose one (Earthquake, Hurricane, Flood, Wildfire, Tornado, Tsunami, Landslide, Drought, Heatwave, Heavy Rain, Light Rain, Heavy Wind, Other)
+    DESCRIPTION: Write a clear, concise description
+    QUESTION: Do you want to confirm the disaster type as {print the type of disaster}?`; 
+
     const result = await model.generateContent([
       prompt,
       { inlineData: { data: base64Data, mimeType: "image/jpeg" } },
@@ -190,11 +200,11 @@ export async function POST(request: Request) {
     }
 
     const reportType = text.match(/TYPE:\s*(.+)/)?.[1]?.trim() || "";
-    const allowedTypes: ReportType[] = ["Wildfire", "Earthquake", "Hurricane", "Flood", "Tornado", "Tsunami", "Landslide"];
+    // const allowedTypes: ReportType[] = ["Wildfire", "Earthquake", "Hurricane", "Flood", "Tornado", "Tsunami", "Landslide"];
     
-    if (!allowedTypes.includes(reportType as ReportType)) {
-      throw new Error(`Invalid disaster type: ${reportType}`);
-    }
+    // if (!allowedTypes.includes(reportType as ReportType)) {
+    //   throw new Error(`Invalid disaster type: ${reportType}`);
+    // }
 
     const reportTitle = await generateReportNumber(reportType as ReportType);
 

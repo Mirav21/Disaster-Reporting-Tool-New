@@ -151,59 +151,111 @@ const DisasterGuardChat: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<IWebkitSpeechRecognition | null>(null);
 
-  const PAUSE_THRESHOLD = 2000; // 2 seconds delay
-  let timeoutId: NodeJS.Timeout;
+  // const PAUSE_THRESHOLD = 2000; // 2 seconds delay
+  // let timeoutId: NodeJS.Timeout;
+
+  // const initSpeechRecognition = () => {
+  //   if ("webkitSpeechRecognition" in window) {
+  //     recognitionRef.current = new window.webkitSpeechRecognition();
+  //     recognitionRef.current.continuous = true; // Changed to true to keep listening
+  //     recognitionRef.current.interimResults = true; // Changed to true to get interim results
+  //     recognitionRef.current.lang = LANGUAGE_CONFIG[language].code;
+
+  //     let finalTranscript = "";
+
+  //     recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+  //       let interimTranscript = "";
+
+  //       // Collect all results
+  //       for (let i = event.resultIndex; i < event.results.length; i++) {
+  //         const transcript = event.results[i][0].transcript;
+  //         if (event.results[i].isFinal) {
+  //           finalTranscript += transcript + " ";
+  //         } else {
+  //           interimTranscript += transcript;
+  //         }
+  //       }
+
+  //       // Update the input field with current speech
+  //       setInput(finalTranscript + interimTranscript);
+
+  //       // Clear any existing timeout
+  //       if (timeoutId) {
+  //         clearTimeout(timeoutId);
+  //       }
+
+  //       // Set new timeout for final submission
+  //       timeoutId = setTimeout(() => {
+  //         if (finalTranscript.trim()) {
+  //           handleSubmit(finalTranscript.trim());
+  //           finalTranscript = ""; // Reset final transcript
+  //           setIsListening(false);
+  //           recognitionRef.current?.stop();
+  //         }
+  //       }, PAUSE_THRESHOLD);
+  //     };
+
+  //     recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
+  //       console.error("Speech recognition error:", event.error);
+  //       setIsListening(false);
+  //       if (timeoutId) {
+  //         clearTimeout(timeoutId);
+  //       }
+  //     };
+
+  //     recognitionRef.current.onend = () => {
+  //       setIsListening(false);
+  //     };
+  //   }
+  // };
+
+  // const toggleSpeechRecognition = () => {
+  //   if (!recognitionRef.current) {
+  //     initSpeechRecognition();
+  //   }
+
+  //   if (isListening) {
+  //     recognitionRef.current?.stop();
+  //     setIsListening(false);
+  //     if (timeoutId) {
+  //       clearTimeout(timeoutId);
+  //     }
+  //   } else {
+  //     recognitionRef.current?.start();
+  //     setIsListening(true);
+  //   }
+  // };
 
   const initSpeechRecognition = () => {
     if ("webkitSpeechRecognition" in window) {
       recognitionRef.current = new window.webkitSpeechRecognition();
-      recognitionRef.current.continuous = true; // Changed to true to keep listening
-      recognitionRef.current.interimResults = true; // Changed to true to get interim results
+      recognitionRef.current.continuous = true; // Keep listening until stopped
+      recognitionRef.current.interimResults = true; // Capture partial results
       recognitionRef.current.lang = LANGUAGE_CONFIG[language].code;
-
-      let finalTranscript = "";
 
       recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
         let interimTranscript = "";
+        let finalTranscript = "";
 
-        // Collect all results
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript + " ";
+        for (let i = 0; i < event.results.length; i++) {
+          const result = event.results[i];
+          if (result.isFinal) {
+            finalTranscript += result[0].transcript + " ";
           } else {
-            interimTranscript += transcript;
+            interimTranscript += result[0].transcript + " ";
           }
         }
 
-        // Update the input field with current speech
-        setInput(finalTranscript + interimTranscript);
+        setInput(finalTranscript || interimTranscript); // Show live updates
 
-        // Clear any existing timeout
-        if (timeoutId) {
-          clearTimeout(timeoutId);
+        if (finalTranscript) {
+          handleSubmit(finalTranscript); // Submit only the final transcript
+          setIsListening(false);
         }
-
-        // Set new timeout for final submission
-        timeoutId = setTimeout(() => {
-          if (finalTranscript.trim()) {
-            handleSubmit(finalTranscript.trim());
-            finalTranscript = ""; // Reset final transcript
-            setIsListening(false);
-            recognitionRef.current?.stop();
-          }
-        }, PAUSE_THRESHOLD);
       };
 
       recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error("Speech recognition error:", event.error);
-        setIsListening(false);
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-      };
-
-      recognitionRef.current.onend = () => {
         setIsListening(false);
       };
     }
@@ -217,9 +269,6 @@ const DisasterGuardChat: React.FC = () => {
     if (isListening) {
       recognitionRef.current?.stop();
       setIsListening(false);
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
     } else {
       recognitionRef.current?.start();
       setIsListening(true);

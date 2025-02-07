@@ -28,36 +28,35 @@ function getTypePrefix(disasterType: ReportType) {
 
 const client = createClient({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 
-// async function generateReportNumber(disasterType: ReportType) {
-//   try {
-//     await client.connect();
-
-//     const result = await client.sql`SELECT COUNT(*) FROM disaster_report WHERE disaster_type = ${disasterType}`;
-
-//     const count = parseInt(result.rows[0]?.count || "0") + 1;
-
-//     return `${getTypePrefix(disasterType)}_${count.toString().padStart(2, "0")}`;
-//   } catch (error) {
-//     console.error("Error in generateReportNumber:", error);
-//     throw error;
-//   } finally {
-//     await client.end();
-//   }
-// }
-
 async function generateReportNumber(disasterType: ReportType) {
   try {
+    await client.connect();
+
     const result = await client.sql`SELECT COUNT(*) FROM disaster_report WHERE disaster_type = ${disasterType}`;
-  
+
     const count = parseInt(result.rows[0]?.count || "0") + 1;
-  
+
     return `${getTypePrefix(disasterType)}_${count.toString().padStart(2, "0")}`;
   } catch (error) {
     console.error("Error in generateReportNumber:", error);
     throw error;
+  } finally {
+    await client.end();
   }
 }
 
+// async function generateReportNumber(disasterType: ReportType) {
+//   try {
+//     const result = await client.sql`SELECT COUNT(*) FROM disaster_report WHERE disaster_type = ${disasterType}`;
+  
+//     const count = parseInt(result.rows[0]?.count || "0") + 1;
+  
+//     return `${getTypePrefix(disasterType)}_${count.toString().padStart(2, "0")}`;
+//   } catch (error) {
+//     console.error("Error in generateReportNumber:", error);
+//     throw error;
+//   }
+// }
 
 export async function POST(request: Request) {
   try {

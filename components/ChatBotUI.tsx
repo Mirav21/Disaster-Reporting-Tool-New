@@ -1,20 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import ChatButton from "./ChatButton";
 
-export default function ChatBotUI() {
-  const [isDhruva, setIsDhruva] = useState(false);
+import { Suspense } from "react";
+
+// Wrapper component
+export default function ChatBotUIWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <ChatBotUIContent />
+    </Suspense>
+  );
+}
+
+// Content component that uses hooks
+function ChatBotUIContent() {
+  const [shouldHideButton, setShouldHideButton] = useState(false);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      // Check for query parameter 'dhruva'
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has("dhruva")) {
-        setIsDhruva(true);
-      }
-    }
-  }, []);
+    // Hide button if we're on the /dhruva page OR if dhruva parameter exists
+    const isOnDhruvaPage = pathname === "/dhruva";
+    const hasDhruvaParam = searchParams.has("dhruva");
+    setShouldHideButton(isOnDhruvaPage || hasDhruvaParam);
+  }, [pathname, searchParams]);
 
-  return <>{!isDhruva && <ChatButton />}</>;
+  return <>{!shouldHideButton && <ChatButton />}</>;
 }

@@ -118,13 +118,13 @@ async function ensureConnection(client: VercelClient): Promise<void> {
         try {
             await client.connect();
             isConnected = true;
-        } catch (error: any) {
-            if (error.message?.includes('already connected')) {
-                isConnected = true;
-            } else {
-                throw error;
-            }
-        }
+        } catch (error) {
+          if (error instanceof Error && error.message.includes('already connected')) {
+              isConnected = true;
+          } else {
+              throw error;
+          }
+      }
     }
 }
 

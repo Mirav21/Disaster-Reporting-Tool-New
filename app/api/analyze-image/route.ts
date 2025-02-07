@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   try {
     const { image } = await request.json();
     const base64Data = image.split(",")[1];
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-8b" });
 
     const prompt = `Determine if this image depicts a disaster scenario. Respond with ONLY 'YES' or 'NO'. Then, if it does, analyze this emergency situation image and respond in this exact format without any asterisks or bullet points
     TYPE: Choose one (Earthquake, Hurricane, Flood, Wildfire, Tornado, Tsunami, Landslide, Drought, Heavy Rain, Heavy Wind, Other)

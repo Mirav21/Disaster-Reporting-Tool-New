@@ -738,9 +738,9 @@ const DisasterGuardChat: React.FC = () => {
         <CardContent className="h-full p-4 flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between mb-4 pb-4 border-b border-zinc-200 dark:border-zinc-800">
-            <div className="flex items-center gap-4">
+            <div className="hidden md:flex lg:flex items-center gap-4">
               <div>
-                <h2 className="text-emerald-700 dark:text-emerald-400 text-2xl font-bold tracking-tight">
+                <h2 className="text-emerald-700 dark:text-emerald-400 text-lg md:text-2xl lg:text-2xl font-bold tracking-tight">
                   Dhruva: Emergency Assistant
                 </h2>
                 <p className="text-zinc-600 dark:text-zinc-300 text-sm">

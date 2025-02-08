@@ -1138,7 +1138,7 @@ export function ReportForm({ onComplete }: ReportFormProps) {
                 Non-Emergency (Drought, Heatwave...)
               </option>
               <option value="LowPriority">
-                Low Priority (Light Rain, Wind...)
+                Low Priority (Heavy Rain, Wind...)
               </option>
               <option value="Critical">
                 Critical (Cyclone, Thunderstorm...)
@@ -1293,7 +1293,7 @@ export function ReportForm({ onComplete }: ReportFormProps) {
                   Routine Monitoring
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                  (Light Rain, Heavy Wind...)
+                  (Heavy Rain, Heavy Wind...)
                 </span>
               </div>
             </button>

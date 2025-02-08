@@ -39,17 +39,17 @@ export default function Home() {
 
   const impactStats = [
     {
-      value: "100K+",
+      value: "100",
       label: "Reports Submitted",
       icon: <Activity className="h-8 w-8 text-green-600 dark:text-green-500" />,
     },
     {
-      value: "50K+",
+      value: "500",
       label: "Lives Impacted",
       icon: <Heart className="h-8 w-8 text-green-600 dark:text-green-500" />,
     },
     {
-      value: "500+",
+      value: "10+",
       label: "Communities Supported",
       icon: <Users className="h-8 w-8 text-green-600 dark:text-green-500" />,
     },

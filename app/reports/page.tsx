@@ -332,7 +332,7 @@ export default function Reports() {
       PENDING: <Clock className="text-amber-400" />,
       IN_PROGRESS: <RefreshCw className="text-green-400 animate-spin" />,
       RESOLVED: <Check className="text-emerald-400" />,
-      DISMISSED: <XCircle className="text-neutral-400" />,
+      REJECTED: <XCircle className="text-red-400" />,
     };
     return icons[status as keyof typeof icons] || icons.PENDING;
   };
@@ -345,8 +345,8 @@ export default function Reports() {
         "bg-blue-100 text-green-800 dark:bg-blue-500/20 dark:text-green-200 border border-blue-200 dark:border-blue-500/30",
       COMPLETED:
         "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-500/30",
-      DISMISSED:
-        "bg-gray-100 text-gray-800 dark:bg-neutral-500/20 dark:text-neutral-200 border border-gray-200 dark:border-neutral-500/30",
+      REJECTED:
+        "bg-gray-100 text-gray-800 dark:bg-red-500/20 dark:text-red-200 border border-gray-200 dark:border-red-500/30",
     };
 
     return colors[status as keyof typeof colors] || colors.PENDING;

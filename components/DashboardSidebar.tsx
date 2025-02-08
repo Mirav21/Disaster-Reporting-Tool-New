@@ -103,7 +103,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, phoneNumber }) => {
 
       <button
         onClick={() => setIsMobileMenuOpen(true)}
-        className="lg:hidden fixed bottom-4 right-4 p-3 rounded-full bg-green-500 text-white shadow-lg z-40"
+        className="lg:hidden fixed top-24 right-6 p-3 rounded-full bg-green-500 text-white shadow-lg z-40"
       >
         <Menu className="w-6 h-6" />
       </button>

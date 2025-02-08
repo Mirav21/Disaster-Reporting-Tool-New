@@ -9,9 +9,10 @@ interface MobileMenuProps {
   onClose: () => void;
   theme: string;
   onThemeChange: (theme: string) => void;
+  role: string | null;
 }
 
-export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
+export default function MobileMenu({ isOpen, onClose, role }: MobileMenuProps) {
   const router = useRouter();
 
   if (!isOpen) return null;
@@ -63,8 +64,7 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           <nav className="flex flex-col space-y-4">
             {/* Navigation Links */}
             {(() => {
-              const username = localStorage.getItem("username")?.toLowerCase();
-              return username === "admin" || username === "moderator" ? (
+              return role === "admin" || role === "moderator" ? (
                 <Link
                   href="/dashboard"
                   className="text-md text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"

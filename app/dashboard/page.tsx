@@ -1361,8 +1361,8 @@ export default function Dashboard() {
         "bg-blue-100 text-green-800 dark:bg-blue-500/20 dark:text-green-200 border border-blue-200 dark:border-blue-500/30",
       COMPLETED:
         "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-500/30",
-      DISMISSED:
-        "bg-gray-100 text-gray-800 dark:bg-neutral-500/20 dark:text-neutral-200 border border-gray-200 dark:border-neutral-500/30",
+      REJECTED:
+        "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-200 border border-red-200 dark:border-red-500/30",
     };
 
     return colors[status as keyof typeof colors] || colors.PENDING;
@@ -1410,7 +1410,7 @@ export default function Dashboard() {
                   </p>
                 </div>
                 {/* Sidebar Button (Moved to Right of Title & Description) */}
-                <button
+                {/* <button
                   onClick={toggleMobileMenu}
                   className="lg:hidden flex p-2 z-50 rounded-lg bg-white dark:bg-neutral-900 shadow-lg border border-gray-200 dark:border-neutral-800 ml-4"
                 >
@@ -1420,7 +1420,7 @@ export default function Dashboard() {
                   ) : (
                     <Menu className="w-6 h-6 text-gray-900 dark:text-white" />
                   )}
-                </button>
+                </button> */}
               </div>
             </div>
           </header>

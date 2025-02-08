@@ -463,6 +463,7 @@ export default function Navbar() {
         onClose={() => setIsMobileMenuOpen(false)}
         theme={theme}
         onThemeChange={handleThemeChange}
+        role={role}
       />
     </>
   );

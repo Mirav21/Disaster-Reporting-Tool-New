@@ -598,8 +598,8 @@ const getStatusColor = (status: string) => {
       "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200 border border-blue-200 dark:border-blue-500/30",
     COMPLETED:
       "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-500/30",
-    DISMISSED:
-      "bg-gray-100 text-gray-800 dark:bg-neutral-500/20 dark:text-neutral-200 border border-gray-200 dark:border-neutral-500/30",
+    REJECTED:
+      "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-200 border border-red-200 dark:border-red-500/30",
   };
 
   return colors[status as keyof typeof colors] || colors.PENDING;
@@ -724,9 +724,10 @@ export default function EnhancedReports() {
   };
 
   const severityColors = {
-    HIGH: "text-red-600 dark:text-red-400",
-    MEDIUM: "text-yellow-600 dark:text-yellow-400",
-    LOW: "text-green-600 dark:text-green-400",
+    Emergency: "text-red-600 dark:text-red-400",
+    NonEmergency: "text-orange-600 dark:text-orange-400",
+    LowPriority: "text-blue-600 dark:text-blue-400",
+    Critical: "text-purple-600 dark:text-purple-400",
   };
 
   const handleSort = (field: SortField) => {

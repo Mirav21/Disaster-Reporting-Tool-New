@@ -21,13 +21,23 @@ const EmergencySection = () => {
       borderColor: "border-red-200 dark:border-red-500/20",
       numbers: [
         {
-          name: "Police",
-          number: "100",
+          name: "Earthquake Helpline",
+          number: "192",
+          icon: <Phone className="h-6 w-6 text-red-600 dark:text-red-500" />,
+        },
+        {
+          name: "National Disaster Management Authority",
+          number: "+91 7923259283",
+          icon: <Phone className="h-6 w-6 text-red-600 dark:text-red-500" />,
+        },
+        {
+          name: "Unified Emergency Number",
+          number: "112",
           icon: <Phone className="h-6 w-6 text-red-600 dark:text-red-500" />,
         },
         {
           name: "Ambulance",
-          number: "102",
+          number: "108",
           icon: <Phone className="h-6 w-6 text-red-600 dark:text-red-500" />,
         },
         {

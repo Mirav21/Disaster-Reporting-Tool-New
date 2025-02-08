@@ -1078,7 +1078,7 @@
 // }
 "use client";
 import { useEffect, useState } from "react";
-import { Users, FileText, AlertCircle, Activity, Menu, X } from "lucide-react";
+import { Users, FileText, AlertCircle, Activity } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -1170,9 +1170,9 @@ export default function Dashboard() {
     setReload(false);
   }, [reload]);
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  // const toggleMobileMenu = () => {
+  //   setIsMobileMenuOpen(!isMobileMenuOpen);
+  // };
 
   // Close mobile menu when route changes or screen size increases
   useEffect(() => {

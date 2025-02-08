@@ -51,7 +51,7 @@ export default function HowItWorks() {
                   "Fill out our secure form with as much detail as possible. No personal information is required. You can include photos, videos, or documents if available.",
                 icon: (
                   <svg
-                    className="h-6 w-6 text-sky-400 dark:text-sky-500"
+                    className="h-6 w-6 text-green-400 dark:text-green-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -187,7 +187,7 @@ export default function HowItWorks() {
                   description: "We never store IP addresses or user metadata",
                   icon: (
                     <svg
-                      className="h-6 w-6 text-sky-400 dark:text-sky-500"
+                      className="h-6 w-6 text-green-400 dark:text-green-500"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -206,7 +206,7 @@ export default function HowItWorks() {
                   description: "Independent security firms verify our systems",
                   icon: (
                     <svg
-                      className="h-6 w-6 text-sky-400 dark:text-sky-500"
+                      className="h-6 w-6 text-green-400 dark:text-green-500"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -243,8 +243,8 @@ export default function HowItWorks() {
             <h2 className="text-2xl font-bold text-white mb-6 dark:text-zinc-100">
               Ready to Make a Report?
             </h2>
-            <button className="group relative inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-sky-500 px-8 text-sm font-medium text-white transition-all hover:bg-sky-400 dark:bg-sky-600 dark:hover:bg-sky-500">
-              Start Anonymous Report
+            <button className="group relative inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-green-500 px-8 text-sm font-medium text-white transition-all hover:bg-green-400 dark:bg-green-600 dark:hover:bg-green-500">
+              Start Your Secure Journey
               <svg
                 className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
                 fill="none"

@@ -13,8 +13,6 @@ import {
   Bell,
   AlertTriangle,
   AlertCircle,
-  Menu,
-  X,
   Building,
   Award,
   MapPin,
@@ -108,9 +106,9 @@ export default function Reports() {
     setReload(false);
   }, [reload]);
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  // const toggleMobileMenu = () => {
+  //   setIsMobileMenuOpen(!isMobileMenuOpen);
+  // };
 
   // Close mobile menu when route changes or screen size increases
   useEffect(() => {
@@ -235,8 +233,6 @@ export default function Reports() {
       return;
     }
 
-    console.log("Assigning team:", selectedTeam, "to report:", reportId);
-
     try {
       await axios.put<AssignTeamResponse>(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/disaster-report/assign-team`,
@@ -273,7 +269,6 @@ export default function Reports() {
       );
 
       const data: DisasterReport[] = response.data;
-      console.log(data);
 
       // Define the sort order
       const statusOrder = ["PENDING", "IN_PROGRESS", "COMPLETED"];
@@ -303,8 +298,6 @@ export default function Reports() {
 
   const updateReportStatus = async (reportId: string, newStatus: string) => {
     const token = localStorage.getItem("token");
-    console.log(token);
-    console.log("Updating report status:", reportId, newStatus);
     try {
       const endpoint =
         newStatus === "COMPLETED"
@@ -530,7 +523,7 @@ export default function Reports() {
                   </p>
                 </div>
 
-                <button
+                {/* <button
                   onClick={toggleMobileMenu}
                   className="lg:hidden flex p-2 z-50 rounded-lg bg-white dark:bg-neutral-900 shadow-lg border border-gray-200 dark:border-neutral-800 ml-4"
                 >
@@ -539,7 +532,7 @@ export default function Reports() {
                   ) : (
                     <Menu className="w-6 h-6 text-gray-900 dark:text-white" />
                   )}
-                </button>
+                </button> */}
               </div>
             </div>
           </header>

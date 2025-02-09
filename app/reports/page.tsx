@@ -106,10 +106,6 @@ export default function Reports() {
     setReload(false);
   }, [reload]);
 
-  // const toggleMobileMenu = () => {
-  //   setIsMobileMenuOpen(!isMobileMenuOpen);
-  // };
-
   // Close mobile menu when route changes or screen size increases
   useEffect(() => {
     const handleResize = () => {

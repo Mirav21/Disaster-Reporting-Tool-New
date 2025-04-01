@@ -500,10 +500,19 @@
 // };
 
 // export default DisasterGuardChat;
-
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { Send, Bot, User, XCircle, Mic, MicOff, Languages } from "lucide-react";
+import {
+  Send,
+  Bot,
+  User,
+  XCircle,
+  Mic,
+  MicOff,
+  Languages,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -627,14 +636,23 @@ const FormattedMessage = ({ content }: { content: string }) => {
 const DisasterGuardChat: React.FC = () => {
   const router = useRouter();
   const [messages, setMessages] = useState<
-    Array<{ type: "bot" | "user"; content: string }>
+    Array<{ type: "bot" | "user"; content: string; id: string }>
   >([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState<keyof typeof LANGUAGE_CONFIG>("en");
   const [isListening, setIsListening] = useState(false);
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(
+    null
+  );
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Generate unique ID for messages
+  const generateMessageId = () => {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  };
 
   // Speech Recognition Setup
   const initSpeechRecognition = () => {
@@ -658,6 +676,60 @@ const DisasterGuardChat: React.FC = () => {
     }
   };
 
+  // Initialize TTS for current language
+  const setupSpeechSynthesis = () => {
+    // Stop any ongoing speech before changing language
+    window.speechSynthesis.cancel();
+    setSpeakingMessageId(null);
+  };
+
+  // Text to Speech Function
+  const speakMessage = (text: string, messageId: string) => {
+    // If already speaking, stop it
+    if (speakingMessageId === messageId) {
+      window.speechSynthesis.cancel();
+      setSpeakingMessageId(null);
+      return;
+    }
+
+    // Stop any other ongoing speech
+    window.speechSynthesis.cancel();
+
+    // Create new utterance
+    const utterance = new SpeechSynthesisUtterance(text);
+    speechSynthesisRef.current = utterance;
+
+    // Set language based on current selection
+    utterance.lang = LANGUAGE_CONFIG[language].code;
+
+    // Find an appropriate voice for the selected language if available
+    const voices = window.speechSynthesis.getVoices();
+    const languageVoice = voices.find((voice) =>
+      voice.lang.startsWith(LANGUAGE_CONFIG[language].code.split("-")[0])
+    );
+
+    if (languageVoice) {
+      utterance.voice = languageVoice;
+    }
+
+    // Handle speech end
+    utterance.onend = () => {
+      setSpeakingMessageId(null);
+    };
+
+    // Handle speech error
+    utterance.onerror = (event) => {
+      console.error("Speech synthesis error:", event);
+      setSpeakingMessageId(null);
+    };
+
+    // Set current speaking message
+    setSpeakingMessageId(messageId);
+
+    // Start speaking
+    window.speechSynthesis.speak(utterance);
+  };
+
   // Toggle Speech Recognition
   const toggleSpeechRecognition = () => {
     if (!recognitionRef.current) {
@@ -679,12 +751,39 @@ const DisasterGuardChat: React.FC = () => {
       {
         type: "bot",
         content: LANGUAGE_CONFIG[language].welcomeMessage,
+        id: generateMessageId(),
       },
     ]);
 
     // Reinitialize speech recognition when language changes
     initSpeechRecognition();
+
+    // Setup speech synthesis for the selected language
+    setupSpeechSynthesis();
+
+    // Cancel any ongoing speech when language changes
+    return () => {
+      window.speechSynthesis.cancel();
+    };
   }, [language]);
+
+  // Load voices when available
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // Some browsers need this event to load voices
+      window.speechSynthesis.onvoiceschanged = setupSpeechSynthesis;
+
+      // For browsers that already have voices loaded
+      setupSpeechSynthesis();
+    }
+
+    // Cleanup on component unmount
+    return () => {
+      if (typeof window !== "undefined") {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   // Scroll to Bottom Effect
   useEffect(() => {
@@ -696,7 +795,11 @@ const DisasterGuardChat: React.FC = () => {
     const textToSubmit = inputText || input;
     if (!textToSubmit.trim()) return;
 
-    setMessages((prev) => [...prev, { type: "user", content: textToSubmit }]);
+    const userMessageId = generateMessageId();
+    setMessages((prev) => [
+      ...prev,
+      { type: "user", content: textToSubmit, id: userMessageId },
+    ]);
     setInput("");
     setLoading(true);
 
@@ -711,15 +814,24 @@ const DisasterGuardChat: React.FC = () => {
       });
       const data = await response.json();
 
+      const botMessageId = generateMessageId();
       setMessages((prev) => [
         ...prev,
-        { type: "bot", content: data.response || data.message },
+        {
+          type: "bot",
+          content: data.response || data.message,
+          id: botMessageId,
+        },
       ]);
     } catch (error) {
       console.error(error);
       setMessages((prev) => [
         ...prev,
-        { type: "bot", content: "Error processing request" },
+        {
+          type: "bot",
+          content: "Error processing request",
+          id: generateMessageId(),
+        },
       ]);
     } finally {
       setLoading(false);
@@ -728,6 +840,10 @@ const DisasterGuardChat: React.FC = () => {
 
   // Clear Chat
   const handleClear = () => {
+    // Stop any ongoing speech
+    window.speechSynthesis.cancel();
+    setSpeakingMessageId(null);
+
     setMessages([]);
     router.push("/");
   };
@@ -779,9 +895,9 @@ const DisasterGuardChat: React.FC = () => {
           {/* Chat Messages */}
           <ScrollArea className="flex-1 pr-4 mb-4 overflow-y-auto">
             <div className="space-y-4">
-              {messages.map((msg, idx) => (
+              {messages.map((msg) => (
                 <div
-                  key={idx}
+                  key={msg.id}
                   className={`flex items-start gap-2 ${
                     msg.type === "user" ? "flex-row-reverse" : "flex-row"
                   }`}
@@ -800,7 +916,7 @@ const DisasterGuardChat: React.FC = () => {
                     )}
                   </div>
                   <div
-                    className={`px-4 py-3 rounded-2xl max-w-[80%] shadow-md ${
+                    className={`relative px-4 py-3 rounded-2xl max-w-[80%] shadow-md ${
                       msg.type === "user"
                         ? "bg-green-600 text-white rounded-tr-none"
                         : "bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-100 rounded-tl-none border border-zinc-200 dark:border-zinc-700"
@@ -811,6 +927,24 @@ const DisasterGuardChat: React.FC = () => {
                     ) : (
                       <FormattedMessage content={msg.content} />
                     )}
+
+                    {/* Text-to-Speech Button */}
+                    <Button
+                      onClick={() => speakMessage(msg.content, msg.id)}
+                      variant="ghost"
+                      size="icon"
+                      className={`absolute bottom-1 right-1 h-6 w-6 rounded-full opacity-70 hover:opacity-100 transition-opacity ${
+                        msg.type === "user"
+                          ? "text-white hover:bg-green-700"
+                          : "text-emerald-600 hover:bg-white/10 dark:hover:bg-zinc-700/50"
+                      }`}
+                    >
+                      {speakingMessageId === msg.id ? (
+                        <VolumeX className="w-3 h-3" />
+                      ) : (
+                        <Volume2 className="w-3 h-3" />
+                      )}
+                    </Button>
                   </div>
                 </div>
               ))}

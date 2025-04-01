@@ -346,17 +346,20 @@ export default function Reports() {
 
     setIsSendingAlert(true);
     try {
-      const response = await fetch("/api/reports/sos-alert", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          reportId: selectedReport.id,
-          radius: sosRadius,
-          message: sosMessage,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/sos-alerts`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            reportId: selectedReport.id,
+            radius: sosRadius,
+            message: sosMessage,
+          }),
+        }
+      );
 
       const data = await response.json();
       if (data.success) {
